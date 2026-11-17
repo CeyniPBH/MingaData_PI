@@ -2,6 +2,13 @@
 
 Proyecto para planear una central de acopio agrícola en el Valle del Cauca. El flujo previsto es: pronóstico de oferta → zonas de acopio → optimización y tablero → informe.
 
+## Autores
+
+- **Carlos Guillermo Zúñiga Méndez** — Diagramas, informes y documentación
+- **Ceyni Paola Beltrán Hoyos** — Datos, baselines, modelo LightGBM y escenarios de oferta
+- **Samuel Gutiérrez Jaramillo** — Optimización (OR-Tools), tablero Streamlit y excedentes
+- **Alejandro Rendón Correa** — Zonas de acopio, escenarios de optimización y tablero
+
 ## Ejecutar el proyecto (Windows)
 
 Necesitas Python 3.10+ y Git. Desde PowerShell:
@@ -50,3 +57,40 @@ El módulo de pronóstico está implementado en `src/ML_C/`. El siguiente trabaj
 - La tabla de población municipal DANE está pendiente; el pipeline puede terminar sin ella.
 
 Los parámetros del pronóstico están en `config/ML_C/parametros.yaml`. Más detalles de columnas y resultados: `docs/ML_C/diccionario_datos.md`.
+
+## Ejecutar el tablero interactivo (Streamlit)
+
+El tablero tiene 3 pantallas: Oferta, Zonas y Ubicación.
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+streamlit run src/dashboard/app.py
+```
+
+Luego abre http://localhost:8501 en tu navegador.
+
+### Pantallas del tablero
+
+1. **Oferta**: selecciona producto y municipio para ver la serie histórica (2000-2023) y el pronóstico con intervalo bajo/base/alto (2024-2028).
+2. **Zonas**: mapa con los 42 municipios coloreados por oferta pronosticada, por producto y año.
+3. **Ubicación**: mapa con la central y acopios satélite, frontera de Pareto (costo de recolección vs distribución) y tabla de estabilidad por escenario.
+
+## Módulo de optimización (OR-Tools)
+
+El esqueleto del modelo de localización de instalaciones está en `src/optimizacion/modelo_esqueleto.py`. Ejecuta con:
+
+```powershell
+python src/optimizacion/modelo_esqueleto.py
+```
+
+La formulación matemática está documentada en `docs/formulacion_optimizacion.md`.
+
+## Pruebas automatizadas
+
+```powershell
+# Verificar Tarea 1 (optimización)
+python src/optimizacion/test_tarea1.py
+
+# Verificar Tarea 3 (tablero)
+python src/dashboard/test_tarea3.py
+```
