@@ -1,0 +1,58 @@
+rutas:
+  raw: data/raw
+  clean: data/clean
+  resultados: data/results/ML_Ce
+
+datos_raw:
+  # Zip con data/raw/SIPSA (precios SIPSA + inspecciones ICA FRONTERA). No va en Git.
+  # Subirlo como asset de un Release de GitHub y pegar aquí el enlace de descarga.
+  zip_url: "https://github.com/CeyniPBH/MingaData_PI/releases/download/datos-v1/MingaData_raw_SIPSA.zip"
+  zip_nombre: MingaData_raw_SIPSA.zip
+  zip_sha256: "a0de02ef4bc4d8bf00221a4407436709c9dcfd26296ffc732d34a91cc6e6a9c8"   # verifica que el zip descargado sea el correcto
+
+limpieza:
+  n_detallados: 22
+  ventana_activa: [2019, 2023]
+  criterio_ranking: toneladas      # toneladas | valor (valor requiere correr antes 04_fuentes_externas.py)
+
+pronostico:
+  anio_fin: 2023
+  origenes_walk_forward: [2018, 2019, 2020, 2021, 2022]
+  horizonte_max: 5
+  usar_oni: false                  # true para incluir ONI rezagado en LightGBM (ver notebook 06)
+
+lightgbm:
+  objective: l1
+  n_estimators: 300
+  learning_rate: 0.03
+  num_leaves: 15
+  min_child_samples: 30
+  subsample: 0.8
+  subsample_freq: 1
+  colsample_bytree: 0.8
+  reg_lambda: 1.0
+  random_state: 42
+  verbose: -1
+  n_jobs: 1
+
+escenarios:
+  cuantil_bajo: 0.10
+  cuantil_alto: 0.90
+  min_obs_por_producto: 30
+  horizonte_calibracion: 4
+
+geo:
+  factor_ruta: 1.4
+  velocidad_kmh: 45.0
+
+sipsa:
+  # Mercados mayoristas del Valle del Cauca; si un producto no tiene precio allí se usa la mediana nacional.
+  mercados_valle: ["Cali, Cavasa", "Cali, Galería Alameda", "Cali, La Floresta", "Cali, Santa Elena",
+                   "Cali, Siloé", "Buenaventura (Valle del Cauca)", "Cartago (Valle del Cauca)",
+                   "Palmira (Valle del Cauca)", "Tuluá (Valle del Cauca)"]
+  anios_precio_referencia: [2021, 2023]   # precio constante usado para valorar todos los años
+  # Productos sin precio en finca dentro de SIPSA: se derivan del producto procesado con un factor físico aproximado.
+  factores_derivados:
+    "Caña de azúcar": {sipsa: "Azúcar sulfitada", factor: 0.115, nota: "rendimiento comercial azúcar/caña ≈ 11,5 %"}
+    "Caña panelera":  {sipsa: "Panela",           factor: 0.10,  nota: "rendimiento panela/caña ≈ 10 %"}
+    "Café":           {sipsa: "Café molido",      factor: 0.63,  nota: "kg de café molido por kg de pergamino seco (≈0,75 trilla × 0,84 tostión)"}

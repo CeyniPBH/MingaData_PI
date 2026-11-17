@@ -1,0 +1,45 @@
+﻿producto,familia,estado,ranking_toneladas,produccion_t_2019_2023,valor_cop_2019_2023,ranking_valor,estado_si_ranking_valor,cambia
+Caña de azúcar,Cultivos Tropicales Tradicionales,detallado,1,120379542.7,48715099392838.4,1.0,detallado,False
+Café,Cultivos Tropicales Tradicionales,detallado,8,236830.51,3778251759554.6206,2.0,detallado,False
+Plátano,Frutales,detallado,3,1454850.61,2741206282164.757,3.0,detallado,False
+Aguacate,Frutales,detallado,7,360399.61,1843987524469.2478,4.0,detallado,False
+Cítricos,Frutales,detallado,4,754284.85,1795388667649.1863,5.0,detallado,False
+Piña,Frutales,detallado,5,714544.54,1286780587898.1946,6.0,detallado,False
+Caña panelera,Cultivos Tropicales Tradicionales,detallado,2,1474379.5,622131104555.0594,7.0,detallado,False
+Vid,Frutales,detallado,9,99119.25,582327700451.2311,8.0,detallado,False
+Banano,Frutales,detallado,6,385653.55,533155677363.00934,9.0,detallado,False
+Lulo,Frutales,detallado,11,84559.42,324579767754.8148,10.0,detallado,False
+Maracuyá,Frutales,detallado,13,58536.85,206061636173.14816,11.0,detallado,False
+Guayaba,Frutales,detallado,12,68810.42,171751126886.75925,12.0,detallado,False
+Papaya,Frutales,detallado,10,84743.89,170735555313.6852,13.0,detallado,False
+Borojó,Frutales,detallado,15,26558.0,156029356583.33334,14.0,detallado,False
+Guanábana,Frutales,detallado,16,25188.21,97291326918.33334,15.0,detallado,False
+Mora,Frutales,detallado,17,22083.98,91739879243.1852,16.0,detallado,False
+Yuca,Raíces y Tubérculos,detallado,14,41677.17,81527027635.33333,17.0,detallado,False
+Granadilla,Frutales,simplificado,24,13483.6,78147649608.88889,18.0,detallado,True
+Ají,Hortalizas,detallado,19,19544.35,67273824294.44444,19.0,detallado,False
+Arracacha,Raíces y Tubérculos,detallado,18,20885.9,56172337968.05555,20.0,detallado,False
+Mango,Frutales,detallado,22,16148.2,49350892804.938286,21.0,detallado,False
+Pitaya,Frutales,simplificado,29,4296.87,42696982651.25,22.0,detallado,True
+Cebolla Larga,Hortalizas,detallado,20,19119.75,41345736147.92455,23.0,simplificado,True
+Coco,Frutales,simplificado,26,8285.0,23792678888.88889,24.0,simplificado,False
+Tomate de Árbol,Frutales,simplificado,27,7617.77,22449815062.175926,25.0,simplificado,False
+Bananito,Frutales,simplificado,25,9944.0,16422239777.777775,26.0,simplificado,False
+Fresa,Frutales,simplificado,31,2564.58,13311262521.111113,27.0,simplificado,False
+Curuba,Frutales,simplificado,34,914.74,2471117943.6405725,28.0,simplificado,False
+Zapote,Frutales,simplificado,37,536.78,1420637261.8253968,29.0,simplificado,False
+Durazno,Frutales,simplificado,39,181.0,813962027.7777779,30.0,simplificado,False
+Gulupa,Frutales,simplificado,40,125.0,258032986.11111107,31.0,simplificado,False
+Brevo,Frutales,simplificado,41,14.0,71502083.33333334,32.0,simplificado,False
+Uchuva,Frutales,simplificado,44,1.22,4263188.333333333,33.0,simplificado,False
+Sábila,Cultivos para Condimentos y Bebidas Medicinales y Aromáticas,detallado,21,16929.8,,,simplificado,True
+Chontaduro,Frutales,simplificado,23,15321.0,,,simplificado,False
+Cacao,Cultivos Tropicales Tradicionales,simplificado,28,4742.27,,,simplificado,False
+Papachina,Raíces y Tubérculos,simplificado,30,3975.0,,,simplificado,False
+Aromáticas,Flores,simplificado,32,1474.14,,,simplificado,False
+Té,Cultivos para Condimentos y Bebidas Medicinales y Aromáticas,simplificado,33,1008.83,,,simplificado,False
+Sacha Inchi,Oleaginosas,simplificado,35,660.48,,,simplificado,False
+Macadamia,Frutales,simplificado,36,574.24,,,simplificado,False
+Flores y follajes,Flores,simplificado,38,186.55,,,simplificado,False
+Stevia,Cultivos para Condimentos y Bebidas Medicinales y Aromáticas,simplificado,42,13.4,,,simplificado,False
+Arazá,Frutales,simplificado,43,9.3,,,simplificado,False

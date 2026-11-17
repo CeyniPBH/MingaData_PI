@@ -1,0 +1,274 @@
+﻿pais,item_faostat,codigo_item,anio,kg_per_capita_anio,flag
+Colombia,Wheat and products,S2511,2020,34.28,E
+Colombia,Wheat and products,S2511,2021,34.79,E
+Colombia,Wheat and products,S2511,2022,37.09,E
+Colombia,Wheat and products,S2511,2023,36.64,E
+Colombia,Rice and products,S2807,2020,56.32,E
+Colombia,Rice and products,S2807,2021,43.34,E
+Colombia,Rice and products,S2807,2022,46.6,E
+Colombia,Rice and products,S2807,2023,46.54,E
+Colombia,Barley and products,S2513,2020,1.37,E
+Colombia,Barley and products,S2513,2021,1.28,E
+Colombia,Barley and products,S2513,2022,3.07,E
+Colombia,Barley and products,S2513,2023,1.2,E
+Colombia,Maize and products,S2514,2020,43.15,E
+Colombia,Maize and products,S2514,2021,46.18,E
+Colombia,Maize and products,S2514,2022,50.58,E
+Colombia,Maize and products,S2514,2023,51.15,E
+Colombia,Rye and products,S2515,2020,0.0,E
+Colombia,Rye and products,S2515,2021,0.0,E
+Colombia,Rye and products,S2515,2022,0.0,E
+Colombia,Rye and products,S2515,2023,0.0,E
+Colombia,Oats,S2516,2020,1.9,E
+Colombia,Oats,S2516,2021,1.85,E
+Colombia,Oats,S2516,2022,1.4,E
+Colombia,Oats,S2516,2023,1.54,E
+Colombia,Sorghum and products,S2518,2020,0.01,E
+Colombia,Sorghum and products,S2518,2021,0.02,E
+Colombia,Sorghum and products,S2518,2022,0.01,E
+Colombia,Sorghum and products,S2518,2023,0.01,E
+Colombia,"Cereals, other",S2520,2020,0.11,E
+Colombia,"Cereals, other",S2520,2021,0.08,E
+Colombia,"Cereals, other",S2520,2022,0.2,E
+Colombia,"Cereals, other",S2520,2023,0.16,E
+Colombia,Cassava and products,S2532,2020,16.94,E
+Colombia,Cassava and products,S2532,2021,15.98,E
+Colombia,Cassava and products,S2532,2022,16.39,E
+Colombia,Cassava and products,S2532,2023,16.85,E
+Colombia,Potatoes and products,S2531,2020,55.68,E
+Colombia,Potatoes and products,S2531,2021,57.93,E
+Colombia,Potatoes and products,S2531,2022,57.33,E
+Colombia,Potatoes and products,S2531,2023,56.95,E
+Colombia,Yams,S2535,2020,7.96,E
+Colombia,Yams,S2535,2021,7.59,E
+Colombia,Yams,S2535,2022,7.45,E
+Colombia,Yams,S2535,2023,6.89,E
+Colombia,"Roots, Other",S2534,2020,1.76,E
+Colombia,"Roots, Other",S2534,2021,1.31,E
+Colombia,"Roots, Other",S2534,2022,1.13,E
+Colombia,"Roots, Other",S2534,2023,1.3,E
+Colombia,Sugar beet,S2537,2020,0.56,E
+Colombia,Sugar beet,S2537,2021,0.58,E
+Colombia,Sugar beet,S2537,2022,0.57,E
+Colombia,Sugar beet,S2537,2023,0.56,E
+Colombia,Sugar non-centrifugal,S2541,2020,20.23,E
+Colombia,Sugar non-centrifugal,S2541,2021,20.11,E
+Colombia,Sugar non-centrifugal,S2541,2022,19.64,E
+Colombia,Sugar non-centrifugal,S2541,2023,20.03,E
+Colombia,Sugar (Raw Equivalent),S2542,2020,31.73,E
+Colombia,Sugar (Raw Equivalent),S2542,2021,32.01,E
+Colombia,Sugar (Raw Equivalent),S2542,2022,29.36,E
+Colombia,Sugar (Raw Equivalent),S2542,2023,29.56,E
+Colombia,"Sweeteners, Other",S2543,2020,2.55,E
+Colombia,"Sweeteners, Other",S2543,2021,2.72,E
+Colombia,"Sweeteners, Other",S2543,2022,2.61,E
+Colombia,"Sweeteners, Other",S2543,2023,2.16,E
+Colombia,Honey,S2745,2020,0.07,E
+Colombia,Honey,S2745,2021,0.09,E
+Colombia,Honey,S2745,2022,0.14,E
+Colombia,Honey,S2745,2023,0.13,E
+Colombia,Beans,S2546,2020,2.81,E
+Colombia,Beans,S2546,2021,2.7,E
+Colombia,Beans,S2546,2022,2.78,E
+Colombia,Beans,S2546,2023,3.12,E
+Colombia,Peas,S2547,2020,1.74,E
+Colombia,Peas,S2547,2021,1.68,E
+Colombia,Peas,S2547,2022,1.26,E
+Colombia,Peas,S2547,2023,1.38,E
+Colombia,"Pulses, Other and products",S2549,2020,2.37,E
+Colombia,"Pulses, Other and products",S2549,2021,1.95,E
+Colombia,"Pulses, Other and products",S2549,2022,1.6,E
+Colombia,"Pulses, Other and products",S2549,2023,1.73,E
+Colombia,Nuts and products,S2551,2020,0.23,E
+Colombia,Nuts and products,S2551,2021,0.43,E
+Colombia,Nuts and products,S2551,2022,1.73,E
+Colombia,Nuts and products,S2551,2023,1.3,E
+Colombia,Soyabeans,S2555,2020,0.35,E
+Colombia,Soyabeans,S2555,2021,0.32,E
+Colombia,Soyabeans,S2555,2022,0.34,E
+Colombia,Soyabeans,S2555,2023,0.37,E
+Colombia,Groundnuts,S2552,2020,0.57,E
+Colombia,Groundnuts,S2552,2021,0.69,E
+Colombia,Groundnuts,S2552,2022,0.78,E
+Colombia,Groundnuts,S2552,2023,0.61,E
+Colombia,Rape and Mustardseed,S2558,2020,0.03,E
+Colombia,Rape and Mustardseed,S2558,2021,0.04,E
+Colombia,Rape and Mustardseed,S2558,2022,0.03,E
+Colombia,Rape and Mustardseed,S2558,2023,0.01,E
+Colombia,Coconuts - Incl Copra,S2560,2020,2.58,E
+Colombia,Coconuts - Incl Copra,S2560,2021,2.62,E
+Colombia,Coconuts - Incl Copra,S2560,2022,1.95,E
+Colombia,Coconuts - Incl Copra,S2560,2023,1.97,E
+Colombia,Sesame seed,S2561,2020,0.03,E
+Colombia,Sesame seed,S2561,2021,0.02,E
+Colombia,Sesame seed,S2561,2022,0.01,E
+Colombia,Sesame seed,S2561,2023,0.03,E
+Colombia,Palm kernels,S2562,2020,0.0,E
+Colombia,Palm kernels,S2562,2021,0.0,E
+Colombia,Olives (including preserved),S2563,2020,0.03,E
+Colombia,Olives (including preserved),S2563,2021,0.03,E
+Colombia,Olives (including preserved),S2563,2022,0.04,E
+Colombia,Olives (including preserved),S2563,2023,0.02,E
+Colombia,"Oilcrops, Other",S2570,2020,0.0,E
+Colombia,"Oilcrops, Other",S2570,2021,0.0,E
+Colombia,"Oilcrops, Other",S2570,2022,0.0,E
+Colombia,"Oilcrops, Other",S2570,2023,0.0,E
+Colombia,Soyabean Oil,S2571,2020,7.86,E
+Colombia,Soyabean Oil,S2571,2021,6.4,E
+Colombia,Soyabean Oil,S2571,2022,5.96,E
+Colombia,Soyabean Oil,S2571,2023,5.49,E
+Colombia,Groundnut Oil,S2572,2020,0.0,E
+Colombia,Groundnut Oil,S2572,2021,0.0,E
+Colombia,Groundnut Oil,S2572,2022,0.0,E
+Colombia,Groundnut Oil,S2572,2023,0.0,E
+Colombia,Sunflowerseed Oil,S2573,2020,0.44,E
+Colombia,Sunflowerseed Oil,S2573,2021,0.55,E
+Colombia,Sunflowerseed Oil,S2573,2022,0.56,E
+Colombia,Sunflowerseed Oil,S2573,2023,0.46,E
+Colombia,Rape and Mustard Oil,S2574,2020,0.18,E
+Colombia,Rape and Mustard Oil,S2574,2021,0.17,E
+Colombia,Rape and Mustard Oil,S2574,2022,0.13,E
+Colombia,Rape and Mustard Oil,S2574,2023,0.04,E
+Colombia,Cottonseed Oil,S2575,2020,0.0,E
+Colombia,Cottonseed Oil,S2575,2021,0.0,E
+Colombia,Cottonseed Oil,S2575,2022,0.0,E
+Colombia,Cottonseed Oil,S2575,2023,0.0,E
+Colombia,Palmkernel Oil,S2576,2020,0.96,E
+Colombia,Palmkernel Oil,S2576,2021,2.49,E
+Colombia,Palmkernel Oil,S2576,2022,0.39,E
+Colombia,Palmkernel Oil,S2576,2023,0.57,E
+Colombia,Palm Oil,S2577,2020,7.7,E
+Colombia,Palm Oil,S2577,2021,8.21,E
+Colombia,Palm Oil,S2577,2022,9.05,E
+Colombia,Palm Oil,S2577,2023,9.23,E
+Colombia,Coconut Oil,S2578,2020,0.0,E
+Colombia,Coconut Oil,S2578,2021,0.0,E
+Colombia,Coconut Oil,S2578,2022,0.0,E
+Colombia,Coconut Oil,S2578,2023,0.0,E
+Colombia,Sesameseed Oil,S2579,2020,0.0,E
+Colombia,Sesameseed Oil,S2579,2021,0.02,E
+Colombia,Sesameseed Oil,S2579,2022,0.03,E
+Colombia,Sesameseed Oil,S2579,2023,0.02,E
+Colombia,Olive Oil,S2580,2020,0.13,E
+Colombia,Olive Oil,S2580,2021,0.16,E
+Colombia,Olive Oil,S2580,2022,0.03,E
+Colombia,Olive Oil,S2580,2023,0.14,E
+Colombia,Ricebran Oil,S2581,2020,0.0,E
+Colombia,Ricebran Oil,S2581,2022,0.0,E
+Colombia,Ricebran Oil,S2581,2023,0.0,E
+Colombia,Maize Germ Oil,S2582,2020,0.0,E
+Colombia,Maize Germ Oil,S2582,2021,0.0,E
+Colombia,Maize Germ Oil,S2582,2022,0.0,E
+Colombia,Maize Germ Oil,S2582,2023,0.0,E
+Colombia,"Oilcrops Oil, Other",S2586,2020,0.77,E
+Colombia,"Oilcrops Oil, Other",S2586,2021,0.78,E
+Colombia,"Oilcrops Oil, Other",S2586,2022,0.66,E
+Colombia,"Oilcrops Oil, Other",S2586,2023,1.28,E
+Colombia,Vegetables,S2918,2020,51.75,E
+Colombia,Vegetables,S2918,2021,50.71,E
+Colombia,Vegetables,S2918,2022,51.83,E
+Colombia,Vegetables,S2918,2023,51.0,E
+Colombia,Tomatoes and products,S2601,2020,16.93,E
+Colombia,Tomatoes and products,S2601,2021,17.29,E
+Colombia,Tomatoes and products,S2601,2022,17.55,E
+Colombia,Tomatoes and products,S2601,2023,17.6,E
+Colombia,Onions,S2602,2020,10.68,E
+Colombia,Onions,S2602,2021,10.43,E
+Colombia,Onions,S2602,2022,11.22,E
+Colombia,Onions,S2602,2023,10.98,E
+Colombia,"Vegetables, other",S2605,2020,24.14,E
+Colombia,"Vegetables, other",S2605,2021,22.98,E
+Colombia,"Vegetables, other",S2605,2022,23.06,E
+Colombia,"Vegetables, other",S2605,2023,22.42,E
+Colombia,"Oranges, Mandarines",S2611,2020,9.3,E
+Colombia,"Oranges, Mandarines",S2611,2021,18.06,E
+Colombia,"Oranges, Mandarines",S2611,2022,19.03,E
+Colombia,"Oranges, Mandarines",S2611,2023,19.06,E
+Colombia,"Lemons, Limes and products",S2612,2020,4.88,E
+Colombia,"Lemons, Limes and products",S2612,2021,7.65,E
+Colombia,"Lemons, Limes and products",S2612,2022,8.08,E
+Colombia,"Lemons, Limes and products",S2612,2023,8.25,E
+Colombia,Grapefruit and products,S2613,2020,0.0,E
+Colombia,Grapefruit and products,S2613,2021,0.0,E
+Colombia,Grapefruit and products,S2613,2022,0.0,E
+Colombia,Grapefruit and products,S2613,2023,0.0,E
+Colombia,"Citrus, Other",S2614,2020,10.26,E
+Colombia,"Citrus, Other",S2614,2021,10.12,E
+Colombia,"Citrus, Other",S2614,2022,0.0,E
+Colombia,"Citrus, Other",S2614,2023,0.0,E
+Colombia,Bananas,S2615,2020,5.55,E
+Colombia,Bananas,S2615,2021,4.67,E
+Colombia,Bananas,S2615,2022,4.44,E
+Colombia,Bananas,S2615,2023,13.37,E
+Colombia,Plantains,S2616,2020,33.57,E
+Colombia,Plantains,S2616,2021,33.53,E
+Colombia,Plantains,S2616,2022,35.68,E
+Colombia,Plantains,S2616,2023,37.18,E
+Colombia,Apples and products,S2617,2020,2.28,E
+Colombia,Apples and products,S2617,2021,2.22,E
+Colombia,Apples and products,S2617,2022,2.39,E
+Colombia,Apples and products,S2617,2023,2.16,E
+Colombia,Pineapples and products,S2618,2020,12.06,E
+Colombia,Pineapples and products,S2618,2021,13.42,E
+Colombia,Pineapples and products,S2618,2022,13.2,E
+Colombia,Pineapples and products,S2618,2023,12.14,E
+Colombia,Dates,S2619,2020,0.0,E
+Colombia,Dates,S2619,2021,0.0,E
+Colombia,Dates,S2619,2022,0.0,E
+Colombia,Dates,S2619,2023,0.0,E
+Colombia,Grapes and products (excl wine),S2620,2020,1.2,E
+Colombia,Grapes and products (excl wine),S2620,2021,1.35,E
+Colombia,Grapes and products (excl wine),S2620,2022,1.41,E
+Colombia,Grapes and products (excl wine),S2620,2023,1.29,E
+Colombia,"Fruits, other",S2625,2020,57.02,E
+Colombia,"Fruits, other",S2625,2021,59.52,E
+Colombia,"Fruits, other",S2625,2022,60.88,E
+Colombia,"Fruits, other",S2625,2023,60.26,E
+Colombia,Coffee and products,S2630,2020,1.59,E
+Colombia,Coffee and products,S2630,2021,0.92,E
+Colombia,Coffee and products,S2630,2022,1.72,E
+Colombia,Coffee and products,S2630,2023,1.44,E
+Colombia,Cocoa Beans and products,S2633,2020,0.95,E
+Colombia,Cocoa Beans and products,S2633,2021,1.04,E
+Colombia,Cocoa Beans and products,S2633,2022,1.03,E
+Colombia,Cocoa Beans and products,S2633,2023,0.81,E
+Colombia,Tea (including mate),S2635,2020,0.01,E
+Colombia,Tea (including mate),S2635,2021,0.02,E
+Colombia,Tea (including mate),S2635,2022,0.02,E
+Colombia,Tea (including mate),S2635,2023,0.02,E
+Colombia,Pepper,S2640,2020,0.01,E
+Colombia,Pepper,S2640,2021,0.01,E
+Colombia,Pepper,S2640,2022,0.01,E
+Colombia,Pepper,S2640,2023,0.01,E
+Colombia,Cloves,S2642,2020,0.0,E
+Colombia,Cloves,S2642,2021,0.0,E
+Colombia,Cloves,S2642,2022,0.01,E
+Colombia,Cloves,S2642,2023,0.0,E
+Colombia,"Spices, Other",S2645,2020,0.69,E
+Colombia,"Spices, Other",S2645,2021,0.49,E
+Colombia,"Spices, Other",S2645,2022,0.44,E
+Colombia,"Spices, Other",S2645,2023,0.38,E
+Colombia,Wine,S2655,2020,0.52,E
+Colombia,Wine,S2655,2021,0.58,E
+Colombia,Wine,S2655,2022,0.74,E
+Colombia,Wine,S2655,2023,0.47,E
+Colombia,Beer,S2656,2020,39.41,E
+Colombia,Beer,S2656,2021,48.97,E
+Colombia,Beer,S2656,2022,46.4,E
+Colombia,Beer,S2656,2023,46.28,E
+Colombia,"Beverages, Fermented",S2657,2020,0.03,E
+Colombia,"Beverages, Fermented",S2657,2021,0.06,E
+Colombia,"Beverages, Fermented",S2657,2022,0.08,E
+Colombia,"Beverages, Fermented",S2657,2023,0.01,E
+Colombia,"Beverages, Alcoholic",S2658,2020,1.95,E
+Colombia,"Beverages, Alcoholic",S2658,2021,2.2,E
+Colombia,"Beverages, Alcoholic",S2658,2022,2.57,E
+Colombia,"Beverages, Alcoholic",S2658,2023,2.12,E
+Colombia,Infant food,S2680,2020,0.18,E
+Colombia,Infant food,S2680,2021,0.21,E
+Colombia,Infant food,S2680,2022,0.18,E
+Colombia,Infant food,S2680,2023,0.15,E
+Colombia,Miscellaneous,S2899,2020,0.73,E
+Colombia,Miscellaneous,S2899,2021,0.9,E
+Colombia,Miscellaneous,S2899,2022,0.85,E
+Colombia,Miscellaneous,S2899,2023,0.56,E

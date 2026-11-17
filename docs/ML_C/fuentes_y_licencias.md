@@ -1,0 +1,18 @@
+# Fuentes y licencias del módulo de pronóstico
+
+| Fuente | Qué aporta | Archivo en el repo | Variables usadas | Cobertura | Enlace | Licencia / condición de uso |
+|---|---|---|---|---|---|---|
+| Gobernación del Valle – Consolidado agrícola, cultivos permanentes (Dataset 1) | Producción municipal | `data/raw/Consolidado_agrícola_…permanentes…csv` | Año, municipio, cultivo, familia, ha sembradas/cosechadas, toneladas | 2000-2023, 42 municipios, 61 cultivos | datos.gov.co | Datos abiertos del Estado; la licencia por defecto en datos.gov.co es CC BY 4.0 (verificar en la ficha del conjunto). Citar a la Gobernación. |
+| Gobernación del Valle – cultivos transitorios | Extensión (no modelado) | `data/raw/Consolidado_agrícola_…transitorios…csv` | Igual que el anterior | 2000-2023 | datos.gov.co | Igual que el anterior |
+| DANE – DIVIPOLA | Códigos y coordenadas de cabeceras | `data/raw/DIVIPOLA-_Códigos_municipios…csv` | Código DANE, nombre, latitud, longitud | Nacional | datos.gov.co / geoportal.dane.gov.co | Datos abiertos; citar "Fuente: DANE". |
+| DANE – SIPSA precios mayoristas | Precio por kg para valorar la producción | `data/raw/SIPSA/*precios-mayoristas*.csv`, `anex-SIPSA*.csv` (zip) | Fecha, producto, mercado, precio promedio $/kg | Ene-2021 a oct-2026, mensual | dane.gov.co → Estadísticas por tema → Agropecuario → SIPSA | Información pública del DANE; citar "Fuente: DANE, SIPSA". |
+| ICA – inspecciones en frontera (archivos FRONTERA_*_SISPA) | Exportaciones/importaciones agrícolas por puerto (respaldo de la mezcla exportable) | `data/raw/SIPSA/FRONTERA_*.csv` (zip) → `data/clean/comercio_ica_frontera.csv` | Tipo de comercio, producto, puerto, cantidad, unidad | 2021-jun 2026 (2019-2023 cerrado; 2024-2026 provisional) | Portal de datos del ICA / datos.gov.co | Datos abiertos; verificar la licencia en la ficha del conjunto. Citar al ICA. |
+| NOAA Climate Prediction Center – ONI | Variable climática (El Niño/La Niña) | `data/raw/ONI_NOAA_CPC_1998_2026.csv` → `data/clean/oni.csv` | Anomalía trimestral móvil | 1998-2026 | https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt | Dominio público (gobierno de EE. UU.); citar NOAA CPC. |
+| FAOSTAT – Food Balances (2010-) | Consumo aparente per cápita (excedentes de Samuel) | `data/raw/FAOSTAT_data_en_11-17-2026.csv` → `data/clean/consumo_percapita.csv` | Food supply quantity (kg/cápita/año) por ítem | Colombia, 2020-2023 | https://www.fao.org/faostat/ | CC BY 4.0. Cita: "FAO. 2026. FAOSTAT: Food Balances (2010-). Consultado el 17 de noviembre de 2026. https://www.fao.org/faostat/ Licencia: CC-BY-4.0". |
+| CEDE (Uniandes) – Panel Municipal Agricultura y Tierra | Referencia (EVA) para extensión | `data/raw/doi_10.57924_GH6KPE…endnote_EVA.csv` (solo la referencia bibliográfica) | — | — | https://doi.org/10.57924/GH6KPE | Uso académico con cita obligatoria al CEDE. |
+| DANE – Proyecciones de población municipal | Consumo local (excedentes) | **Pendiente** → `data/clean/poblacion_municipal.csv` | Código DANE, año, población total | 2018-2035 | dane.gov.co → Demografía y población → Proyecciones | Citar "Fuente: DANE". |
+| OpenStreetMap / OSRM | Matriz de tiempos real (reemplazo de la aproximada) | No usado aún | Red vial | — | https://www.openstreetmap.org | ODbL 1.0; atribución obligatoria: "© colaboradores de OpenStreetMap". |
+
+## Notas
+- Las licencias marcadas "verificar" deben confirmarse en la ficha de cada conjunto en datos.gov.co antes del informe final.
+- Los crudos de SIPSA/FRONTERA (~750 MB) no se suben a Git: se publican como asset de un Release de GitHub y se descargan con `python src/ML_C/00_descargar_datos.py`. Lo que sí está en el repo son las tablas procesadas de `data/clean/`.

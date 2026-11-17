@@ -1,3 +1,4 @@
+"""Baselines (ingenuo, deriva, ETS amortiguado, promedio 5 años) con validación walk-forward."""
 import warnings, time
 from importlib import import_module
 import numpy as np, pandas as pd

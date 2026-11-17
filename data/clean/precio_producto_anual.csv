@@ -1,0 +1,223 @@
+﻿producto,anio,precio_cop_kg,ambito,tipo_precio,factor,productos_sipsa,n_meses
+Caña de azúcar,2021,309.7,valle,derivado,0.1,Azúcar sulfitada,12
+Caña de azúcar,2022,428.1,valle,derivado,0.1,Azúcar sulfitada,12
+Caña de azúcar,2023,476.2,valle,derivado,0.1,Azúcar sulfitada,12
+Caña de azúcar,2024,447.4,valle,derivado,0.1,Azúcar sulfitada,12
+Caña de azúcar,2025,390.2,valle,derivado,0.1,Azúcar sulfitada,12
+Caña de azúcar,2026,368.2,valle,derivado,0.1,Azúcar sulfitada,10
+Caña panelera,2021,381.0,valle,derivado,0.1,Panela cuadrada morena; Panela redonda morena,12
+Caña panelera,2022,407.5,valle,derivado,0.1,Panela cuadrada morena; Panela redonda morena,12
+Caña panelera,2023,477.3,valle,derivado,0.1,Panela cuadrada morena; Panela redonda morena,12
+Caña panelera,2024,499.8,valle,derivado,0.1,Panela cuadrada morena; Panela redonda morena,12
+Caña panelera,2025,577.1,valle,derivado,0.1,Panela cuadrada morena; Panela redonda morena,12
+Caña panelera,2026,614.8,valle,derivado,0.1,Panela cuadrada morena; Panela redonda morena,10
+Plátano,2021,1074.9,valle,directo,1.0,Plátano dominico hartón verde; Plátano hartón verde,12
+Plátano,2022,1963.1,valle,directo,1.0,Plátano dominico hartón verde; Plátano hartón verde,12
+Plátano,2023,2614.6,valle,directo,1.0,Plátano dominico hartón verde; Plátano hartón verde,12
+Plátano,2024,2242.8,valle,directo,1.0,Plátano dominico hartón verde; Plátano hartón verde,12
+Plátano,2025,2011.2,valle,directo,1.0,Plátano dominico hartón verde; Plátano hartón verde,12
+Plátano,2026,2096.3,valle,directo,1.0,Plátano dominico hartón verde; Plátano hartón verde,10
+Cítricos,2021,1862.9,valle,directo,1.0,Limón Tahití; Limón común; Limón común valluno; Mandarina Arrayana; Mandarina Oneco; Mandarina arrayana; Naranja Sweet; Naranja Valencia; Tangelo,12
+Cítricos,2022,2647.6,valle,directo,1.0,Limón Tahití; Limón común; Limón común valluno; Mandarina Arrayana; Mandarina Oneco; Naranja Sweet; Naranja Valencia; Tangelo,12
+Cítricos,2023,2630.2,valle,directo,1.0,Limón Tahití; Limón común; Limón común valluno; Mandarina Arrayana; Mandarina Oneco; Naranja Sweet; Naranja Valencia; Tangelo,12
+Cítricos,2024,2674.8,valle,directo,1.0,Limón Tahití; Limón común; Limón común valluno; Mandarina Arrayana; Mandarina Oneco; Naranja Sweet; Naranja Valencia; Tangelo,12
+Cítricos,2025,2786.9,valle,directo,1.0,Limón Tahití; Limón común; Limón común valluno; Mandarina Arrayana; Mandarina Oneco; Naranja Sweet; Naranja Valencia; Tangelo,12
+Cítricos,2026,3650.5,valle,directo,1.0,Limón Tahití; Limón común; Limón común valluno; Mandarina Arrayana; Mandarina Oneco; Naranja Sweet; Naranja Valencia; Tangelo,10
+Piña,2021,1225.7,valle,directo,1.0,Piña gold; Piña manzana,12
+Piña,2022,1599.3,valle,directo,1.0,Piña gold; Piña manzana,12
+Piña,2023,2577.5,valle,directo,1.0,Piña gold; Piña manzana,12
+Piña,2024,2669.9,valle,directo,1.0,Piña gold; Piña manzana,12
+Piña,2025,1865.5,valle,directo,1.0,Piña gold; Piña manzana,12
+Piña,2026,3036.0,valle,directo,1.0,Piña gold,10
+Banano,2021,1217.7,valle,directo,1.0,Banano criollo,12
+Banano,2022,1351.2,valle,directo,1.0,Banano criollo,12
+Banano,2023,1578.6,valle,directo,1.0,Banano criollo,12
+Banano,2024,2036.4,valle,directo,1.0,Banano criollo,12
+Banano,2025,2109.6,valle,directo,1.0,Banano criollo,12
+Banano,2026,1956.4,valle,directo,1.0,Banano criollo,10
+Aguacate,2021,4127.6,valle,directo,1.0,Aguacate común; Aguacate papelillo,12
+Aguacate,2022,5038.9,valle,directo,1.0,Aguacate común; Aguacate papelillo,12
+Aguacate,2023,6183.0,valle,directo,1.0,Aguacate común; Aguacate papelillo,12
+Aguacate,2024,7554.9,valle,directo,1.0,Aguacate Choquette; Aguacate común; Aguacate papelillo,12
+Aguacate,2025,7539.3,valle,directo,1.0,Aguacate Choquette; Aguacate común; Aguacate papelillo,12
+Aguacate,2026,8784.8,valle,directo,1.0,Aguacate Choquette; Aguacate común; Aguacate papelillo,10
+Café,2021,10914.2,valle,derivado,0.6,Café molido,12
+Café,2022,16233.9,valle,derivado,0.6,Café molido,12
+Café,2023,20712.1,valle,derivado,0.6,Café molido,12
+Café,2024,19519.5,valle,derivado,0.6,Café molido,12
+Café,2025,27691.7,valle,derivado,0.6,Café molido,12
+Café,2026,31494.1,valle,derivado,0.6,Café molido,10
+Vid,2021,4594.6,valle,directo,1.0,Uva Isabela; Uva red globe nacional; Uva verde,12
+Vid,2022,6206.2,valle,directo,1.0,Uva Isabela; Uva red globe nacional; Uva verde,12
+Vid,2023,6824.2,valle,directo,1.0,Uva Isabela; Uva red globe nacional; Uva verde,12
+Vid,2024,7418.6,valle,directo,1.0,Uva Isabela; Uva red globe nacional; Uva verde,12
+Vid,2025,8108.2,valle,directo,1.0,Uva Isabela; Uva red globe nacional; Uva verde,12
+Vid,2026,7828.5,valle,directo,1.0,Uva Isabela; Uva red globe nacional; Uva verde,10
+Papaya,2021,1508.8,valle,directo,1.0,Papaya Maradol,12
+Papaya,2022,2215.3,valle,directo,1.0,Papaya Maradol,12
+Papaya,2023,2320.0,valle,directo,1.0,Papaya Maradol,12
+Papaya,2024,1890.3,valle,directo,1.0,Papaya Maradol,12
+Papaya,2025,2804.4,valle,directo,1.0,Papaya Maradol,12
+Papaya,2026,2457.2,valle,directo,1.0,Papaya Maradol,10
+Lulo,2021,3176.0,valle,directo,1.0,Lulo,12
+Lulo,2022,4347.8,valle,directo,1.0,Lulo,12
+Lulo,2023,3991.6,valle,directo,1.0,Lulo,12
+Lulo,2024,4668.0,valle,directo,1.0,Lulo,12
+Lulo,2025,4415.9,valle,directo,1.0,Lulo,12
+Lulo,2026,5291.7,valle,directo,1.0,Lulo,10
+Guayaba,2021,2002.7,valle,directo,1.0,Guayaba agria; Guayaba manzana; Guayaba pera,12
+Guayaba,2022,2508.1,valle,directo,1.0,Guayaba agria; Guayaba manzana; Guayaba pera,12
+Guayaba,2023,2977.3,valle,directo,1.0,Guayaba agria; Guayaba manzana; Guayaba pera,12
+Guayaba,2024,3359.6,valle,directo,1.0,Guayaba agria; Guayaba manzana; Guayaba pera,12
+Guayaba,2025,3415.5,valle,directo,1.0,Guayaba agria; Guayaba manzana; Guayaba pera,12
+Guayaba,2026,3731.0,valle,directo,1.0,Guayaba agria; Guayaba manzana; Guayaba pera,10
+Maracuyá,2021,2710.0,valle,directo,1.0,Maracuyá,12
+Maracuyá,2022,3622.5,valle,directo,1.0,Maracuyá,12
+Maracuyá,2023,4228.1,valle,directo,1.0,Maracuyá,12
+Maracuyá,2024,4138.5,valle,directo,1.0,Maracuyá,12
+Maracuyá,2025,4134.9,valle,directo,1.0,Maracuyá,12
+Maracuyá,2026,5522.4,valle,directo,1.0,Maracuyá,10
+Yuca,2021,1147.5,valle,directo,1.0,Yuca ICA; Yuca chirosa,12
+Yuca,2022,2737.1,valle,directo,1.0,Yuca ICA; Yuca chirosa,12
+Yuca,2023,1983.8,valle,directo,1.0,Yuca ICA; Yuca chirosa,12
+Yuca,2024,1235.4,valle,directo,1.0,Yuca ICA; Yuca chirosa,12
+Yuca,2025,1961.8,valle,directo,1.0,Yuca ICA; Yuca chirosa,12
+Yuca,2026,2471.4,valle,directo,1.0,Yuca ICA,10
+Borojó,2021,5039.2,nacional,directo,1.0,Borojó,12
+Borojó,2022,6668.2,nacional,directo,1.0,Borojó,12
+Borojó,2023,5917.8,nacional,directo,1.0,Borojó,12
+Borojó,2024,7626.2,nacional,directo,1.0,Borojó,12
+Borojó,2025,6310.9,nacional,directo,1.0,Borojó,12
+Borojó,2026,7297.4,nacional,directo,1.0,Borojó,10
+Guanábana,2021,2799.8,valle,directo,1.0,Guanábana,12
+Guanábana,2022,3949.7,valle,directo,1.0,Guanábana,12
+Guanábana,2023,4838.2,valle,directo,1.0,Guanábana,12
+Guanábana,2024,4752.3,valle,directo,1.0,Guanábana,12
+Guanábana,2025,5555.2,valle,directo,1.0,Guanábana,12
+Guanábana,2026,6131.4,valle,directo,1.0,Guanábana,10
+Mora,2021,3457.7,valle,directo,1.0,Mora de Castilla,12
+Mora,2022,4402.7,valle,directo,1.0,Mora de Castilla,12
+Mora,2023,4602.0,valle,directo,1.0,Mora de Castilla,12
+Mora,2024,5068.8,valle,directo,1.0,Mora de Castilla,12
+Mora,2025,4431.8,valle,directo,1.0,Mora de Castilla,12
+Mora,2026,6018.8,valle,directo,1.0,Mora de Castilla,10
+Arracacha,2021,1232.4,valle,directo,1.0,Arracacha amarilla; Arracacha blanca,12
+Arracacha,2022,2884.3,valle,directo,1.0,Arracacha amarilla; Arracacha blanca,12
+Arracacha,2023,3951.8,valle,directo,1.0,Arracacha amarilla; Arracacha blanca,12
+Arracacha,2024,2478.0,valle,directo,1.0,Arracacha amarilla; Arracacha blanca,12
+Arracacha,2025,1784.4,valle,directo,1.0,Arracacha amarilla; Arracacha blanca,12
+Arracacha,2026,3978.0,valle,directo,1.0,Arracacha amarilla; Arracacha blanca,10
+Ají,2021,2885.7,nacional,directo,1.0,Ají topito dulce,12
+Ají,2022,3844.1,nacional,directo,1.0,Ají topito dulce,12
+Ají,2023,3596.6,nacional,directo,1.0,Ají topito dulce,12
+Ají,2024,3345.5,nacional,directo,1.0,Ají topito dulce,12
+Ají,2025,3554.8,nacional,directo,1.0,Ají topito dulce,12
+Ají,2026,4226.4,nacional,directo,1.0,Ají topito dulce,10
+Cebolla Larga,2021,1578.3,valle,directo,1.0,Cebolla junca; Cebolla junca Aquitania; Cebolla junca Tenerife; Cebolla junca pastusa,12
+Cebolla Larga,2022,2089.3,valle,directo,1.0,Cebolla junca; Cebolla junca Aquitania; Cebolla junca Tenerife; Cebolla junca pastusa,12
+Cebolla Larga,2023,2819.9,valle,directo,1.0,Cebolla junca; Cebolla junca Aquitania; Cebolla junca Tenerife; Cebolla junca pastusa,12
+Cebolla Larga,2024,2275.5,valle,directo,1.0,Cebolla junca; Cebolla junca Aquitania; Cebolla junca Tenerife; Cebolla junca pastusa,12
+Cebolla Larga,2025,2837.2,valle,directo,1.0,Cebolla junca; Cebolla junca Aquitania; Cebolla junca Tenerife; Cebolla junca pastusa,12
+Cebolla Larga,2026,2958.5,valle,directo,1.0,Cebolla junca; Cebolla junca Aquitania; Cebolla junca Tenerife; Cebolla junca pastusa,10
+Mango,2021,2575.0,valle,directo,1.0,Mango Tommy; Mango común; Mango manzano,12
+Mango,2022,2981.1,valle,directo,1.0,Mango Tommy; Mango común; Mango manzano,12
+Mango,2023,3612.3,valle,directo,1.0,Mango Tommy; Mango común,12
+Mango,2024,3318.4,valle,directo,1.0,Mango Tommy; Mango común,12
+Mango,2025,3543.0,valle,directo,1.0,Mango Tommy; Mango común,12
+Mango,2026,4542.8,valle,directo,1.0,Mango Tommy; Mango común,10
+Ciruela,2021,2210.3,nacional,directo,1.0,Ciruela roja,12
+Ciruela,2022,2849.5,nacional,directo,1.0,Ciruela roja,12
+Ciruela,2023,3210.2,nacional,directo,1.0,Ciruela roja,12
+Ciruela,2024,3609.8,nacional,directo,1.0,Ciruela roja,12
+Ciruela,2025,3386.6,nacional,directo,1.0,Ciruela roja,12
+Ciruela,2026,3613.3,nacional,directo,1.0,Ciruela roja,10
+Manzana,2021,2840.3,nacional,directo,1.0,Manzana nacional,12
+Manzana,2022,3302.5,nacional,directo,1.0,Manzana nacional,12
+Manzana,2023,3593.6,nacional,directo,1.0,Manzana nacional,12
+Manzana,2024,3901.8,nacional,directo,1.0,Manzana nacional,12
+Manzana,2025,3567.0,nacional,directo,1.0,Manzana nacional,12
+Manzana,2026,3881.9,nacional,directo,1.0,Manzana nacional,10
+Papa,2021,1521.1,valle,directo,1.0,Papa Betina; Papa R-12 negra; Papa capira; Papa criolla limpia; Papa criolla sucia; Papa nevada; Papa parda pastusa; Papa suprema; Papa única,12
+Papa,2022,2093.1,valle,directo,1.0,Papa Betina; Papa R-12 negra; Papa capira; Papa criolla limpia; Papa criolla sucia; Papa nevada; Papa parda pastusa; Papa suprema; Papa única,12
+Papa,2023,2184.9,valle,directo,1.0,Papa R-12 negra; Papa capira; Papa criolla limpia; Papa criolla sucia; Papa nevada; Papa parda pastusa; Papa suprema; Papa única,12
+Papa,2024,2415.8,valle,directo,1.0,Papa R-12 negra; Papa capira; Papa criolla limpia; Papa criolla sucia; Papa nevada; Papa parda pastusa; Papa suprema; Papa única,12
+Papa,2025,1660.2,valle,directo,1.0,Papa R-12 negra; Papa capira; Papa criolla limpia; Papa criolla sucia; Papa nevada; Papa parda pastusa; Papa suprema; Papa única,12
+Papa,2026,2596.7,valle,directo,1.0,Papa R-12 negra; Papa capira; Papa criolla limpia; Papa criolla sucia; Papa nevada; Papa parda pastusa; Papa suprema; Papa única,10
+Ulluco,2021,2246.5,valle,directo,1.0,Ulluco,12
+Ulluco,2022,3644.8,valle,directo,1.0,Ulluco,12
+Ulluco,2023,5674.8,valle,directo,1.0,Ulluco,10
+Ulluco,2024,2766.2,valle,directo,1.0,Ulluco,10
+Ulluco,2025,3300.1,valle,directo,1.0,Ulluco,12
+Ulluco,2026,5596.2,valle,directo,1.0,Ulluco,10
+Granadilla,2021,4287.8,valle,directo,1.0,Granadilla,12
+Granadilla,2022,6379.8,valle,directo,1.0,Granadilla,12
+Granadilla,2023,6719.6,valle,directo,1.0,Granadilla,12
+Granadilla,2024,7332.9,valle,directo,1.0,Granadilla,12
+Granadilla,2025,7866.2,valle,directo,1.0,Granadilla,12
+Granadilla,2026,8034.5,valle,directo,1.0,Granadilla,10
+Bananito,2021,1407.0,nacional,directo,1.0,Banano bocadillo,12
+Bananito,2022,1604.3,nacional,directo,1.0,Banano bocadillo,12
+Bananito,2023,1943.1,nacional,directo,1.0,Banano bocadillo,12
+Bananito,2024,2851.4,nacional,directo,1.0,Banano bocadillo,12
+Bananito,2025,2975.8,nacional,directo,1.0,Banano bocadillo,12
+Bananito,2026,2947.3,nacional,directo,1.0,Banano bocadillo,10
+Coco,2021,2401.5,valle,directo,1.0,Coco,12
+Coco,2022,2658.2,valle,directo,1.0,Coco,12
+Coco,2023,3555.7,valle,directo,1.0,Coco,12
+Coco,2024,4155.9,valle,directo,1.0,Coco,12
+Coco,2025,5167.1,valle,directo,1.0,Coco,12
+Coco,2026,4539.0,valle,directo,1.0,Coco,10
+Tomate de Árbol,2021,2618.5,valle,directo,1.0,Tomate de árbol,12
+Tomate de Árbol,2022,3014.6,valle,directo,1.0,Tomate de árbol,12
+Tomate de Árbol,2023,3208.1,valle,directo,1.0,Tomate de árbol,12
+Tomate de Árbol,2024,2991.9,valle,directo,1.0,Tomate de árbol,12
+Tomate de Árbol,2025,3048.0,valle,directo,1.0,Tomate de árbol,12
+Tomate de Árbol,2026,4327.6,valle,directo,1.0,Tomate de árbol,10
+Pitaya,2021,8817.0,nacional,directo,1.0,Pitahaya,12
+Pitaya,2022,10289.2,nacional,directo,1.0,Pitahaya,12
+Pitaya,2023,10704.2,nacional,directo,1.0,Pitahaya,12
+Pitaya,2024,11057.6,nacional,directo,1.0,Pitahaya,12
+Pitaya,2025,11184.3,nacional,directo,1.0,Pitahaya,12
+Pitaya,2026,11899.0,nacional,directo,1.0,Pitahaya,10
+Fresa,2021,4470.9,valle,directo,1.0,Fresa,12
+Fresa,2022,5195.3,valle,directo,1.0,Fresa,12
+Fresa,2023,5905.0,valle,directo,1.0,Fresa,12
+Fresa,2024,7289.9,valle,directo,1.0,Fresa,12
+Fresa,2025,7506.1,valle,directo,1.0,Fresa,12
+Fresa,2026,7492.4,valle,directo,1.0,Fresa,10
+Curuba,2021,2346.7,valle,directo,1.0,Curuba,11
+Curuba,2022,2697.4,valle,directo,1.0,Curuba,12
+Curuba,2023,3060.2,valle,directo,1.0,Curuba,12
+Curuba,2024,3117.2,valle,directo,1.0,Curuba,12
+Curuba,2025,3376.8,valle,directo,1.0,Curuba,12
+Curuba,2026,4109.2,valle,directo,1.0,Curuba,10
+Zapote,2021,1979.4,nacional,directo,1.0,Zapote,6
+Zapote,2022,2147.9,nacional,directo,1.0,Zapote,7
+Zapote,2023,3812.5,nacional,directo,1.0,Zapote,12
+Zapote,2024,5326.7,nacional,directo,1.0,Zapote,12
+Zapote,2025,4548.0,nacional,directo,1.0,Zapote,12
+Zapote,2026,5689.0,nacional,directo,1.0,Zapote,10
+Durazno,2021,3536.6,nacional,directo,1.0,Durazno nacional,12
+Durazno,2022,4697.2,nacional,directo,1.0,Durazno nacional,12
+Durazno,2023,5257.2,nacional,directo,1.0,Durazno nacional,12
+Durazno,2024,5922.8,nacional,directo,1.0,Durazno nacional,12
+Durazno,2025,6182.9,nacional,directo,1.0,Durazno nacional,12
+Durazno,2026,5817.4,nacional,directo,1.0,Durazno nacional,10
+Gulupa,2021,1912.6,nacional,directo,1.0,Gulupa,12
+Gulupa,2022,2060.6,nacional,directo,1.0,Gulupa,12
+Gulupa,2023,2219.5,nacional,directo,1.0,Gulupa,12
+Gulupa,2024,2924.7,nacional,directo,1.0,Gulupa,12
+Gulupa,2025,3285.2,nacional,directo,1.0,Gulupa,12
+Gulupa,2026,3559.4,nacional,directo,1.0,Gulupa,10
+Brevo,2021,4211.2,nacional,directo,1.0,Breva,12
+Brevo,2022,5569.3,nacional,directo,1.0,Breva,12
+Brevo,2023,5541.3,nacional,directo,1.0,Breva,12
+Brevo,2024,5698.2,nacional,directo,1.0,Breva,12
+Brevo,2025,6149.7,nacional,directo,1.0,Breva,12
+Brevo,2026,5066.0,nacional,directo,1.0,Breva,10
+Uchuva,2021,3219.0,nacional,directo,1.0,Uchuva con cáscara,12
+Uchuva,2022,3501.2,nacional,directo,1.0,Uchuva con cáscara,12
+Uchuva,2023,3763.0,nacional,directo,1.0,Uchuva con cáscara,12
+Uchuva,2024,4591.9,nacional,directo,1.0,Uchuva con cáscara,12
+Uchuva,2025,5158.5,nacional,directo,1.0,Uchuva con cáscara,12
+Uchuva,2026,4927.3,nacional,directo,1.0,Uchuva con cáscara,10
