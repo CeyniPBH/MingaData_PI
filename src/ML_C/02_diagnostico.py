@@ -1,12 +1,3 @@
-"""Tarea 2 (Ceyni): diagnóstico de calidad de las series (producto x municipio).
-Entradas : data/clean/produccion_valle_clean.csv, data/clean/lista_productos.csv
-Salidas  : data/results/diagnostico_series.csv, data/results/diagnostico_calidad.csv
-Reglas (explícitas):
-  - repetido : valor idéntico al del año anterior (solo transiciones con año previo > 0 y años consecutivos)
-  - salto    : |variación relativa| > 100 %  (previo > 0)   [salto_100]
-               o |z| > 3 sobre las variaciones relativas de la serie (>= 8 variaciones)  [salto_3sd]
-  - confianza: 'baja' si <3 municipios activos o mediana de años < 12 o repetidos > 50 %; 'media' si repetidos > 30 % o saltos > 15 %; si no 'alta'
-"""
 from pathlib import Path
 import numpy as np, pandas as pd
 

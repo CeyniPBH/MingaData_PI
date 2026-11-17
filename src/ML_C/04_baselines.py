@@ -1,12 +1,6 @@
-"""Tarea 4 (Ceyni): baselines (ingenuo, deriva, ETS amortiguado, promedio) + validación walk-forward.
-Salidas : data/results/predicciones_baselines.csv, data/results/metricas_baselines.csv
-Esquema : orígenes 2018..2022 (ventana que se expande); horizontes 1..min(5, 2023-O).  Las métricas de los
-          modelos se comparan SIEMPRE sobre las mismas filas (producto, municipio, origen, horizonte).
-Reglas  : 'detallado' -> ingenuo, deriva, ETS, promedio-5; 'simplificado' -> ingenuo y promedio-5.
-"""
 import warnings, time
+from importlib import import_module
 import numpy as np, pandas as pd
-from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from common import cargar_panel, objetivos, ORIGENES, RES
 
 warnings.filterwarnings("ignore")
@@ -21,6 +15,7 @@ def f_ets(y, H):
     if len(y) < 8 or y.nunique() < 3:
         return f_naive(y, H)
     try:
+        ExponentialSmoothing = import_module("statsmodels.tsa.holtwinters").ExponentialSmoothing
         m = ExponentialSmoothing(y.values, trend="add", damped_trend=True, initialization_method="estimated").fit()
         return np.maximum(m.forecast(H), 0)
     except Exception:

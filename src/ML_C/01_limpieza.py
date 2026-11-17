@@ -1,10 +1,3 @@
-"""Tarea 1 (Ceyni): carga del Dataset 1, armonización de categorías y lista de productos.
-Uso:  python src/01_limpieza.py   (desde la raíz del repo)
-Entradas : data/raw/Consolidado_agrícola_..._cultivos_permanentes_...csv
-Salidas  : data/clean/produccion_valle_clean.csv  (y .parquet si hay pyarrow)
-           data/clean/lista_productos.csv
-           data/results/decisiones_armonizacion.csv
-"""
 from pathlib import Path
 import glob
 import pandas as pd

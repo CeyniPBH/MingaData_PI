@@ -1,12 +1,3 @@
-"""Tarea 3 (Ceyni), Entrega A: coordenadas de cabeceras y matriz de tiempos.
-Entradas : data/raw/DIVIPOLA-*.csv, data/clean/produccion_valle_clean.csv
-Salidas  : data/clean/municipios_coordenadas.csv
-           data/clean/matriz_tiempos.csv   (origen, destino, minutos, distancia_km, metodo)
-           data/clean/produccion_promedio_municipio.csv  (insumo de zonas de acopio, Samuel)
-VERSIÓN v0 (metodo = 'aproximado'): distancia en línea recta (haversine) x 1,4 / 45 km/h.
-Para reemplazar por OSRM u OSMnx basta con regenerar matriz_tiempos.csv con metodo = 'osm'
-manteniendo las mismas columnas e ids.
-"""
 from pathlib import Path
 import glob
 import numpy as np, pandas as pd

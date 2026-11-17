@@ -1,11 +1,3 @@
-"""Tarea 5 (Ceyni): modelo global LightGBM con el MISMO walk-forward de los baselines.
-Un solo modelo para los 22 productos 'detallados' (todas sus series a la vez), horizonte directo h=1..5.
-Objetivo : log1p(y[T+h]) - log1p(y[T])  (cambio logarítmico respecto al último valor; así caña y sábila son comparables)
-Variables: último valor (log), cambios de 1 y 2 años, medias móviles 3 y 5, % de ceros recientes, historia disponible,
-           horizonte, año, producto y municipio (categóricas) y, si existe data/clean/oni.csv, el ONI rezagado.
-Sin fugas : para el origen O solo se entrena con filas cuyo objetivo cae en <= O.
-Salidas  : data/results/predicciones_lgbm.csv, metricas_comparacion.csv, importancia_variables.csv
-"""
 import warnings
 import numpy as np, pandas as pd, lightgbm as lgb
 from common import cargar_panel, objetivos, ORIGENES, RES, CLEAN, HORIZONTE_MAX, ANIO_FIN

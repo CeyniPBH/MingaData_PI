@@ -1,13 +1,3 @@
-"""Tarea 6 (Ceyni): escenarios de oferta bajo/base/alto 2024-2028 y coherencia jerárquica.
-Modelo base : 'detallado' -> promedio (ingenuo + LightGBM); 'simplificado' (y series cortas) -> ingenuo.
-              Regla: el mejor modelo del walk-forward es un empate técnico con el ingenuo (ver docs/resumen_pronostico.md).
-Escenarios  : base = pronóstico; bajo/alto = percentiles 10 y 90 del error logarítmico del walk-forward,
-              por (producto, horizonte) si hay >= 30 observaciones; si no, por (estado, horizonte).
-Cobertura   : se mide con calibración dejando un origen afuera (el error del origen evaluado NO calibra su intervalo).
-Salidas     : data/results/oferta_escenarios.csv  (producto, cod_dane, año, oferta_bajo, oferta_base, oferta_alto)
-              data/results/oferta_escenarios_detalle.csv (+ modelo, horizonte), oferta_departamento.csv,
-              cobertura_intervalos.csv, coherencia_jerarquica.csv
-"""
 import warnings
 import numpy as np, pandas as pd, lightgbm as lgb
 from importlib import import_module

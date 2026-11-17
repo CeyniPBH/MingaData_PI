@@ -1,4 +1,4 @@
-# Diccionario de datos – entregas de Ceyni
+# Diccionario de datos
 
 Todos los CSV están en UTF-8 con BOM; `cod_dane` es texto de 5 dígitos. Los scripts se corren en orden desde la raíz del repo: `python src/01_limpieza.py` … `python src/06_escenarios.py`.
 
