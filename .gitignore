@@ -1,7 +1,13 @@
-data/raw/FRONTERA_*
+# Datos crudos pesados (SIPSA + FRONTERA ICA, ~750 MB). Se bajan con: python src/ML_C/00_descargar_datos.py
+data/raw/SIPSA/
 data/raw/*.xlsx
 *.rar
 *.zip
-.ipynb_checkpoints/
+
+# Python / Jupyter
 __pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
 .env
