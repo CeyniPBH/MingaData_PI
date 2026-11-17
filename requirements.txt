@@ -1,0 +1,17 @@
+pandas
+numpy
+pyarrow
+openpyxl
+scikit-learn
+statsmodels
+statsforecast
+lightgbm
+geopandas
+libpysal
+spopt
+osmnx
+ortools
+matplotlib
+plotly
+folium
+streamlit

@@ -1,0 +1,7 @@
+data/raw/FRONTERA_*
+data/raw/*.xlsx
+*.rar
+*.zip
+.ipynb_checkpoints/
+__pycache__/
+.env

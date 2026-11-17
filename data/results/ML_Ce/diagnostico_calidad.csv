@@ -1,0 +1,45 @@
+﻿producto,n_municipios,anios_mediana,n_transiciones,n_repetidos,n_saltos_100,n_saltos_3sd,n_ceros,pct_repetidos,pct_saltos_100,pct_saltos_3sd,confianza,familia,estado
+Guanábana,23,23.0,372,147,25,11,22,39.5,6.7,3.0,media,Frutales,detallado
+Mango,18,17.0,242,91,15,5,23,37.6,6.2,2.1,media,Frutales,detallado
+Borojó,1,24.0,23,8,1,1,0,34.8,4.3,4.3,baja,Frutales,detallado
+Guayaba,30,23.5,528,176,36,15,10,33.3,6.8,2.8,media,Frutales,detallado
+Vid,16,24.0,281,78,22,8,4,27.8,7.8,2.8,alta,Frutales,detallado
+Aguacate,39,24.0,760,184,74,22,9,24.2,9.7,2.9,alta,Frutales,detallado
+Sábila,9,9.0,58,14,7,0,3,24.1,12.1,0.0,baja,Cultivos para Condimentos y Bebidas Medicinales y Aromáticas,detallado
+Cítricos,37,24.0,812,190,54,27,5,23.4,6.7,3.3,alta,Frutales,detallado
+Cebolla Larga,14,15.0,179,41,12,5,0,22.9,6.7,2.8,alta,Hortalizas,detallado
+Mora,23,24.0,491,111,37,11,2,22.6,7.5,2.2,alta,Frutales,detallado
+Banano,38,24.0,801,176,41,22,2,22.0,5.1,2.7,alta,Frutales,detallado
+Caña panelera,32,24.0,706,153,39,28,1,21.7,5.5,4.0,alta,Cultivos Tropicales Tradicionales,detallado
+Ají,20,11.5,236,42,26,5,0,17.8,11.0,2.1,baja,Hortalizas,detallado
+Plátano,41,24.0,930,155,41,26,0,16.7,4.4,2.8,alta,Frutales,detallado
+Lulo,29,24.0,575,93,72,12,9,16.2,12.5,2.1,alta,Frutales,detallado
+Maracuyá,37,18.0,537,85,61,11,13,15.8,11.4,2.0,alta,Frutales,detallado
+Yuca,34,23.0,665,100,63,17,4,15.0,9.5,2.6,alta,Raíces y Tubérculos,detallado
+Piña,22,17.5,309,46,30,5,9,14.9,9.7,1.6,alta,Frutales,detallado
+Arracacha,18,18.5,254,32,36,11,2,12.6,14.2,4.3,alta,Raíces y Tubérculos,detallado
+Papaya,23,19.0,360,44,60,12,7,12.2,16.7,3.3,media,Frutales,detallado
+Caña de azúcar,30,24.0,650,78,11,15,4,12.0,1.7,2.3,alta,Cultivos Tropicales Tradicionales,detallado
+Café,39,24.0,883,33,31,18,2,3.7,3.5,2.0,alta,Cultivos Tropicales Tradicionales,detallado
+Stevia,1,10.0,9,6,0,0,0,66.7,0.0,0.0,baja,Cultivos para Condimentos y Bebidas Medicinales y Aromáticas,simplificado
+Brevo,1,21.0,20,12,2,1,0,60.0,10.0,5.0,baja,Frutales,simplificado
+Arazá,1,10.0,9,5,0,0,0,55.6,0.0,0.0,baja,Frutales,simplificado
+Gulupa,2,2.5,2,1,0,0,1,50.0,0.0,0.0,baja,Frutales,simplificado
+Té,1,24.0,23,11,0,1,0,47.8,0.0,4.3,baja,Cultivos para Condimentos y Bebidas Medicinales y Aromáticas,simplificado
+Aromáticas,8,3.0,7,3,0,0,1,42.9,0.0,0.0,baja,Flores,simplificado
+Chontaduro,3,24.0,60,25,5,3,0,41.7,8.3,5.0,media,Frutales,simplificado
+Macadamia,4,11.0,25,10,1,0,10,40.0,4.0,0.0,baja,Frutales,simplificado
+Durazno,2,7.5,11,4,0,0,1,36.4,0.0,0.0,baja,Frutales,simplificado
+Zapote,4,15.5,45,16,2,1,6,35.6,4.4,2.2,media,Frutales,simplificado
+Coco,1,24.0,23,8,1,1,0,34.8,4.3,4.3,baja,Frutales,simplificado
+Tomate de Árbol,16,23.0,291,89,21,6,3,30.6,7.2,2.1,media,Frutales,simplificado
+Flores y follajes,9,5.0,27,8,2,0,6,29.6,7.4,0.0,baja,Flores,simplificado
+Fresa,9,7.0,54,16,10,0,3,29.6,18.5,0.0,baja,Frutales,simplificado
+Pitaya,16,16.0,216,64,12,3,15,29.6,5.6,1.4,alta,Frutales,simplificado
+Cacao,36,16.0,513,137,51,12,36,26.7,9.9,2.3,alta,Cultivos Tropicales Tradicionales,simplificado
+Curuba,4,23.5,73,19,4,3,0,26.0,5.5,4.1,alta,Frutales,simplificado
+Granadilla,20,19.5,336,84,35,8,5,25.0,10.4,2.4,alta,Frutales,simplificado
+Sacha Inchi,9,6.0,43,9,7,0,4,20.9,16.3,0.0,baja,Oleaginosas,simplificado
+Bananito,2,20.5,39,6,1,0,0,15.4,2.6,0.0,baja,Frutales,simplificado
+Papachina,1,24.0,22,3,1,1,1,13.6,4.5,4.5,baja,Raíces y Tubérculos,simplificado
+Uchuva,1,2.0,1,0,0,0,0,0.0,0.0,0.0,baja,Frutales,simplificado

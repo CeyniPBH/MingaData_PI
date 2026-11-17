@@ -1,0 +1,12 @@
+﻿decision,producto_o_campo,accion,motivo
+Separador de miles en el CSV,Todas,"Se limpian comas antes de convertir (año, id municipio, hectáreas, toneladas).","Evita años como '2,000' y códigos DANE mal formados."
+Código DANE,Id_municipio,Se convierte a texto de 5 dígitos (zfill).,Coincide con DIVIPOLA para los 42 municipios.
+Filas duplicadas exactas,"Brevo, Té",Se eliminan 18 filas idénticas (antes de armonizar).,Duplicado de captura; no aporta información.
+Escritura de familia,Raíces y tubérculos,'Raíces y tubérculos' -> 'Raíces y Tubérculos'.,Dos escrituras de la misma familia.
+Cartuchos,Cartuchos,Se reclasifica de Raíces y Tubérculos a Flores.,Es una flor; queda excluido por no tener producción 2019-2023.
+Cambio de desagregación,Aguacate Hass,Se suma a 'Aguacate'.,Separado desde 2020; se suma a 'Aguacate' para conservar la serie desde 2000.
+Cambio de desagregación,Limón,Se suma a 'Cítricos'.,Desagregado desde 2021 (antes dentro de 'Cítricos'); se suma a 'Cítricos'.
+Cambio de desagregación,Mandarina,Se suma a 'Cítricos'.,Desagregado desde 2021 (antes dentro de 'Cítricos'); se suma a 'Cítricos'.
+Cambio de desagregación,Naranja,Se suma a 'Cítricos'.,Desagregado desde 2021 (antes dentro de 'Cítricos'); se suma a 'Cítricos'.
+Rendimiento,Todos,Se recalcula como producción / ha cosechadas tras sumar.,El rendimiento original no es sumable.
+Productos sin producción 2019-2023,13 productos,Se excluyen del modelado.,No hay producción reciente que pronosticar.
