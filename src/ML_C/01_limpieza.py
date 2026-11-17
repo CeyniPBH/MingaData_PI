@@ -2,8 +2,8 @@ from pathlib import Path
 import glob
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-RAW, CLEAN, RES = ROOT / "data/raw", ROOT / "data/clean", ROOT / "data/results"
+ROOT = Path(__file__).resolve().parents[2]
+RAW, CLEAN, RES = ROOT / "data/raw", ROOT / "data/clean", ROOT / "data/results/ML_Ce"
 CLEAN.mkdir(parents=True, exist_ok=True); RES.mkdir(parents=True, exist_ok=True)
 
 # ---- Parámetros editables ---------------------------------------------------

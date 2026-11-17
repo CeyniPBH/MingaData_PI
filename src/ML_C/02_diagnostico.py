@@ -1,8 +1,8 @@
 from pathlib import Path
 import numpy as np, pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN, RES = ROOT / "data/clean", ROOT / "data/results"
+ROOT = Path(__file__).resolve().parents[2]
+CLEAN, RES = ROOT / "data/clean", ROOT / "data/results/ML_Ce"
 
 def main():
     d = pd.read_csv(CLEAN / "produccion_valle_clean.csv", dtype={"cod_dane": str})

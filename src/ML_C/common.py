@@ -2,8 +2,8 @@
 from pathlib import Path
 import numpy as np, pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN, RES = ROOT / "data/clean", ROOT / "data/results"
+ROOT = Path(__file__).resolve().parents[2]
+CLEAN, RES = ROOT / "data/clean", ROOT / "data/results/ML_Ce"
 ANIO_FIN = 2023
 ORIGENES = [2018, 2019, 2020, 2021, 2022]      # walk-forward: entrenar hasta O, pronosticar O+1..min(O+5, 2023)
 HORIZONTE_MAX = 5

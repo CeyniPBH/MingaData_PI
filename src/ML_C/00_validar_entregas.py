@@ -2,8 +2,8 @@ from pathlib import Path
 import sys
 import numpy as np, pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN, RES = ROOT / "data/clean", ROOT / "data/results"
+ROOT = Path(__file__).resolve().parents[2]
+CLEAN, RES = ROOT / "data/clean", ROOT / "data/results/ML_Ce"
 fallos, avisos = [], []
 
 def ok(cond, msg):

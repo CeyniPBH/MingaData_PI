@@ -2,7 +2,7 @@ from pathlib import Path
 import glob
 import numpy as np, pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 RAW, CLEAN = ROOT / "data/raw", ROOT / "data/clean"
 FACTOR_RUTA, VEL_KMH = 1.4, 45.0
 

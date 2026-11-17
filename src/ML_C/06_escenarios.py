@@ -2,6 +2,7 @@ import warnings
 import numpy as np, pandas as pd, lightgbm as lgb
 from importlib import import_module
 from common import cargar_panel, RES, ANIO_FIN, HORIZONTE_MAX
+
 m5 = import_module("05_lgbm")
 warnings.filterwarnings("ignore")
 Q_BAJO, Q_ALTO, MIN_N = 0.10, 0.90, 30

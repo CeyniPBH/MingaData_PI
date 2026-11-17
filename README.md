@@ -49,12 +49,12 @@ Si no activa el entorno en PowerShell, ejecuta una vez `Set-ExecutionPolicy -Sco
 MingaData_PI/
 ├── data/raw/        datos originales, NO se editan (los FRONTERA pesados están en .gitignore)
 ├── data/clean/      tablas limpias que consumen los demás
-├── data/results/    resultados del modelado y escenarios
-├── docs/            diccionario, resumen del pronóstico, lectura del diagnóstico
-└── src/             scripts 00 a 06 + common.py
+├── data/results/ML_Ce    resultados del modelado y escenarios
+├── docs/ML_C            diccionario, resumen del pronóstico, lectura del diagnóstico
+└── src/ML_C             scripts 00 a 06 + common.py
 ```
 
-Todos los scripts se corren **desde la raíz del repo** (`python src/01_limpieza.py`) y encuentran las rutas solos.
+Todos los scripts se corren **desde la raíz del repo** (`python src/ML_C/00_validar_entregas.py`) y encuentran las rutas solos.
 
 ---
 
@@ -64,12 +64,12 @@ Orden obligatorio, porque cada script lee lo que escribe el anterior.
 
 | Paso | Comando | Qué hace | Archivos que crea |
 |---|---|---|---|
-| 1 | `python src/01_limpieza.py` | Lee el CSV de permanentes, quita duplicados exactos, unifica familias, suma Hass a aguacate y limón/mandarina/naranja a cítricos, define los 22 detallados | `produccion_valle_clean.csv/.parquet`, `lista_productos.csv`, `decisiones_armonizacion.csv` |
-| 2 | `python src/02_diagnostico.py` | % de valores repetidos, saltos atípicos y nivel de confianza por producto | `diagnostico_series.csv`, `diagnostico_calidad.csv` |
-| 3 | `python src/03_geo_tiempos.py` | Coordenadas de los 42 municipios y 5 destinos, matriz de tiempos aproximada y producción promedio | `municipios_coordenadas.csv`, `destinos_coordenadas.csv`, `matriz_tiempos.csv`, `produccion_promedio_municipio.csv` |
-| 4 | `python src/04_baselines.py` | Ingenuo, deriva, ETS amortiguado y promedio 5 años con walk-forward (orígenes 2018-2022, horizontes 1-5) | `predicciones_baselines.csv`, `metricas_baselines.csv` |
-| 5 | `python src/05_lgbm.py` | LightGBM global sobre los 22 detallados con el mismo walk-forward; compara contra los baselines | `predicciones_lgbm.csv`, `metricas_comparacion.csv`, `importancia_variables.csv` |
-| 6 | `python src/06_escenarios.py` | Escenarios bajo/base/alto 2024-2028, cobertura de intervalos y suma municipal = departamental | `oferta_escenarios.csv`, `oferta_escenarios_detalle.csv`, `oferta_departamento.csv`, `cobertura_intervalos.csv`, `coherencia_jerarquica.csv` |
-| 7 | `python src/00_validar_entregas.py` | Revisa formato, conteos y consistencia de todo lo anterior | Imprime OK / FALLA / PENDIENTE |
+| 1 | `python src/ML_C/01_limpieza.py` | Lee el CSV de permanentes, quita duplicados exactos, unifica familias, suma Hass a aguacate y limón/mandarina/naranja a cítricos, define los 22 detallados | `produccion_valle_clean.csv/.parquet`, `lista_productos.csv`, `decisiones_armonizacion.csv` |
+| 2 | `python src/ML_C/02_diagnostico.py` | % de valores repetidos, saltos atípicos y nivel de confianza por producto | `diagnostico_series.csv`, `diagnostico_calidad.csv` |
+| 3 | `python src/ML_C/03_geo_tiempos.py` | Coordenadas de los 42 municipios y 5 destinos, matriz de tiempos aproximada y producción promedio | `municipios_coordenadas.csv`, `destinos_coordenadas.csv`, `matriz_tiempos.csv`, `produccion_promedio_municipio.csv` |
+| 4 | `python src/ML_C/04_baselines.py` | Ingenuo, deriva, ETS amortiguado y promedio 5 años con walk-forward (orígenes 2018-2022, horizontes 1-5) | `predicciones_baselines.csv`, `metricas_baselines.csv` |
+| 5 | `python src/ML_C/05_lgbm.py` | LightGBM global sobre los 22 detallados con el mismo walk-forward; compara contra los baselines | `predicciones_lgbm.csv`, `metricas_comparacion.csv`, `importancia_variables.csv` |
+| 6 | `python src/ML_C/06_escenarios.py` | Escenarios bajo/base/alto 2024-2028, cobertura de intervalos y suma municipal = departamental | `oferta_escenarios.csv`, `oferta_escenarios_detalle.csv`, `oferta_departamento.csv`, `cobertura_intervalos.csv`, `coherencia_jerarquica.csv` |
+| 7 | `python src/ML_C/00_validar_entregas.py` | Revisa formato, conteos y consistencia de todo lo anterior | Imprime OK / FALLA / PENDIENTE |
 
-Resultados de la última corrida: 57 → 44 productos (22 detallados, 22 simplificados, 13 excluidos); 724 series activas; LightGBM empata técnicamente con el ingenuo; cobertura de intervalos 75,9 % frente al 80 % nominal. Los detalles están en `docs/resumen_pronostico.md`.
+Resultados de la última corrida: 57 → 44 productos (22 detallados, 22 simplificados, 13 excluidos); 724 series activas; LightGBM empata técnicamente con el ingenuo; cobertura de intervalos 75,9 % frente al 80 % nominal. Los detalles están en `docs/ML_C/resumen_pronostico.md`.
