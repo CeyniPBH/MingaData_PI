@@ -1,21 +1,21 @@
 ﻿producto,familia,anio_ini,anio_fin,n_municipios,n_filas,produccion_t_2019_2023,n_municipios_2019_2023,estado,ranking_toneladas
-Caña de azúcar,Cultivos Tropicales Tradicionales,2000,2023,30,685,120379542.7,30,detallado,1
+Caña de azúcar,Cultivos Tropicales Tradicionales,2000,2023,30,685,120379542.69999999,30,detallado,1
 Caña panelera,Cultivos Tropicales Tradicionales,2000,2023,41,854,1474379.5,32,detallado,2
-Plátano,Frutales,2000,2023,42,984,1454850.61,41,detallado,3
-Cítricos,Frutales,2000,2023,40,896,754284.85,37,detallado,4
+Plátano,Frutales,2000,2023,42,984,1454850.6099999999,41,detallado,3
+Cítricos,Frutales,2000,2023,40,896,754284.8500000001,37,detallado,4
 Piña,Frutales,2000,2023,32,402,714544.54,22,detallado,5
-Banano,Frutales,2000,2023,41,872,385653.55,38,detallado,6
+Banano,Frutales,2000,2023,41,872,385653.55000000005,38,detallado,6
 Aguacate,Frutales,2000,2023,40,822,360399.61,39,detallado,7
 Café,Cultivos Tropicales Tradicionales,2000,2023,39,930,236830.51,39,detallado,8
 Vid,Frutales,2000,2023,20,335,99119.25,16,detallado,9
-Papaya,Frutales,2000,2023,31,440,84743.89,23,detallado,10
+Papaya,Frutales,2000,2023,31,440,84743.89000000001,23,detallado,10
 Lulo,Frutales,2000,2023,34,680,84559.42,29,detallado,11
 Guayaba,Frutales,2000,2023,39,641,68810.42,30,detallado,12
-Maracuyá,Frutales,2000,2023,38,616,58536.85,37,detallado,13
+Maracuyá,Frutales,2000,2023,38,616,58536.84999999999,37,detallado,13
 Yuca,Raíces y Tubérculos,2000,2023,41,773,41677.17,34,detallado,14
 Borojó,Frutales,2000,2023,2,34,26558.0,1,detallado,15
 Guanábana,Frutales,2000,2023,32,490,25188.21,23,detallado,16
-Mora,Frutales,2000,2023,27,555,22083.98,23,detallado,17
+Mora,Frutales,2000,2023,27,555,22083.980000000003,23,detallado,17
 Arracacha,Raíces y Tubérculos,2000,2023,29,348,20885.9,18,detallado,18
 Ají,Hortalizas,2000,2023,33,329,19544.35,20,detallado,19
 Cebolla Larga,Hortalizas,2000,2022,26,267,19119.75,14,detallado,20
@@ -35,12 +35,12 @@ Orellana,Cultivos para Condimentos y Bebidas Medicinales y Aromáticas,2014,2015
 Papa,Raíces y Tubérculos,2000,2013,9,46,0.0,0,excluido,56
 Ulluco,Raíces y Tubérculos,2000,2005,3,6,0.0,0,excluido,57
 Chontaduro,Frutales,2000,2023,7,83,15321.0,3,simplificado,23
-Granadilla,Frutales,2000,2023,31,428,13483.6,20,simplificado,24
+Granadilla,Frutales,2000,2023,31,428,13483.600000000002,20,simplificado,24
 Bananito,Frutales,2000,2023,4,59,9944.0,2,simplificado,25
 Coco,Frutales,2000,2023,1,24,8285.0,1,simplificado,26
 Tomate de Árbol,Frutales,2000,2023,29,403,7617.77,16,simplificado,27
-Cacao,Cultivos Tropicales Tradicionales,2000,2023,38,597,4742.27,36,simplificado,28
-Pitaya,Frutales,2000,2023,29,303,4296.87,16,simplificado,29
+Cacao,Cultivos Tropicales Tradicionales,2000,2023,38,597,4742.2699999999995,36,simplificado,28
+Pitaya,Frutales,2000,2023,29,303,4296.870000000001,16,simplificado,29
 Papachina,Raíces y Tubérculos,2000,2023,2,28,3975.0,1,simplificado,30
 Fresa,Frutales,2000,2022,16,85,2564.58,9,simplificado,31
 Aromáticas,Flores,2004,2022,12,25,1474.1399999999999,8,simplificado,32
@@ -48,7 +48,7 @@ Té,Cultivos para Condimentos y Bebidas Medicinales y Aromáticas,2000,2023,1,24
 Curuba,Frutales,2000,2023,10,98,914.74,4,simplificado,34
 Sacha Inchi,Oleaginosas,2014,2023,11,59,660.48,9,simplificado,35
 Macadamia,Frutales,2000,2022,5,52,574.24,4,simplificado,36
-Zapote,Frutales,2000,2022,5,76,536.78,4,simplificado,37
+Zapote,Frutales,2000,2022,5,76,536.7800000000001,4,simplificado,37
 Flores y follajes,Flores,2014,2019,12,49,186.55,9,simplificado,38
 Durazno,Frutales,2014,2023,5,24,181.0,2,simplificado,39
 Gulupa,Frutales,2014,2023,4,8,125.0,2,simplificado,40

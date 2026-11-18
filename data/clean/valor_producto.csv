@@ -210,7 +210,7 @@ Aguacate,76122,Caicedonia,2019,4312.0,5116.51,22062382935.0,,,directo,valle
 Aguacate,76122,Caicedonia,2020,6217.4,5116.51,31811377472.0,,,directo,valle
 Aguacate,76122,Caicedonia,2021,2755.0,5116.51,14095979821.0,4127.65,11371673837.0,directo,valle
 Aguacate,76122,Caicedonia,2022,5024.799999999999,5116.51,25709429910.0,5038.9,25319443783.0,directo,valle
-Aguacate,76122,Caicedonia,2023,3710.4,5116.51,18984291661.0,6182.98,22941325900.0,directo,valle
+Aguacate,76122,Caicedonia,2023,3710.3999999999996,5116.51,18984291661.0,6182.98,22941325900.0,directo,valle
 Aguacate,76126,Calima Darién,2000,1150.0,5116.51,5883984317.0,,,directo,valle
 Aguacate,76126,Calima Darién,2001,2805.0,5116.51,14351805226.0,,,directo,valle
 Aguacate,76126,Calima Darién,2002,2955.0,5116.51,15119281441.0,,,directo,valle
@@ -4617,7 +4617,7 @@ Caña de azúcar,76736,Sevilla,2018,8000.0,404.68,3237433757.0,,,derivado,valle
 Caña de azúcar,76736,Sevilla,2019,8000.0,404.68,3237433757.0,,,derivado,valle
 Caña de azúcar,76736,Sevilla,2020,4200.0,404.68,1699652722.0,,,derivado,valle
 Caña de azúcar,76736,Sevilla,2021,8400.0,404.68,3399305444.0,309.73,2601694833.0,derivado,valle
-Caña de azúcar,76736,Sevilla,2022,2625.0,404.68,1062282951.0,428.1,1123772813.0,derivado,valle
+Caña de azúcar,76736,Sevilla,2022,2625.0,404.68,1062282951.0,428.1,1123772812.0,derivado,valle
 Caña de azúcar,76736,Sevilla,2023,2625.0,404.68,1062282951.0,476.21,1250046406.0,derivado,valle
 Caña de azúcar,76823,Toro,2000,110469.0,404.68,44704508707.0,,,derivado,valle
 Caña de azúcar,76823,Toro,2001,74749.0,404.68,30249366984.0,,,derivado,valle
@@ -4791,7 +4791,7 @@ Caña panelera,76036,Andalucia,2005,710.0,421.96,299592530.0,,,derivado,valle
 Caña panelera,76036,Andalucia,2006,1950.0,421.96,822824554.0,,,derivado,valle
 Caña panelera,76036,Andalucia,2007,2430.0,421.96,1025365982.0,,,derivado,valle
 Caña panelera,76036,Andalucia,2008,37296.0,421.96,15737469000.0,,,derivado,valle
-Caña panelera,76036,Andalucia,2009,33579.0,421.96,14169038812.0,,,derivado,valle
+Caña panelera,76036,Andalucia,2009,33579.0,421.96,14169038813.0,,,derivado,valle
 Caña panelera,76036,Andalucia,2010,45645.0,421.96,19260423973.0,,,derivado,valle
 Caña panelera,76041,Ansermanuevo,2000,3200.0,421.96,1350276190.0,,,derivado,valle
 Caña panelera,76041,Ansermanuevo,2001,4860.0,421.96,2050731964.0,,,derivado,valle
@@ -4874,14 +4874,14 @@ Caña panelera,76109,Buenaventura,2005,9503.0,421.96,4009898324.0,,,derivado,val
 Caña panelera,76109,Buenaventura,2006,8400.0,421.96,3544475000.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2007,9100.0,421.96,3839847917.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2008,8750.0,421.96,3692161458.0,,,derivado,valle
-Caña panelera,76109,Buenaventura,2009,7875.0,421.96,3322945312.0,,,derivado,valle
+Caña panelera,76109,Buenaventura,2009,7875.0,421.96,3322945313.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2010,8750.0,421.96,3692161458.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2011,8610.0,421.96,3633086875.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2012,8260.0,421.96,3485400417.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2013,851.0,421.96,359089074.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2014,7000.0,421.96,2953729167.0,,,derivado,valle
-Caña panelera,76109,Buenaventura,2015,8295.0,421.96,3500169062.0,,,derivado,valle
-Caña panelera,76109,Buenaventura,2016,8295.0,421.96,3500169062.0,,,derivado,valle
+Caña panelera,76109,Buenaventura,2015,8295.0,421.96,3500169063.0,,,derivado,valle
+Caña panelera,76109,Buenaventura,2016,8295.0,421.96,3500169063.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2017,2420.0,421.96,1021146369.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2018,2550.0,421.96,1076001339.0,,,derivado,valle
 Caña panelera,76109,Buenaventura,2019,2700.0,421.96,1139295536.0,,,derivado,valle
@@ -4932,8 +4932,8 @@ Caña panelera,76113,Bugalagrande,2015,15260.0,421.96,6439129583.0,,,derivado,va
 Caña panelera,76113,Bugalagrande,2016,14735.0,421.96,6217599896.0,,,derivado,valle
 Caña panelera,76113,Bugalagrande,2017,14735.0,421.96,6217599896.0,,,derivado,valle
 Caña panelera,76113,Bugalagrande,2018,14735.0,421.96,6217599896.0,,,derivado,valle
-Caña panelera,76113,Bugalagrande,2019,16275.0,421.96,6867420312.0,,,derivado,valle
-Caña panelera,76113,Bugalagrande,2020,16275.0,421.96,6867420312.0,,,derivado,valle
+Caña panelera,76113,Bugalagrande,2019,16275.0,421.96,6867420313.0,,,derivado,valle
+Caña panelera,76113,Bugalagrande,2020,16275.0,421.96,6867420313.0,,,derivado,valle
 Caña panelera,76113,Bugalagrande,2021,16000.0,421.96,6751380952.0,381.03,6096504762.0,derivado,valle
 Caña panelera,76113,Bugalagrande,2022,14000.0,421.96,5907458333.0,407.55,5705666667.0,derivado,valle
 Caña panelera,76113,Bugalagrande,2023,14000.0,421.96,5907458333.0,477.3,6682266667.0,derivado,valle
@@ -4942,9 +4942,9 @@ Caña panelera,76122,Caicedonia,2001,350.0,421.96,147686458.0,,,derivado,valle
 Caña panelera,76122,Caicedonia,2002,770.0,421.96,324910208.0,,,derivado,valle
 Caña panelera,76122,Caicedonia,2003,1260.0,421.96,531671250.0,,,derivado,valle
 Caña panelera,76122,Caicedonia,2004,1260.0,421.96,531671250.0,,,derivado,valle
-Caña panelera,76122,Caicedonia,2005,1365.0,421.96,575977187.0,,,derivado,valle
-Caña panelera,76122,Caicedonia,2006,1365.0,421.96,575977187.0,,,derivado,valle
-Caña panelera,76122,Caicedonia,2007,1365.0,421.96,575977187.0,,,derivado,valle
+Caña panelera,76122,Caicedonia,2005,1365.0,421.96,575977188.0,,,derivado,valle
+Caña panelera,76122,Caicedonia,2006,1365.0,421.96,575977188.0,,,derivado,valle
+Caña panelera,76122,Caicedonia,2007,1365.0,421.96,575977188.0,,,derivado,valle
 Caña panelera,76122,Caicedonia,2008,1176.0,421.96,496226500.0,,,derivado,valle
 Caña panelera,76122,Caicedonia,2009,1350.0,421.96,569647768.0,,,derivado,valle
 Caña panelera,76122,Caicedonia,2010,1800.0,421.96,759530357.0,,,derivado,valle
@@ -5031,8 +5031,8 @@ Caña panelera,76147,Cartago,2023,960.0,421.96,405082857.0,477.3,458212571.0,der
 Caña panelera,76233,Dagua,2000,5400.0,421.96,2278591071.0,,,derivado,valle
 Caña panelera,76233,Dagua,2001,7155.0,421.96,3019133170.0,,,derivado,valle
 Caña panelera,76233,Dagua,2002,7155.0,421.96,3019133170.0,,,derivado,valle
-Caña panelera,76233,Dagua,2003,7497.0,421.96,3163443937.0,,,derivado,valle
-Caña panelera,76233,Dagua,2004,7497.0,421.96,3163443937.0,,,derivado,valle
+Caña panelera,76233,Dagua,2003,7497.0,421.96,3163443938.0,,,derivado,valle
+Caña panelera,76233,Dagua,2004,7497.0,421.96,3163443938.0,,,derivado,valle
 Caña panelera,76233,Dagua,2005,21620.0,421.96,9122803512.0,,,derivado,valle
 Caña panelera,76233,Dagua,2006,23970.0,421.96,10114412589.0,,,derivado,valle
 Caña panelera,76233,Dagua,2007,18450.0,421.96,7785186161.0,,,derivado,valle
@@ -5153,10 +5153,10 @@ Caña panelera,76306,Ginebra,2001,120.0,421.96,50635357.0,,,derivado,valle
 Caña panelera,76306,Ginebra,2002,40.0,421.96,16878452.0,,,derivado,valle
 Caña panelera,76306,Ginebra,2003,294.0,421.96,124056625.0,,,derivado,valle
 Caña panelera,76306,Ginebra,2004,294.0,421.96,124056625.0,,,derivado,valle
-Caña panelera,76306,Ginebra,2005,315.0,421.96,132917812.0,,,derivado,valle
-Caña panelera,76306,Ginebra,2006,315.0,421.96,132917812.0,,,derivado,valle
-Caña panelera,76306,Ginebra,2007,315.0,421.96,132917812.0,,,derivado,valle
-Caña panelera,76306,Ginebra,2008,315.0,421.96,132917812.0,,,derivado,valle
+Caña panelera,76306,Ginebra,2005,315.0,421.96,132917813.0,,,derivado,valle
+Caña panelera,76306,Ginebra,2006,315.0,421.96,132917813.0,,,derivado,valle
+Caña panelera,76306,Ginebra,2007,315.0,421.96,132917813.0,,,derivado,valle
+Caña panelera,76306,Ginebra,2008,315.0,421.96,132917813.0,,,derivado,valle
 Caña panelera,76306,Ginebra,2009,180.0,421.96,75953036.0,,,derivado,valle
 Caña panelera,76306,Ginebra,2010,180.0,421.96,75953036.0,,,derivado,valle
 Caña panelera,76306,Ginebra,2011,252.0,421.96,106334250.0,,,derivado,valle
@@ -5232,13 +5232,13 @@ Caña panelera,76377,La Cumbre,2008,5200.0,421.96,2194198810.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2009,1041.0,421.96,439261723.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2010,1295.0,421.96,546439896.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2011,1270.0,421.96,535890863.0,,,derivado,valle
-Caña panelera,76377,La Cumbre,2012,1155.0,421.96,487365312.0,,,derivado,valle
+Caña panelera,76377,La Cumbre,2012,1155.0,421.96,487365313.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2013,1188.0,421.96,501290036.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2014,500.0,421.96,210980655.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2015,475.0,421.96,200431622.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2016,425.0,421.96,179333557.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2017,908.0,421.96,383140869.0,,,derivado,valle
-Caña panelera,76377,La Cumbre,2018,735.0,421.96,310141562.0,,,derivado,valle
+Caña panelera,76377,La Cumbre,2018,735.0,421.96,310141563.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2019,332.0,421.96,140091155.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2020,420.0,421.96,177223750.0,,,derivado,valle
 Caña panelera,76377,La Cumbre,2021,495.0,421.96,208870848.0,381.03,188610616.0,derivado,valle
@@ -5294,11 +5294,11 @@ Caña panelera,76497,Obando,2006,4400.0,421.96,1856629762.0,,,derivado,valle
 Caña panelera,76497,Obando,2007,3132.0,421.96,1321582821.0,,,derivado,valle
 Caña panelera,76497,Obando,2008,2160.0,421.96,911436429.0,,,derivado,valle
 Caña panelera,76497,Obando,2009,1940.0,421.96,818604940.0,,,derivado,valle
-Caña panelera,76497,Obando,2010,3507.0,421.96,1479818312.0,,,derivado,valle
+Caña panelera,76497,Obando,2010,3507.0,421.96,1479818313.0,,,derivado,valle
 Caña panelera,76497,Obando,2011,3758.0,421.96,1585730601.0,,,derivado,valle
 Caña panelera,76497,Obando,2012,3621.0,421.96,1527921902.0,,,derivado,valle
 Caña panelera,76497,Obando,2013,4614.0,421.96,1946929482.0,,,derivado,valle
-Caña panelera,76497,Obando,2014,4557.0,421.96,1922877687.0,,,derivado,valle
+Caña panelera,76497,Obando,2014,4557.0,421.96,1922877688.0,,,derivado,valle
 Caña panelera,76497,Obando,2015,4403.0,421.96,1857895646.0,,,derivado,valle
 Caña panelera,76497,Obando,2016,6060.0,421.96,2557085536.0,,,derivado,valle
 Caña panelera,76497,Obando,2017,4743.0,421.96,2001362491.0,,,derivado,valle
@@ -5455,10 +5455,10 @@ Caña panelera,76736,Sevilla,2020,1199.0,421.96,505931610.0,,,derivado,valle
 Caña panelera,76736,Sevilla,2021,4600.0,421.96,1941022024.0,381.03,1752745119.0,derivado,valle
 Caña panelera,76736,Sevilla,2022,15000.0,421.96,6329419643.0,407.55,6113214286.0,derivado,valle
 Caña panelera,76736,Sevilla,2023,15000.0,421.96,6329419643.0,477.3,7159571429.0,derivado,valle
-Caña panelera,76823,Toro,2000,1239.0,421.96,522810062.0,,,derivado,valle
-Caña panelera,76823,Toro,2001,1239.0,421.96,522810062.0,,,derivado,valle
-Caña panelera,76823,Toro,2002,1239.0,421.96,522810062.0,,,derivado,valle
-Caña panelera,76823,Toro,2003,1239.0,421.96,522810062.0,,,derivado,valle
+Caña panelera,76823,Toro,2000,1239.0,421.96,522810063.0,,,derivado,valle
+Caña panelera,76823,Toro,2001,1239.0,421.96,522810063.0,,,derivado,valle
+Caña panelera,76823,Toro,2002,1239.0,421.96,522810063.0,,,derivado,valle
+Caña panelera,76823,Toro,2003,1239.0,421.96,522810063.0,,,derivado,valle
 Caña panelera,76823,Toro,2004,1260.0,421.96,531671250.0,,,derivado,valle
 Caña panelera,76823,Toro,2005,1260.0,421.96,531671250.0,,,derivado,valle
 Caña panelera,76823,Toro,2006,1260.0,421.96,531671250.0,,,derivado,valle
@@ -5515,8 +5515,8 @@ Caña panelera,76863,Versalles,2000,9200.0,421.96,3882044048.0,,,derivado,valle
 Caña panelera,76863,Versalles,2001,9200.0,421.96,3882044048.0,,,derivado,valle
 Caña panelera,76863,Versalles,2002,14445.0,421.96,6095231116.0,,,derivado,valle
 Caña panelera,76863,Versalles,2003,18450.0,421.96,7785186161.0,,,derivado,valle
-Caña panelera,76863,Versalles,2004,17325.0,421.96,7310479687.0,,,derivado,valle
-Caña panelera,76863,Versalles,2005,17325.0,421.96,7310479687.0,,,derivado,valle
+Caña panelera,76863,Versalles,2004,17325.0,421.96,7310479688.0,,,derivado,valle
+Caña panelera,76863,Versalles,2005,17325.0,421.96,7310479688.0,,,derivado,valle
 Caña panelera,76863,Versalles,2006,20000.0,421.96,8439226190.0,,,derivado,valle
 Caña panelera,76863,Versalles,2007,20750.0,421.96,8755697173.0,,,derivado,valle
 Caña panelera,76863,Versalles,2008,21350.0,421.96,9008873958.0,,,derivado,valle
@@ -5541,7 +5541,7 @@ Caña panelera,76869,Vijes,2002,173.0,421.96,72999307.0,,,derivado,valle
 Caña panelera,76869,Vijes,2003,173.0,421.96,72999307.0,,,derivado,valle
 Caña panelera,76869,Vijes,2004,173.0,421.96,72999307.0,,,derivado,valle
 Caña panelera,76869,Vijes,2005,167.0,421.96,70467539.0,,,derivado,valle
-Caña panelera,76869,Vijes,2006,315.0,421.96,132917812.0,,,derivado,valle
+Caña panelera,76869,Vijes,2006,315.0,421.96,132917813.0,,,derivado,valle
 Caña panelera,76869,Vijes,2007,450.0,421.96,189882589.0,,,derivado,valle
 Caña panelera,76869,Vijes,2008,690.0,421.96,291153304.0,,,derivado,valle
 Caña panelera,76869,Vijes,2009,620.0,421.96,261616012.0,,,derivado,valle
@@ -5594,12 +5594,12 @@ Caña panelera,76892,Yumbo,2013,330.0,421.96,139247232.0,,,derivado,valle
 Caña panelera,76892,Yumbo,2014,330.0,421.96,139247232.0,,,derivado,valle
 Caña panelera,76892,Yumbo,2015,360.0,421.96,151906071.0,,,derivado,valle
 Caña panelera,76892,Yumbo,2016,84.0,421.96,35444750.0,,,derivado,valle
-Caña panelera,76892,Yumbo,2017,273.0,421.96,115195437.0,,,derivado,valle
+Caña panelera,76892,Yumbo,2017,273.0,421.96,115195438.0,,,derivado,valle
 Caña panelera,76892,Yumbo,2018,294.0,421.96,124056625.0,,,derivado,valle
 Caña panelera,76892,Yumbo,2019,200.0,421.96,84392262.0,,,derivado,valle
 Caña panelera,76892,Yumbo,2020,182.0,421.96,76796958.0,,,derivado,valle
 Caña panelera,76892,Yumbo,2021,122.0,421.96,51479280.0,381.03,46485849.0,derivado,valle
-Caña panelera,76892,Yumbo,2022,105.0,421.96,44305937.0,407.55,42792500.0,derivado,valle
+Caña panelera,76892,Yumbo,2022,105.0,421.96,44305938.0,407.55,42792500.0,derivado,valle
 Caña panelera,76892,Yumbo,2023,120.0,421.96,50635357.0,477.3,57276571.0,derivado,valle
 Caña panelera,76895,Zarzal,2000,1560.0,421.96,658259643.0,,,derivado,valle
 Caña panelera,76895,Zarzal,2001,1260.0,421.96,531671250.0,,,derivado,valle
@@ -6156,7 +6156,7 @@ Cítricos,76020,Alcalá,2018,7612.0,2380.25,18118484732.0,,,directo,valle
 Cítricos,76020,Alcalá,2019,7772.0,2380.25,18499325189.0,,,directo,valle
 Cítricos,76020,Alcalá,2020,9327.31,2380.25,22201356256.0,,,directo,valle
 Cítricos,76020,Alcalá,2021,15748.06,2380.25,37484364775.0,1862.92,29337359896.0,directo,valle
-Cítricos,76020,Alcalá,2022,14366.88,2380.25,34196807137.0,2647.62,38038090706.0,directo,valle
+Cítricos,76020,Alcalá,2022,14366.880000000001,2380.25,34196807137.0,2647.62,38038090706.0,directo,valle
 Cítricos,76020,Alcalá,2023,14198.86,2380.25,33796877052.0,2630.22,37346068359.0,directo,valle
 Cítricos,76036,Andalucia,2000,3781.85,2380.25,9001759259.0,,,directo,valle
 Cítricos,76036,Andalucia,2001,4279.0,2380.25,10185101966.0,,,directo,valle
@@ -6440,7 +6440,7 @@ Cítricos,76243,El Aguila,2017,52.5,2380.25,124963275.0,,,directo,valle
 Cítricos,76243,El Aguila,2018,75.0,2380.25,178518964.0,,,directo,valle
 Cítricos,76243,El Aguila,2019,75.0,2380.25,178518964.0,,,directo,valle
 Cítricos,76243,El Aguila,2020,98.0,2380.25,233264780.0,,,directo,valle
-Cítricos,76243,El Aguila,2021,100.46,2380.25,239120202.0,1862.92,187148841.0,directo,valle
+Cítricos,76243,El Aguila,2021,100.46000000000001,2380.25,239120202.0,1862.92,187148841.0,directo,valle
 Cítricos,76243,El Aguila,2022,107.8,2380.25,256591258.0,2647.62,285413825.0,directo,valle
 Cítricos,76243,El Aguila,2023,107.8,2380.25,256591258.0,2630.22,283537282.0,directo,valle
 Cítricos,76246,El Cairo,2018,29.44,2380.25,70074644.0,,,directo,valle
@@ -6568,7 +6568,7 @@ Cítricos,76364,Jamundí,2018,14090.0,2380.25,33537762726.0,,,directo,valle
 Cítricos,76364,Jamundí,2019,14125.0,2380.25,33621071576.0,,,directo,valle
 Cítricos,76364,Jamundí,2020,13230.0,2380.25,31490745271.0,,,directo,valle
 Cítricos,76364,Jamundí,2021,16375.41,2380.25,38977616403.0,1862.92,30506062119.0,directo,valle
-Cítricos,76364,Jamundí,2022,14249.7,2380.25,33917889107.0,2647.62,37727842171.0,directo,valle
+Cítricos,76364,Jamundí,2022,14249.699999999999,2380.25,33917889107.0,2647.62,37727842171.0,directo,valle
 Cítricos,76364,Jamundí,2023,13801.1,2380.25,32850107676.0,2630.22,36299873654.0,directo,valle
 Cítricos,76377,La Cumbre,2000,150.0,2380.25,357037928.0,,,directo,valle
 Cítricos,76377,La Cumbre,2001,35.0,2380.25,83308850.0,,,directo,valle
@@ -6643,7 +6643,7 @@ Cítricos,76497,Obando,2017,342.0,2380.25,814046476.0,,,directo,valle
 Cítricos,76497,Obando,2018,342.0,2380.25,814046476.0,,,directo,valle
 Cítricos,76497,Obando,2019,660.0,2380.25,1570966884.0,,,directo,valle
 Cítricos,76497,Obando,2020,270.0,2380.25,642668271.0,,,directo,valle
-Cítricos,76497,Obando,2021,234.98,2380.25,559311816.0,1862.92,437748702.0,directo,valle
+Cítricos,76497,Obando,2021,234.98000000000002,2380.25,559311816.0,1862.92,437748702.0,directo,valle
 Cítricos,76497,Obando,2022,170.45999999999998,2380.25,405737902.0,2647.62,451313921.0,directo,valle
 Cítricos,76497,Obando,2023,170.45999999999998,2380.25,405737902.0,2630.22,448346615.0,directo,valle
 Cítricos,76520,Palmira,2000,630.0,2380.25,1499559299.0,,,directo,valle
@@ -6667,7 +6667,7 @@ Cítricos,76520,Palmira,2017,1500.0,2380.25,3570379282.0,,,directo,valle
 Cítricos,76520,Palmira,2018,1500.0,2380.25,3570379282.0,,,directo,valle
 Cítricos,76520,Palmira,2019,1500.0,2380.25,3570379282.0,,,directo,valle
 Cítricos,76520,Palmira,2020,1540.0,2380.25,3665589397.0,,,directo,valle
-Cítricos,76520,Palmira,2021,1964.44,2380.25,4675863918.0,1862.92,3659592564.0,directo,valle
+Cítricos,76520,Palmira,2021,1964.4399999999998,2380.25,4675863918.0,1862.92,3659592564.0,directo,valle
 Cítricos,76520,Palmira,2022,1964.45,2380.25,4675887721.0,2647.62,5201124203.0,directo,valle
 Cítricos,76520,Palmira,2023,1964.45,2380.25,4675887721.0,2630.22,5166927767.0,directo,valle
 Cítricos,76563,Pradera,2000,403.0,2380.25,959241901.0,,,directo,valle
@@ -6765,7 +6765,7 @@ Cítricos,76622,Roldanillo,2019,825.0,2380.25,1963708605.0,,,directo,valle
 Cítricos,76622,Roldanillo,2020,838.0,2380.25,1994651892.0,,,directo,valle
 Cítricos,76622,Roldanillo,2021,191.84,2380.25,456627708.0,1862.92,357382377.0,directo,valle
 Cítricos,76622,Roldanillo,2022,601.56,2380.25,1431864907.0,2647.62,1592704460.0,directo,valle
-Cítricos,76622,Roldanillo,2023,403.56,2380.25,960574842.0,2630.22,1061449958.0,directo,valle
+Cítricos,76622,Roldanillo,2023,403.55999999999995,2380.25,960574842.0,2630.22,1061449958.0,directo,valle
 Cítricos,76670,San Pedro,2000,308.0,2380.25,733117879.0,,,directo,valle
 Cítricos,76670,San Pedro,2001,280.0,2380.25,666470799.0,,,directo,valle
 Cítricos,76670,San Pedro,2002,280.0,2380.25,666470799.0,,,directo,valle
@@ -6788,8 +6788,8 @@ Cítricos,76670,San Pedro,2018,1519.0,2380.25,3615604087.0,,,directo,valle
 Cítricos,76670,San Pedro,2019,1505.0,2380.25,3582280547.0,,,directo,valle
 Cítricos,76670,San Pedro,2020,2015.0,2380.25,4796209503.0,,,directo,valle
 Cítricos,76670,San Pedro,2021,535.86,2380.25,1275482295.0,1862.92,998263765.0,directo,valle
-Cítricos,76670,San Pedro,2022,1590.16,2380.25,3784982880.0,2647.62,4210145161.0,directo,valle
-Cítricos,76670,San Pedro,2023,1590.16,2380.25,3784982880.0,2630.22,4182464230.0,directo,valle
+Cítricos,76670,San Pedro,2022,1590.1599999999999,2380.25,3784982880.0,2647.62,4210145161.0,directo,valle
+Cítricos,76670,San Pedro,2023,1590.1599999999999,2380.25,3784982880.0,2630.22,4182464230.0,directo,valle
 Cítricos,76736,Sevilla,2000,10440.0,2380.25,24849839806.0,,,directo,valle
 Cítricos,76736,Sevilla,2001,10440.0,2380.25,24849839806.0,,,directo,valle
 Cítricos,76736,Sevilla,2002,1740.0,2380.25,4141639968.0,,,directo,valle
@@ -6812,7 +6812,7 @@ Cítricos,76736,Sevilla,2018,13000.0,2380.25,30943287114.0,,,directo,valle
 Cítricos,76736,Sevilla,2019,19500.0,2380.25,46414930671.0,,,directo,valle
 Cítricos,76736,Sevilla,2020,20314.61,2380.25,48353908449.0,,,directo,valle
 Cítricos,76736,Sevilla,2021,20231.63,2380.25,48156395068.0,1862.92,37689887553.0,directo,valle
-Cítricos,76736,Sevilla,2022,36214.98,2380.25,86200809537.0,2647.62,95883636124.0,directo,valle
+Cítricos,76736,Sevilla,2022,36214.979999999996,2380.25,86200809537.0,2647.62,95883636124.0,directo,valle
 Cítricos,76736,Sevilla,2023,34493.78,2380.25,82103918323.0,2630.22,90726091098.0,directo,valle
 Cítricos,76823,Toro,2000,420.5,2380.25,1000896326.0,,,directo,valle
 Cítricos,76823,Toro,2001,451.0,2380.25,1073494038.0,,,directo,valle
@@ -6908,7 +6908,7 @@ Cítricos,76845,Ulloa,2018,1472.0,2380.25,3503732202.0,,,directo,valle
 Cítricos,76845,Ulloa,2019,1812.0,2380.25,4313018173.0,,,directo,valle
 Cítricos,76845,Ulloa,2020,2152.0,2380.25,5122304144.0,,,directo,valle
 Cítricos,76845,Ulloa,2021,1927.41,2380.25,4587723155.0,1862.92,3590608674.0,directo,valle
-Cítricos,76845,Ulloa,2022,1877.4,2380.25,4468686710.0,2647.62,4970648568.0,directo,valle
+Cítricos,76845,Ulloa,2022,1877.3999999999999,2380.25,4468686710.0,2647.62,4970648567.0,directo,valle
 Cítricos,76845,Ulloa,2023,1924.6,2380.25,4581034645.0,2630.22,5062113660.0,directo,valle
 Cítricos,76869,Vijes,2000,196.0,2380.25,466529560.0,,,directo,valle
 Cítricos,76869,Vijes,2001,210.0,2380.25,499853100.0,,,directo,valle
@@ -7003,7 +7003,7 @@ Cítricos,76895,Zarzal,2017,2439.0,2380.25,5805436713.0,,,directo,valle
 Cítricos,76895,Zarzal,2018,2559.0,2380.25,6091067056.0,,,directo,valle
 Cítricos,76895,Zarzal,2019,2514.0,2380.25,5983955677.0,,,directo,valle
 Cítricos,76895,Zarzal,2020,2694.0,2380.25,6412401191.0,,,directo,valle
-Cítricos,76895,Zarzal,2021,2575.8,2380.25,6131055304.0,1862.92,4798506713.0,directo,valle
+Cítricos,76895,Zarzal,2021,2575.7999999999997,2380.25,6131055304.0,1862.92,4798506712.0,directo,valle
 Cítricos,76895,Zarzal,2022,2701.2,2380.25,6429539012.0,2647.62,7151760898.0,directo,valle
 Cítricos,76895,Zarzal,2023,2701.2,2380.25,6429539012.0,2630.22,7104739384.0,directo,valle
 Cúrcuma,76233,Dagua,2014,40.0,,,,,sin_precio,
@@ -7371,7 +7371,7 @@ Granadilla,76275,Florida,2019,210.0,5795.76,1217108667.0,,,directo,valle
 Granadilla,76275,Florida,2020,210.0,5795.76,1217108667.0,,,directo,valle
 Granadilla,76275,Florida,2021,210.0,5795.76,1217108667.0,4287.82,900441500.0,directo,valle
 Granadilla,76275,Florida,2022,212.67,5795.76,1232583334.0,6379.83,1356799155.0,directo,valle
-Granadilla,76275,Florida,2023,235.17,5795.76,1362987834.0,6719.62,1580252251.0,directo,valle
+Granadilla,76275,Florida,2023,235.17,5795.76,1362987834.0,6719.62,1580252252.0,directo,valle
 Granadilla,76306,Ginebra,2000,30.0,5795.76,173872667.0,,,directo,valle
 Granadilla,76306,Ginebra,2001,5.0,5795.76,28978778.0,,,directo,valle
 Granadilla,76306,Ginebra,2002,13.0,5795.76,75344822.0,,,directo,valle
@@ -10486,7 +10486,7 @@ Mora,76041,Ansermanuevo,2019,3.0,4154.14,12462411.0,,,directo,valle
 Mora,76041,Ansermanuevo,2020,12.0,4154.14,49849644.0,,,directo,valle
 Mora,76041,Ansermanuevo,2021,12.0,4154.14,49849644.0,3457.7,41492433.0,directo,valle
 Mora,76041,Ansermanuevo,2022,12.0,4154.14,49849644.0,4402.68,52832167.0,directo,valle
-Mora,76041,Ansermanuevo,2023,11.25,4154.14,46734042.0,4602.03,51772813.0,directo,valle
+Mora,76041,Ansermanuevo,2023,11.25,4154.14,46734042.0,4602.03,51772812.0,directo,valle
 Mora,76054,Argelia,2000,8.0,4154.14,33233096.0,,,directo,valle
 Mora,76054,Argelia,2001,8.0,4154.14,33233096.0,,,directo,valle
 Mora,76054,Argelia,2002,24.0,4154.14,99699289.0,,,directo,valle
@@ -13617,7 +13617,7 @@ Tomate de Árbol,76364,Jamundí,2018,75.0,2947.03,221027431.0,,,directo,valle
 Tomate de Árbol,76364,Jamundí,2019,15.0,2947.03,44205486.0,,,directo,valle
 Tomate de Árbol,76364,Jamundí,2020,15.0,2947.03,44205486.0,,,directo,valle
 Tomate de Árbol,76364,Jamundí,2021,22.5,2947.03,66308229.0,2618.46,58915312.0,directo,valle
-Tomate de Árbol,76364,Jamundí,2022,22.5,2947.03,66308229.0,3014.57,67827813.0,directo,valle
+Tomate de Árbol,76364,Jamundí,2022,22.5,2947.03,66308229.0,3014.57,67827812.0,directo,valle
 Tomate de Árbol,76364,Jamundí,2023,15.0,2947.03,44205486.0,3208.07,48121042.0,directo,valle
 Tomate de Árbol,76377,La Cumbre,2008,240.0,2947.03,707287778.0,,,directo,valle
 Tomate de Árbol,76400,La Unión,2000,85.0,2947.03,250497755.0,,,directo,valle

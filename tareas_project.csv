@@ -1,0 +1,342 @@
+Fecha límite,Responsable,Área,Título,Descripción
+12 nov,Ceyni,datos,"Cargar Dataset 1, armonizar categorías y filtrar productos","**Qué es:** Dejar una sola tabla limpia de producción municipal del Valle, con categorías consistentes y la lista definitiva de productos que se modelan. Todo el equipo parte de esta tabla.
+
+**Recibe:**
+- Dataset 1 de la Gobernación (15.282 registros, 61 cultivos, 42 municipios, 2000-2023).
+- Las inconsistencias que ya detectaron en la propuesta: cítricos desagregados desde 2021, aguacate Hass separado desde 2020, 'raíces y tubérculos' escrito de dos formas y cartuchos (flores) clasificados como raíces.
+
+**Pasos:**
+- [ ] Descargar el dataset, guardarlo sin tocar en data/raw/ y verificar nombres de columnas, tipos y que el código DANE sea texto de 5 dígitos.
+- [ ] Unificar la escritura de 'raíces y tubérculos' y pasar los cartuchos a flores.
+- [ ] Decidir y escribir qué hacen con cítricos (2021) y Hass (2020). Recomendación: sumarlos a 'cítricos' y 'aguacate' para conservar la serie larga desde 2000.
+- [ ] Verificar los conteos de la propuesta: 57 productos tras armonizar, 13 sin producción 2019-2023 que se excluyen, 44 restantes, de los cuales 22 se modelan en detalle y 22 de forma simplificada.
+- [ ] Revisar duplicados por (año, municipio, cultivo) y datos faltantes.
+- [ ] Guardar la tabla limpia en data/clean/ y escribir el script que la genera para que cualquiera la reproduzca.
+
+**Entrega:**
+- data/clean/produccion_valle_clean.parquet (o CSV).
+- data/clean/lista_productos.csv con producto, familia y estado (detallado / simplificado / excluido).
+- Una tabla corta con cada decisión de armonización y su motivo (sirve a Carlos para el informe).
+
+**Está listo cuando:**
+- Los conteos 57 → 44 → 22 + 22 cuadran con la propuesta, y si no, está anotado por qué.
+- No hay duplicados y los 42 municipios aparecen.
+- El script corre de principio a fin desde data/raw/.
+
+**Dependencias / a quién avisar:** Avisen por el grupo cuando esté, porque Samuel y Alejandro necesitan la lista de productos y Carlos la tabla de decisiones. Los transitorios quedan como extensión."
+13 nov,Ceyni,datos,Diagnóstico de calidad y entrega de la tabla a Carlos,"**Qué es:** Medir qué tan confiables son las series antes de modelar, y de paso entender por qué un modelo ingenuo puede verse tan bueno.
+
+**Recibe:**
+- La tabla limpia de la tarea anterior.
+
+**Pasos:**
+- [ ] Calcular por serie (producto × municipio) el porcentaje de años con valor idéntico al del año anterior.
+- [ ] Detectar saltos atípicos con una regla simple y explícita (por ejemplo, variación anual mayor a 3 desviaciones estándar de la serie, o cambios de más de 100 %) y contar cuántos hay.
+- [ ] Armar una tabla por producto: número de municipios, número de años con datos, % de valores repetidos y % de saltos atípicos.
+- [ ] Anotar qué productos quedan flojos (pocos municipios o años) y cuáles son confiables.
+- [ ] Escribir un párrafo con la lectura: cuánto de la serie parece estimación por consenso y qué implica para el pronóstico.
+
+**Entrega:**
+- data/results/diagnostico_calidad.csv.
+- Un párrafo de lectura (para Carlos).
+
+**Está listo cuando:**
+- Carlos puede escribir el informe de calidad con esa tabla sin preguntarte nada.
+- Queda claro qué productos entran con baja confianza.
+
+**Dependencias / a quién avisar:** Pásale la tabla a Carlos el 13 de nov. Él la usa en el informe de calidad (18 nov)."
+14 nov,Ceyni,datos,"Datos externos: DIVIPOLA/OSM (tiempos de viaje), SIPSA (valor), ONI y población/FAOSTAT","**Qué es:** Reunir los datos externos que necesitan los otros módulos. Está dividido en cuatro entregas, para que cada compañero reciba primero lo que ocupa antes.
+
+**Recibe:**
+- DIVIPOLA (DANE) para coordenadas de cabeceras, OpenStreetMap para la red vial, SIPSA para precios mayoristas, NOAA para el ONI, proyecciones de población del DANE y balances de alimentos de FAOSTAT.
+
+**Pasos:**
+- [ ] Entrega A, la más urgente (12-13 nov): coordenadas de las cabeceras municipales y matriz de tiempos de viaje municipio×municipio y municipio×destinos. Destinos: Buenaventura, aeropuerto de Palmira y mercados nacionales (Cali, Bogotá, Medellín). Usar OSMnx u OSRM; si se demora, aproximar con distancia en línea recta por un factor de 1,4 y una velocidad promedio.
+- [ ] Entrega B (14 nov): precio mayorista promedio anual por producto de SIPSA y la tabla de valor (toneladas × precio) por producto, municipio y año. Dejar anotados los productos sin precio.
+- [ ] Entrega C (15 nov): serie del ONI de NOAA, para el modelo del 16-17 nov. Decidir si entra anual (promedio) o con rezago, porque el ONI futuro no se conoce al pronosticar.
+- [ ] Entrega D (hasta 17 nov): población municipal proyectada del DANE y consumo per cápita por producto de FAOSTAT, para los excedentes de Samuel del 18 nov.
+- [ ] Guardar todo en data/raw/ y data/clean/ con las columnas acordadas con Samuel y Alejandro, y dejar los scripts de descarga.
+
+**Entrega:**
+- data/clean/municipios_coordenadas.csv y matriz_tiempos.csv (origen, destino, minutos).
+- data/clean/valor_producto.csv, oni.csv, poblacion_municipal.csv y consumo_percapita.csv.
+
+**Está listo cuando:**
+- La matriz no tiene huecos entre los 42 municipios y los destinos.
+- Cada archivo tiene columnas descritas en una línea en el README de data/.
+
+**Dependencias / a quién avisar:** Es el cuello de botella del equipo. Alejandro necesita los mercados nacionales en la matriz y Samuel la matriz de tiempos y la tabla de valor. Si alguna fuente se complica, simplifiquen o suéltenla a Samuel."
+14-15 nov,Ceyni,ml,"Baselines (ingenuo, deriva, ETS amortiguado) + walk-forward","**Qué es:** Montar el esquema de validación y los modelos simples con los que se compara todo lo demás. Un modelo complejo solo vale si le gana al ingenuo.
+
+**Recibe:**
+- La tabla limpia y la lista de productos (22 detallados y 22 simplificados).
+
+**Pasos:**
+- [ ] Definir el nivel de pronóstico (producto × municipio) y listar cuántas series hay y cuántos datos tiene cada una.
+- [ ] Implementar el esquema walk-forward: entrenar hasta 2018 y evaluar 2019-2023 con ventana que se expande, con horizontes de 1 a 5 años.
+- [ ] Implementar tres modelos: ingenuo (último valor), deriva y ETS con tendencia amortiguada (statsmodels o statsforecast). Los 22 productos simplificados usan solo ingenuo o promedio.
+- [ ] Calcular MASE y WAPE por producto y en total, y la mejora relativa de cada modelo frente al ingenuo.
+- [ ] Anotar qué pasa con las series de valores repetidos: ¿el ingenuo se ve muy bueno por eso?
+
+**Entrega:**
+- data/results/predicciones_baselines.csv y metricas_baselines.csv.
+- Notebook con el esquema de validación, reutilizable para el modelo global.
+
+**Está listo cuando:**
+- El mismo esquema walk-forward se puede volver a correr con el modelo LightGBM sin cambiar nada.
+- Hay una tabla de MASE y WAPE por producto.
+
+**Dependencias / a quién avisar:** Carlos usa tu descripción del esquema para el informe de metodología (17 nov)."
+16-17 nov,Ceyni,ml,"Modelo global LightGBM (producto, municipio, ONI)","**Qué es:** Entrenar un solo modelo con todas las series a la vez y comprobar si mejora a los baselines.
+
+**Recibe:**
+- El esquema walk-forward y las métricas de la tarea anterior.
+- El ONI y los datos limpios de producción.
+
+**Pasos:**
+- [ ] Armar las variables: rezagos de 1 a 3 años, media móvil, producto y municipio como categóricas, tendencia y ONI con rezago. Cuidado con el ONI: no se conoce a futuro, por lo que usen solo valores pasados o trátenlo como escenario.
+- [ ] Entrenar LightGBM con el mismo walk-forward (entrenar hasta 2018, evaluar 2019-2023, sin fugas de datos hacia adelante).
+- [ ] Comparar MASE y WAPE contra ingenuo, deriva y ETS, y mirar en qué productos gana y en cuáles no.
+- [ ] Sacar la importancia de variables para el informe.
+- [ ] Solo si sobra tiempo: agregar series de EVA de otros departamentos.
+
+**Entrega:**
+- data/results/predicciones_lgbm.csv, metricas_comparacion.csv e importancia_variables.csv.
+- Notebook reproducible.
+
+**Está listo cuando:**
+- La comparación contra baselines usa exactamente el mismo esquema de validación.
+- Hay una conclusión honesta: si LightGBM no mejora, se reporta y se usa el mejor modelo.
+
+**Dependencias / a quién avisar:** Dale a Carlos el 17 de nov un resumen de 5 líneas (qué se probó, qué ganó, por qué) para la metodología."
+18 nov,Ceyni,ml,Escenarios de oferta (bajo / base / alto) y coherencia jerárquica,"**Qué es:** Convertir el pronóstico en tres escenarios de oferta que consuman Samuel y Alejandro, y comprobar que las sumas cuadran.
+
+**Recibe:**
+- Las predicciones del mejor modelo y los errores del walk-forward.
+
+**Pasos:**
+- [ ] Definir el horizonte del pronóstico (por ejemplo 2024-2028) y avisarlo a los demás.
+- [ ] Escenario base: la predicción del mejor modelo. Escenarios bajo y alto: los percentiles 10 y 90 (o cuantiles de LightGBM) a partir de los errores del walk-forward.
+- [ ] Medir la cobertura empírica de los intervalos en 2019-2023: qué porcentaje de datos reales cae dentro del rango.
+- [ ] Revisar coherencia: los municipios deben sumar el total del departamento por producto y año. Usar suma desde los municipios (bottom-up) para que cuadre.
+- [ ] Guardar el archivo con las columnas acordadas y avisar a los demás.
+
+**Entrega:**
+- data/results/oferta_escenarios.csv con columnas: producto, cod_dane, año, oferta_bajo, oferta_base, oferta_alto.
+- Tabla de cobertura de intervalos.
+
+**Está listo cuando:**
+- Samuel y Alejandro cargan el archivo sin preguntarte nada.
+- Las sumas municipales cuadran con el total departamental.
+
+**Dependencias / a quién avisar:** Samuel (zonas, excedentes y escenarios) y Alejandro (modelo real y tablero) esperan este archivo. Si se atrasa, ellos usan la producción histórica promedio."
+14-18 nov,Alejandro,ml,Zonas de acopio: matriz de vecindad + agrupamiento con restricción espacial,"**Qué es:** Agrupar los municipios productores del Valle en zonas de acopio contiguas, donde cada zona tenga sentido como área de recolección de un acopio satélite.
+
+**Recibe:**
+- Polígonos municipales (GeoJSON/shapefile del Marco Geoestadístico Nacional del DANE, filtrado a los 42 municipios del Valle). Es el único insumo que Ceyni no entrega: bájenlo ustedes.
+- Matriz de tiempos de viaje y coordenadas (Ceyni, 14 nov).
+- Producción histórica promedio 2019-2023 por municipio, ponderada por valor (Ceyni, 14 nov). Cuando llegue oferta_escenarios (18 nov), cambiar a la oferta base.
+
+**Pasos:**
+- [ ] Construir la matriz de vecindad (contigüidad queen) con libpysal o geopandas y revisar que no haya municipios aislados (ojo: Buenaventura es grande y con costa, y puede quedar como isla en el grafo).
+- [ ] Definir las variables de agrupamiento: oferta ponderada por valor, y posición (coordenadas o tiempos de viaje).
+- [ ] Correr agrupamiento jerárquico con restricción de conectividad (AgglomerativeClustering con connectivity de scikit-learn, o SKATER de spopt). No usar k-means, porque no garantiza zonas contiguas.
+- [ ] Probar entre 3 y 8 zonas y elegir el número con criterio explícito (homogeneidad dentro de la zona, oferta mínima por zona y tiempo promedio al centro de la zona).
+- [ ] Calcular métricas: % de zonas contiguas (debe ser 100 %), oferta total por zona y tiempo promedio de municipio al municipio central de su zona.
+- [ ] Dibujar el mapa de zonas (geopandas/matplotlib) y guardarlo en PNG.
+- [ ] Subir notebook y resultados al repo (carpetas notebooks/ y data/results/).
+
+**Entrega:**
+- data/results/zonas.csv con columnas: cod_dane, municipio, zona, es_centro_zona (0/1).
+- Mapa de zonas en PNG y notebook reproducible.
+- Un párrafo corto (para Carlos) con cuántas zonas elegiste y por qué.
+
+**Está listo cuando:**
+- Todas las zonas son contiguas y cada uno de los 42 municipios queda en una zona.
+- Hay una justificación del número de zonas y las métricas están en una tabla.
+- Alejandro y Carlos leyeron zonas.csv sin dudas de formato.
+
+**Dependencias / a quién avisar:** Avisen a Alejandro apenas tengan una primera versión de zonas.csv (aunque sea con producción histórica), para que su modelo no espere. Avisen a Ceyni si falta algún municipio en la matriz de tiempos."
+18-19 nov,Alejandro,ml,Excedentes como escenario,"**Qué es:** Estimar cuánta producción de cada producto sobra frente al consumo local de cada municipio o zona, tratando el consumo como un supuesto con escenarios y no como un dato.
+
+**Recibe:**
+- oferta_escenarios.csv de Ceyni (18 nov): producto, municipio, año, oferta bajo/base/alto.
+- Población municipal proyectada del DANE y consumo per cápita por producto de FAOSTAT (Ceyni, 14 nov).
+- zonas.csv de tu tarea anterior.
+
+**Pasos:**
+- [ ] Emparejar los productos del Valle con los ítems de FAOSTAT. Los que no tengan equivalente claro (por ejemplo flores o café para exportación) se documentan con su supuesto (consumo local cero o muy bajo).
+- [ ] Calcular consumo local = consumo per cápita × población municipal, en tres niveles (bajo, base, alto; por ejemplo ±20 % sobre el base).
+- [ ] Calcular excedente = max(0, oferta − consumo local) por producto, municipio y año de pronóstico, y agregarlo por zona.
+- [ ] Marcar sobreofertas coyunturales con una regla simple y explícita (por ejemplo, oferta mayor a la media móvil de 5 años más una desviación estándar) y contar cuántas veces aparece por producto.
+- [ ] Documentar cada supuesto en un markdown corto (docs/supuestos_excedentes.md).
+
+**Entrega:**
+- data/results/excedentes.csv con columnas: producto, cod_dane, zona, año, oferta, consumo_local, excedente, escenario_consumo, sobreoferta (0/1).
+- docs/supuestos_excedentes.md con la tabla de emparejamiento FAOSTAT y los supuestos.
+
+**Está listo cuando:**
+- Ningún excedente negativo y la suma municipal cuadra con la de la zona.
+- Cada supuesto está escrito, porque el informe final lo cita como limitación.
+
+**Dependencias / a quién avisar:** Si el pronóstico de Ceyni llega tarde, calcúlenlo con la producción histórica promedio y vuélvanlo a correr después con una sola ejecución."
+17-19 nov,Alejandro,optimización,Tabla de escenarios para la optimización,"**Qué es:** Armar una sola tabla con todos los escenarios que Alejandro va a correr, para que el modelo de ubicación reciba un parámetro 'escenario' y no varios archivos.
+
+**Recibe:**
+- Escenarios de oferta de Ceyni (bajo, base, alto).
+- Escenarios de consumo de tu tarea de excedentes (bajo, base, alto).
+- Estadísticas de exportaciones de Colombia por familia de productos (UN Comtrade o DANE), solo para justificar los supuestos de mezcla.
+
+**Pasos:**
+- [ ] Definir el espacio de escenarios: oferta (3) × consumo (3) × mezcla nacional/exportación (por ejemplo 80/20, 50/50 y 20/80). Son 27 combinaciones, que el modelo de Alejandro puede correr; si no, reducir a un subconjunto y explicar cuál.
+- [ ] Para cada escenario calcular el volumen por zona que va a mercado nacional y el que va a exportación (excedente × proporción).
+- [ ] Buscar en Comtrade o en el DANE un dato sencillo por familia (frutas, café, cacao, panela, almidones), por ejemplo la participación histórica de exportación, y usarlo para decir si las proporciones elegidas son razonables. No se modela Comtrade, solo se usa como respaldo.
+- [ ] Escribir media página con la definición de cada escenario (para Carlos).
+
+**Entrega:**
+- data/results/escenarios.csv con columnas: id_escenario, oferta, consumo, pct_nacional, pct_exportacion, zona, volumen_nacional, volumen_exportacion.
+- Media página que define los escenarios y su justificación.
+
+**Está listo cuando:**
+- Alejandro puede cargar escenarios.csv y correr cualquier id_escenario sin preguntarte nada.
+- Hay una frase de respaldo con datos de Comtrade o DANE para cada proporción exportable.
+
+**Dependencias / a quién avisar:** Acuerden con Alejandro el nombre de las columnas el 12 o 13 de nov, antes de generar nada."
+12-16 nov,Samuel,optimización,Formular el problema y construir el esqueleto en OR-Tools con datos de prueba,"**Qué es:** Definir matemáticamente la decisión (qué municipio es la central y cuáles son los acopios satélite) y dejar un modelo corriendo con datos inventados, para conectar los datos reales cuando lleguen.
+
+**Recibe:**
+- La pregunta de negocio de la propuesta (dónde ubicar la central y qué red de acopios satélite necesita para minimizar el costo de recoger y de distribuir).
+- Datos ficticios que generes tú: unos 15-20 municipios con oferta, coordenadas y tiempos de viaje.
+
+**Pasos:**
+- [ ] Escribir la formulación en una página: municipios candidatos para central y satélites, variable de decisión de apertura, variable de asignación de cada zona o municipio a un acopio, número de satélites como parámetro (k de 3 a 8), capacidad mínima y máxima si aplica.
+- [ ] Definir los dos objetivos que compiten: costo de recolección (oferta × tiempo de cada municipio a su acopio) y costo de distribución (volumen × tiempo de la central a los destinos, ponderado por la mezcla nacional/exportación).
+- [ ] Definir los destinos: Buenaventura y el aeropuerto de Palmira para exportación, y mercados nacionales (por ejemplo Cali, Bogotá y Medellín). Pídele a Ceyni que incluya esos destinos en la matriz de tiempos del 14 nov.
+- [ ] Implementar con OR-Tools (pywraplp con SCIP o CBC) como modelo de localización de instalaciones en dos niveles y probarlo con los datos ficticios.
+- [ ] Pasar el texto de la formulación a Carlos el 13 de nov, para que arme el diagrama de la frontera ML ↔ optimización.
+- [ ] Acordar con Samuel y Ceyni los nombres de columnas de zonas.csv, escenarios.csv y oferta_escenarios.
+
+**Entrega:**
+- docs/formulacion_optimizacion.md con variables, objetivos y restricciones.
+- Notebook o script del modelo funcionando con datos ficticios.
+- Un listado de columnas que espera de cada archivo de entrada.
+
+**Está listo cuando:**
+- El modelo devuelve una central, k acopios y los costos de los dos objetivos con los datos ficticios.
+- Carlos tiene el texto y no necesita preguntarte para dibujar el diagrama.
+
+**Dependencias / a quién avisar:** Carlos necesita tu texto el 13 de nov. Si Ceyni no incluye los mercados nacionales en la matriz, usa distancias aproximadas y déjalo anotado."
+17-20 nov,Samuel,optimización,"Modelo con datos reales, frontera de Pareto y estabilidad entre escenarios","**Qué es:** Correr el modelo con los datos reales de todos y mostrar qué ubicaciones son buenas, cómo se compensan los dos costos y si la respuesta cambia según el escenario.
+
+**Recibe:**
+- zonas.csv (Samuel), escenarios.csv (Samuel), oferta_escenarios (Ceyni), matriz de tiempos (Ceyni).
+
+**Pasos:**
+- [ ] Reemplazar los datos ficticios por los reales y verificar que el modelo siga corriendo.
+- [ ] Construir la frontera de Pareto: variar el peso entre costo de recolección y costo de distribución (por ejemplo 11 pesos de 0 a 1) o usar restricción epsilon, y guardar cada solución (central, satélites, ambos costos).
+- [ ] Correr el modelo para cada id_escenario de escenarios.csv (o el subconjunto acordado con Samuel).
+- [ ] Armar la tabla de estabilidad: para cada escenario, qué municipio queda como central, y qué porcentaje de escenarios elige el mismo.
+- [ ] Escribir 5-8 líneas con la lectura: si la ubicación es estable, qué municipios compiten y qué escenario la cambia. Si la ubicación cambia, eso es un resultado válido y se reporta.
+
+**Entrega:**
+- data/results/pareto.csv (peso, central, satélites, costo_recoleccion, costo_distribucion).
+- data/results/estabilidad.csv (id_escenario, central, costos).
+- Gráfico de la frontera de Pareto y un resumen de lectura.
+
+**Está listo cuando:**
+- La frontera tiene al menos 5 puntos distintos y todos los escenarios corrieron o se explica por qué no.
+- Hay una tabla clara de cuál es la central en cada escenario.
+
+**Dependencias / a quién avisar:** El 20 de nov es la sesión de integración de todo el equipo. Si faltan datos de Samuel o Ceyni, corre con lo que haya y repite luego."
+17-21 nov,Samuel,visualización,"Tablero con mapas (Streamlit o similar), ejecutable en local","**Qué es:** Construir el tablero interactivo que se entrega, con mapas, que le muestre a la Secretaría de Agricultura o a un inversionista dónde ubicar la central.
+
+**Recibe:**
+- Boceto de pantallas de Carlos (18 nov).
+- Los CSV de data/results/ y un GeoJSON de municipios.
+
+**Pasos:**
+- [ ] Elegir la herramienta: Streamlit con folium, pydeck o plotly (corre en local con un solo comando).
+- [ ] Pantalla 1, Oferta: selector de producto y municipio, serie histórica y pronóstico con intervalo bajo/base/alto.
+- [ ] Pantalla 2, Zonas: mapa con las zonas de acopio y su oferta.
+- [ ] Pantalla 3, Ubicación: selector de escenario, mapa con la central y los satélites, frontera de Pareto y tabla de estabilidad.
+- [ ] Cuidar que la incertidumbre se vea (intervalos y escenarios), porque la retroalimentación del curso la valora.
+- [ ] Documentar cómo ejecutarlo (requirements.txt y una línea de comando) y pasarle a Carlos capturas para el informe.
+- [ ] Despliegue en la nube solo si todo lo anterior ya funciona.
+
+**Entrega:**
+- app.py (o la carpeta dashboard/), requirements.txt y capturas de pantalla.
+- Instrucciones de ejecución de 3-4 líneas para el README.
+
+**Está listo cuando:**
+- Cualquier integrante clona el repo, instala y abre el tablero con un comando.
+- Se pueden cambiar el producto y el escenario y el mapa responde.
+
+**Dependencias / a quién avisar:** Empiecen con datos de prueba el 17 de nov para no llegar al 21 sin tablero. Las pantallas 1 y 2 pueden estar listas antes de que termine la optimización."
+12-14 nov,Carlos,diagrama,Diagramas: arquitectura / flujo de datos y frontera ML ↔ optimización,"**Qué es:** Hacer tres diagramas que expliquen el proyecto de forma visual y que se usen tanto en el informe como en la presentación.
+
+**Recibe:**
+- La propuesta de valor y el PDF del preliminar (están en sus archivos).
+- Para el diagrama 2: el texto de formulación de Alejandro (13 nov).
+- Para el diagrama 3: las pantallas que acuerden con Alejandro.
+
+**Pasos:**
+- [ ] Diagrama 1 (12 nov), arquitectura y flujo de datos: Fuentes (Gobernación, EVA/CEDE, SIPSA, DIVIPOLA/OSM, DANE población, FAOSTAT, NOAA ONI, Comtrade) → capa raw → capa clean → módulos (pronóstico, zonas de acopio, excedentes, escenarios, optimización) → resultados → tablero. Usen un color por responsable.
+- [ ] Diagrama 2 (14 nov), frontera ML ↔ optimización: qué entrega el pronóstico y el agrupamiento (oferta con intervalos, zonas, excedentes), qué recibe el modelo de optimización, sus variables de decisión, sus dos objetivos que compiten y sus restricciones.
+- [ ] Diagrama 3 (hasta el 18 nov), boceto del tablero: 3 pantallas (Oferta, Zonas, Ubicación) con qué se ve y qué se puede seleccionar. Puede ser en papel y foto, draw.io o Figma.
+- [ ] Exportar cada diagrama en PNG y guardar también el archivo fuente (.drawio o código Mermaid, que GitHub muestra directamente) para poder editarlo.
+- [ ] Mostrar cada uno al dueño del módulo y corregir lo que no cuadre.
+
+**Entrega:**
+- docs/diagramas/ con 3 PNG y sus archivos fuente.
+- Una frase de leyenda para cada uno, lista para pegar en el informe.
+
+**Está listo cuando:**
+- Un compañero que no hizo ese módulo puede explicar el proyecto viendo solo el diagrama 1.
+- Alejandro y Ceyni confirmaron que los diagramas 1 y 2 representan lo que hicieron.
+
+**Dependencias / a quién avisar:** Pídanle a Alejandro el texto de formulación el 13 de nov. Si no ha llegado, dibuja la estructura con base en la propuesta (variables, 2 objetivos, restricciones) y la ajustan después."
+12-18 nov,Carlos,documentación,"Informes base: criterios de éxito, metodología y efectividad, calidad de datos, fuentes y licencias","**Qué es:** Escribir los cuatro documentos que describen cómo se hizo el trabajo, de modo que el informe final solo tenga que integrarlos.
+
+**Recibe:**
+- La retroalimentación del profesor sobre la propuesta (revisen el documento que subieron).
+- La tabla de calidad de Ceyni (13 nov) y su explicación del modelo.
+- Los textos que acuerden con Samuel y Alejandro sobre sus módulos.
+
+**Pasos:**
+- [ ] Criterios de éxito (1 página, 12 nov): cómo sabrán que cada parte salió bien. Por ejemplo, pronóstico: mejora relativa sobre el modelo ingenuo en MASE o WAPE; zonas: 100 % contiguas y homogéneas; optimización: frontera de Pareto con varios puntos y ubicación evaluada en todos los escenarios. Validen con el equipo.
+- [ ] Fuentes y licencias (hasta el 15 nov): una tabla con una fila por fuente (Gobernación, EVA/UPRA, CEDE, SIPSA, DIVIPOLA, OpenStreetMap, DANE población, FAOSTAT, NOAA ONI, Comtrade) y columnas: qué aporta, variables, cobertura, enlace y licencia. Incluyan la atribución que exige OpenStreetMap.
+- [ ] Metodología y medición de efectividad (hasta el 17 nov), con esta estructura: cuál es el problema de pronóstico (24 años de datos anuales por serie), qué se probó (baselines y modelo global) y por qué no redes por serie, cómo se valida (walk-forward: entrenar hasta 2018 y evaluar 2019-2023), cómo se mide (MASE/WAPE y mejora sobre el ingenuo) y cómo se evalúa agrupamiento y optimización. Pídanle a Ceyni una revisión técnica.
+- [ ] Calidad de datos y limitaciones (hasta el 18 nov): con la tabla de Ceyni, expliquen valores repetidos de un año a otro, saltos atípicos, categorías armonizadas, los 13 productos excluidos y por qué el pronóstico es limitado (pocos datos). Incluyan los supuestos de excedentes que escriba Samuel.
+
+**Entrega:**
+- Cuatro archivos en docs/ (Markdown o Word, como prefiera el equipo): criterios_exito, fuentes_y_licencias, metodologia_efectividad, calidad_y_limitaciones.
+
+**Está listo cuando:**
+- Cada documento se entiende sin preguntarle a nadie.
+- La metodología responde lo que pidió el profesor: cómo se aborda y cómo se mide la efectividad.
+
+**Dependencias / a quién avisar:** Ceyni (metodología y calidad), Samuel (supuestos de excedentes) y Alejandro (formulación) son sus fuentes. Pídanles lo que necesite antes de cada fecha."
+19-22 nov,Carlos,documentación,"Informe final, presentación, README y seguimiento del Project","**Qué es:** Cerrar el proyecto: juntar los resultados de todos en un solo informe, una presentación y un README, y mantener el tablero de tareas al día.
+
+**Recibe:**
+- Los cuatro documentos base y los 3 diagramas.
+- Resultados de Ceyni (pronóstico), Samuel (zonas, excedentes y escenarios) y Alejandro (Pareto, estabilidad y capturas del tablero).
+
+**Pasos:**
+- [ ] Informe final con esta estructura: 1) contexto y pregunta de negocio, 2) datos, 3) metodología, 4) resultados (pronóstico con su mejora sobre el ingenuo, zonas, excedentes, escenarios, ubicación y frontera de Pareto), 5) limitaciones y riesgos, 6) conclusiones y recomendaciones, 7) trabajo futuro, 8) referencias.
+- [ ] Riesgos que deben aparecer: el pronóstico se apoya en pocos datos anuales, el supuesto de consumo y de proporción exportable son escenarios, y la central es hipotética (sin costos de construcción ni evaluación financiera).
+- [ ] Presentación de unas 10 diapositivas: problema, datos, método, 3 resultados clave, tablero, limitaciones y trabajo futuro.
+- [ ] README del repositorio: qué es el proyecto, cómo clonarlo, instalar dependencias y correr el tablero (con las instrucciones de Alejandro).
+- [ ] Mantener el GitHub Project: mover las tarjetas, confirmar fechas y hacer revisión diaria de 10 minutos con el equipo.
+
+**Entrega:**
+- docs/informe_final (Markdown o Word), presentación y README actualizado.
+
+**Está listo cuando:**
+- Cada resultado del informe sale de un archivo del repo, no de memoria.
+- El 22 de nov todos revisan el informe y el README una vez antes de entregar.
+
+**Dependencias / a quién avisar:** Los resultados llegan entre el 18 y el 21 de nov. Dejen la estructura y los textos que no dependen de resultados escritos desde antes."
+20 nov,Todos,gestión,Integración: pronóstico → zonas → optimización → tablero,Sesión conjunta para correr la cadena completa con datos reales.
+22 nov,Todos,gestión,Revisión cruzada y entrega final,Verificar que el repo corre y que el informe cuadra con los resultados.
+Extensión,Todos,extensión,"[Extensión] EVA en el modelo global, transitorios, rutas de procesamiento, estacionalidad, análisis por familia y despliegue en la nube",Solo si sobra tiempo; en caso contrario se declaran como trabajo futuro.
