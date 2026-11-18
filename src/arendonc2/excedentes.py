@@ -289,19 +289,22 @@ def ejecutar(cfg: dict | None = None, guardar: bool = True) -> dict:
         p = base.copy()
         p["escenario_consumo"] = esc_c
         p["factor_consumo"] = factor
-        # consumo: pendiente -> 0 pero marcado; conocido -> fórmula
-        kg = p["kg_per_capita"]
-        p["consumo_local_t"] = np.where(
-            p["pendiente"] == 1,
-            0.0,
-            kg.fillna(0.0) * p["poblacion_total"].fillna(0.0) * factor / 1000.0,
-        )
         p["consumo_pendiente"] = p["pendiente"].fillna(1).astype(int)
+        # Consumo DESCONOCIDO para pendientes -> NaN (nulo), con motivo; NUNCA 0.
+        # Conocido -> fórmula. (Un consumo 0 afirmaría "no se consume", lo cual es
+        # falso: simplemente no hay equivalencia FAOSTAT defendible.)
+        kg = p["kg_per_capita"]
+        consumo = kg.fillna(0.0) * p["poblacion_total"].fillna(0.0) * factor / 1000.0
+        p["consumo_local_t"] = np.where(p["consumo_pendiente"] == 1, np.nan, consumo)
         partes.append(p)
     df = pd.concat(partes, ignore_index=True)
 
-    # excedente municipal recortado a >= 0
-    df["excedente_municipal_t"] = (df["oferta_t"] - df["consumo_local_t"]).clip(lower=0.0)
+    # Excedente municipal:
+    #   - conocido: max(0, oferta - consumo), recortado a >= 0.
+    #   - pendiente: DESCONOCIDO -> NaN (nulo). La oferta original se conserva en
+    #     'oferta_t'. Los pendientes NO aportan excedente a escenarios ni adaptador.
+    exc = (df["oferta_t"] - df["consumo_local_t"]).clip(lower=0.0)
+    df["excedente_municipal_t"] = np.where(df["consumo_pendiente"] == 1, np.nan, exc)
 
     # sobreoferta (depende sólo de oferta: evitar triplicar por escenario_consumo)
     umbral = calcular_umbral_sobreoferta(cfg)
@@ -318,12 +321,17 @@ def ejecutar(cfg: dict | None = None, guardar: bool = True) -> dict:
     mun = common.leer_municipios_coordenadas()[["cod_dane", "municipio"]]
     df = df.merge(mun, on="cod_dane", how="left")
 
+    # motivo del pendiente (consumo desconocido) para trazabilidad en el archivo
+    df["motivo_pendiente"] = np.where(
+        df["consumo_pendiente"] == 1, df["motivo"].fillna("sin equivalencia FAOSTAT"), ""
+    )
+
     # columnas finales (clave con escenario_oferta y escenario_consumo)
     cols = [
         "producto", "cod_dane", "municipio", "zona", "anio",
         "escenario_oferta", "escenario_consumo", "factor_consumo",
         "oferta_t", "kg_per_capita", "poblacion_total", "consumo_local_t",
-        "excedente_municipal_t", "consumo_pendiente",
+        "excedente_municipal_t", "consumo_pendiente", "motivo_pendiente",
         "umbral_sobreoferta_t", "sobreoferta",
     ]
     excedentes = df[cols].rename(columns={"excedente_municipal_t": "excedente_t",
@@ -333,12 +341,16 @@ def ejecutar(cfg: dict | None = None, guardar: bool = True) -> dict:
     ).reset_index(drop=True)
 
     # --- agregación por zona (después de recortar) ---
+    # El excedente por zona suma SÓLO productos con consumo conocido (los pendientes
+    # tienen excedente NaN -> no aportan). Se conserva la oferta total (todos los
+    # productos) para la cobertura.
     por_zona = (
         excedentes.groupby(["zona", "producto", "anio", "escenario_oferta", "escenario_consumo"], dropna=False)
         .agg(
             oferta_t=("oferta_t", "sum"),
-            consumo_local_t=("consumo_local_t", "sum"),
-            excedente_t=("excedente_t", "sum"),
+            consumo_local_t=("consumo_local_t", lambda s: s.sum(min_count=1)),
+            # excedente de un producto pendiente -> NaN (desconocido); conocido -> suma.
+            excedente_t=("excedente_t", lambda s: s.sum(min_count=1)),
             n_municipios=("cod_dane", "nunique"),
             consumo_pendiente=("consumo_pendiente", "max"),
         )

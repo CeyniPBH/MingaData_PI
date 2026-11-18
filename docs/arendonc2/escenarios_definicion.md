@@ -21,10 +21,15 @@ Con 5 años (2024–2028) y 5 zonas, `escenarios.csv` tiene
 Para una zona, año y combinación:
 
 ```
-excedente_zona     = suma del excedente municipal (ya recortado a >= 0) de la zona
+excedente_zona     = suma del excedente municipal (recortado a >= 0) de la zona,
+                     SÓLO de productos con consumo conocido (pendientes excluidos)
 volumen_nacional    = excedente_zona * pct_nacional
 volumen_exportacion = excedente_zona * pct_exportacion
 ```
+
+Los productos pendientes (consumo desconocido) tienen excedente nulo y **no
+aportan volumen**: su oferta no entra en `excedente_zona` ni en los volúmenes de
+optimización.
 
 Se cumple por construcción `pct_nacional + pct_exportacion = 1` y
 `volumen_nacional + volumen_exportacion = excedente_zona`.
@@ -38,11 +43,12 @@ Contrato de Samuel (se conserva): `id_escenario, oferta, consumo, pct_nacional,
 pct_exportacion, zona, volumen_nacional, volumen_exportacion`.
 Añadidas: `anio`, `alcance`, `cobertura_oferta_pct`.
 
-- **alcance:** `productos_alimentarios_con_equivalencia_FAOSTAT`. Los tres productos
-  sin equivalencia (flores, aromáticas, sábila) entran con su excedente completo
-  (consumo 0), pero se reportan con `cobertura_oferta_pct` < 100.
+- **alcance:** `productos_alimentarios_con_equivalencia_FAOSTAT`. Los 13 productos
+  pendientes (sin equivalencia de unidad defendible) **no aportan volumen**; su
+  oferta queda fuera de `volumen_nacional`/`volumen_exportacion`. Se reflejan en
+  `cobertura_oferta_pct` < 100.
 - **cobertura_oferta_pct:** % de la oferta de la zona con consumo FAOSTAT definido
-  (≈ 98–100 % según zona y escenario).
+  (denominador = oferta total del alcance, incluidos los pendientes).
 
 ## Las mezclas son escenarios de sensibilidad, no observaciones
 

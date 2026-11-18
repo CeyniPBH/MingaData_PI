@@ -38,20 +38,33 @@ else:
 
 def _excedente_zona_por_combinacion(cfg: dict) -> pd.DataFrame:
     """
-    Excedente disponible por zona para cada (anio, escenario_oferta, escenario_consumo),
-    sumando todos los productos. También calcula cobertura_oferta_pct = % de la oferta
-    de la zona que tiene consumo definido (no pendiente).
+    Excedente disponible por zona para cada (anio, escenario_oferta, escenario_consumo).
+
+    El excedente de zona suma SÓLO los productos con consumo conocido
+    (consumo_pendiente == 0). Los productos pendientes NO aportan volumen a la
+    optimización (su excedente es desconocido). La oferta de zona y la cobertura sí
+    usan TODOS los productos del alcance (incluidos los pendientes en el denominador).
     """
     exc_path = common.DATA_RES / "excedentes.csv"
     if not exc_path.exists():
         raise FileNotFoundError("Falta data/results/excedentes.csv. Corre primero la tarea #3.")
     e = pd.read_csv(exc_path, dtype={"cod_dane": str})
 
-    grp = e.groupby(["zona", "anio", "escenario_oferta", "escenario_consumo"], dropna=False)
-    out = grp.agg(
-        excedente_zona_t=("excedente_t", "sum"),
-        oferta_zona_t=("oferta_t", "sum"),
-    ).reset_index()
+    # excedente: sólo no-pendientes
+    conocidos = e[e["consumo_pendiente"] == 0]
+    out = (
+        conocidos.groupby(["zona", "anio", "escenario_oferta", "escenario_consumo"], dropna=False)
+        .agg(excedente_zona_t=("excedente_t", "sum"))
+        .reset_index()
+    )
+    # oferta total (todos los productos del alcance) por zona, para contexto
+    oferta_zona = (
+        e.groupby(["zona", "anio", "escenario_oferta", "escenario_consumo"], dropna=False)
+        .agg(oferta_zona_t=("oferta_t", "sum"))
+        .reset_index()
+    )
+    out = out.merge(oferta_zona, on=["zona", "anio", "escenario_oferta", "escenario_consumo"], how="right")
+    out["excedente_zona_t"] = out["excedente_zona_t"].fillna(0.0)
 
     # cobertura: oferta con consumo definido / oferta total de la zona
     cob = (

@@ -127,7 +127,11 @@ def test_cuotas_reparto_suman_uno():
 
 @requiere_resultados
 def test_excedentes_no_negativos(excedentes):
-    assert (excedentes["excedente_t"] >= 0).all()
+    # excedente conocido: no negativo. Pendientes: NaN (desconocido), no 0 ni negativo.
+    conocidos = excedentes[excedentes["consumo_pendiente"] == 0]
+    assert (conocidos["excedente_t"] >= 0).all()
+    pend = excedentes[excedentes["consumo_pendiente"] == 1]
+    assert pend["excedente_t"].isna().all(), "excedente de pendientes debe ser nulo (NaN)"
 
 
 @requiere_resultados
@@ -172,22 +176,36 @@ def test_materia_prima_sin_factor_es_pendiente():
 
 @requiere_resultados
 def test_consumos_desconocidos_identificados(excedentes):
-    """Productos pendientes: consumo 0 PERO marcados; no desaparecen."""
+    """Productos pendientes: consumo y excedente DESCONOCIDOS (nulo/NaN), con motivo,
+    y oferta conservada. No se sustituye por 0 silencioso ni se cuentan como excedente."""
     pend = pd.read_csv(OUT / "excedentes_pendientes.csv")
     assert len(pend) >= 1
     marcados = excedentes[excedentes["consumo_pendiente"] == 1]
     assert set(pend["producto"]) <= set(marcados["producto"].unique())
-    # ninguno con consumo > 0
-    assert (marcados["consumo_local_t"] == 0).all()
+    # consumo DESCONOCIDO -> nulo (NaN), nunca 0
+    assert marcados["consumo_local_t"].isna().all()
+    # excedente DESCONOCIDO -> nulo (NaN)
+    assert marcados["excedente_t"].isna().all()
+    # oferta original conservada (hay oferta positiva entre los pendientes)
+    assert (marcados["oferta_t"] > 0).any()
+    # motivo del pendiente presente y no vacío
+    assert "motivo_pendiente" in excedentes.columns
+    assert (marcados["motivo_pendiente"].astype(str).str.len() > 0).all()
 
 
 @requiere_resultados
 def test_totales_municipales_igual_zonales(excedentes):
     z = pd.read_csv(OUT / "excedentes_por_zona.csv")
     keys = ["zona", "producto", "anio", "escenario_oferta", "escenario_consumo"]
-    mun = excedentes.groupby(keys, dropna=False)["excedente_t"].sum().reset_index()
-    m = mun.merge(z[keys + ["excedente_t"]], on=keys, suffixes=("_mun", "_zon"))
+    # comparar sólo productos con consumo conocido (los pendientes son NaN en ambos lados)
+    conocidos = excedentes[excedentes["consumo_pendiente"] == 0]
+    mun = conocidos.groupby(keys, dropna=False)["excedente_t"].sum().reset_index()
+    zc = z[z["consumo_pendiente"] == 0]
+    m = mun.merge(zc[keys + ["excedente_t"]], on=keys, suffixes=("_mun", "_zon"))
     assert (m["excedente_t_mun"] - m["excedente_t_zon"]).abs().max() < 1e-6
+    # los pendientes en por_zona deben tener excedente nulo (NaN)
+    zp = z[z["consumo_pendiente"] == 1]
+    assert zp["excedente_t"].isna().all()
 
 
 @requiere_resultados
@@ -234,12 +252,14 @@ def test_proporciones_suman_uno(escenarios):
 
 @requiere_resultados
 def test_volumenes_conservan_excedente(escenarios, excedentes):
-    """volumen_nacional + volumen_exportacion == excedente de la zona ese año/combinación."""
+    """volumen_nacional + volumen_exportacion == excedente CONOCIDO de la zona ese
+    año/combinación (los productos pendientes no aportan volumen)."""
     esc = escenarios.copy()
     esc["suma"] = esc["volumen_nacional"] + esc["volumen_exportacion"]
-    # excedente por zona de la tarea #3
+    # excedente por zona SÓLO de productos con consumo conocido
+    conocidos = excedentes[excedentes["consumo_pendiente"] == 0]
     zexc = (
-        excedentes.groupby(["zona", "anio", "escenario_oferta", "escenario_consumo"])["excedente_t"]
+        conocidos.groupby(["zona", "anio", "escenario_oferta", "escenario_consumo"])["excedente_t"]
         .sum().reset_index()
     )
     m = esc.merge(
@@ -247,6 +267,40 @@ def test_volumenes_conservan_excedente(escenarios, excedentes):
         right_on=["zona", "anio", "escenario_oferta", "escenario_consumo"],
     )
     assert (m["suma"] - m["excedente_t"]).abs().max() < 1.0
+
+
+@requiere_resultados
+def test_pendiente_no_aumenta_volumenes_optimizacion(escenarios, excedentes):
+    """PRUEBA ESPECÍFICA (auditoría): un producto con oferta positiva y consumo
+    DESCONOCIDO no debe aumentar los volúmenes disponibles para optimización.
+
+    Se toma un producto pendiente con oferta > 0 y se comprueba que:
+      (a) su excedente es nulo (no entra como volumen), y
+      (b) el volumen total de los escenarios iguala el excedente CONOCIDO, sin
+          sumar la oferta del pendiente.
+    """
+    pend = excedentes[excedentes["consumo_pendiente"] == 1]
+    # debe existir al menos un pendiente con oferta positiva (p. ej. Café, Caña panelera)
+    con_oferta = pend[pend["oferta_t"] > 0]
+    assert not con_oferta.empty, "se esperaba al menos un pendiente con oferta > 0"
+    assert con_oferta["excedente_t"].isna().all(), "un pendiente no debe aportar excedente"
+
+    # Para una combinación concreta, el volumen total de escenarios NO incluye la
+    # oferta de los pendientes.
+    anio, eo, ec = 2024, "base", "base"
+    sub = escenarios[(escenarios["anio"] == anio) & (escenarios["oferta"] == eo)
+                     & (escenarios["consumo"] == ec) & (escenarios["pct_nacional"] == 0.8)]
+    vol_total = (sub["volumen_nacional"] + sub["volumen_exportacion"]).sum()
+
+    e = excedentes[(excedentes["anio"] == anio) & (excedentes["escenario_oferta"] == eo)
+                   & (excedentes["escenario_consumo"] == ec)]
+    exc_conocido = e[e["consumo_pendiente"] == 0]["excedente_t"].sum()
+    oferta_pendiente = e[e["consumo_pendiente"] == 1]["oferta_t"].sum()
+
+    assert abs(vol_total - exc_conocido) < 1.0
+    # el volumen de optimización es estrictamente menor que (conocido + oferta pendiente)
+    assert vol_total < exc_conocido + oferta_pendiente - 1.0
+    assert oferta_pendiente > 0
 
 
 # ----------------------------- ADAPTADOR ----------------------------------

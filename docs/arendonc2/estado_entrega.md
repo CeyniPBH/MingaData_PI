@@ -26,8 +26,11 @@ Estado frente a los criterios de aceptación de cada issue.
 - 30 productos con consumo FAOSTAT utilizable (fresco vs fresco); **13 pendientes**:
   10 por conversión materia prima → consumible no respaldada (café, caña panelera,
   cacao, coco, macadamia, sacha inchi, stevia, té, ají, cebolla larga) y 3 no
-  alimentarios (flores, aromáticas, sábila). Los pendientes quedan visibles, con
-  excedente = oferta completa y consumo 0 marcado (nunca cero silencioso).
+  alimentarios (flores, aromáticas, sábila).
+- Tratamiento de los pendientes (criterio acordado): **consumo desconocido = nulo
+  (NaN) con motivo**; **excedente desconocido = nulo (NaN)**; **oferta original
+  conservada**; **excluidos de los volúmenes de escenarios y del adaptador de
+  optimización**. No se sustituye por 0 ni se cuentan como excedente disponible.
 - **Cobertura parcial** (oferta con consumo definido / oferta total, en toneladas),
   por año y escenario de oferta: base ≈ 74 %, bajo 77–91 %, alto 80–89 %
   (`excedentes_cobertura.csv`).

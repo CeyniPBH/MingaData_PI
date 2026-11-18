@@ -422,8 +422,9 @@ def pantalla_zonas_acopio():
             if cobertura < 100.0:
                 st.warning(
                     "⚠️ **Cobertura parcial de consumo:** {:.2f}% de la oferta tiene consumo "
-                    "FAOSTAT definido. Los productos sin equivalencia (p. ej. flores, aromáticas, "
-                    "sábila) no descuentan consumo local; su excedente es la oferta completa."
+                    "FAOSTAT definido. Los productos sin equivalencia de unidad (p. ej. café, "
+                    "caña panelera, flores) quedan con excedente desconocido y NO aportan "
+                    "volumen a la optimización; su oferta se conserva pero se excluye de estos volúmenes."
                     .format(cobertura)
                 )
             fila["excedente_zona_t"] = fila["volumen_nacional"] + fila["volumen_exportacion"]

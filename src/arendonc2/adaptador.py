@@ -96,18 +96,29 @@ def preparar_para_solver(id_escenario: str, anio: int) -> PaqueteSolver:
     pct_exp = float(fila_esc["pct_exportacion"].iloc[0])
     alcance = fila_esc["alcance"].iloc[0]
 
-    # Excedente por municipio para ESTE año/escenario (suma de productos)
+    # Excedente por municipio para ESTE año/escenario (suma de productos).
+    # SÓLO productos con consumo conocido (consumo_pendiente == 0): los pendientes
+    # tienen excedente desconocido y NO aportan volumen a la optimización.
     exc_sel = excedentes[
         (excedentes["anio"] == anio)
         & (excedentes["escenario_oferta"] == eo)
         & (excedentes["escenario_consumo"] == ec)
     ]
+    exc_conocidos = exc_sel[exc_sel["consumo_pendiente"] == 0]
     exc_mun = (
-        exc_sel.groupby(["cod_dane", "municipio", "zona"], dropna=False)["excedente_t"]
+        exc_conocidos.groupby(["cod_dane", "municipio", "zona"], dropna=False)["excedente_t"]
         .sum()
         .reset_index()
         .sort_values("cod_dane")
     )
+    # Asegurar que los 42 municipios aparezcan aunque su excedente conocido sea 0.
+    todos_mun = (
+        exc_sel[["cod_dane", "municipio", "zona"]]
+        .drop_duplicates()
+        .sort_values("cod_dane")
+    )
+    exc_mun = todos_mun.merge(exc_mun, on=["cod_dane", "municipio", "zona"], how="left")
+    exc_mun["excedente_t"] = exc_mun["excedente_t"].fillna(0.0)
 
     # Volumen por zona del escenario
     vol_zona = (

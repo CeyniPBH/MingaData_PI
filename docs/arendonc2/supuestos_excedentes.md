@@ -45,10 +45,17 @@ Total + Cabecera + Rural. Generada con `src/arendonc2/poblacion.py`.
    según su producción histórica regional 2019–2023. Las cuotas suman 1 dentro de
    cada categoría, de modo que el consumo de una categoría **no se cuenta varias
    veces**. Es una aproximación para no sobreestimar el consumo por cultivo.
-4. **Productos sin equivalencia defendible** quedan **pendientes y visibles**: su
-   consumo local se fija en 0 pero con la bandera `consumo_pendiente = 1`. Nunca
-   se sustituye un consumo desconocido por cero de forma silenciosa.
-5. **Caña de azúcar** se excluye del análisis (industrial, no consumo local directo).
+4. **Productos sin equivalencia defendible** quedan **pendientes y visibles** con
+   este tratamiento (criterio acordado):
+   - `consumo_local_t` = **nulo (NaN)**, con `consumo_pendiente = 1` y
+     `motivo_pendiente`. Nunca 0 (un 0 afirmaría "no se consume", lo cual es falso).
+   - `excedente_t` = **nulo (NaN)**: el excedente es desconocido, no la oferta completa.
+   - `oferta_t` conserva la oferta original pronosticada.
+   - **Excluidos** de los volúmenes de `escenarios.csv` y del adaptador de
+     optimización (no aportan volumen disponible).
+   - Siguen contando en el **denominador** de la cobertura (oferta total del alcance).
+5. **Caña de azúcar** se excluye del análisis (industrial, no consumo local directo)
+   y, por tanto, **no** está en el denominador de la cobertura.
 
 ## Correspondencia FAOSTAT y cuotas de reparto (auditada)
 
@@ -115,11 +122,11 @@ en dos grupos distintos (verificado en código).
 | Aromáticas | Hierbas aromáticas/medicinales sin ítem de consumo FAOSTAT. |
 | Sábila | Aloe vera, uso cosmético/medicinal. |
 
-Los 13 pendientes entran al análisis con su excedente completo (consumo 0 pero
-marcado `consumo_pendiente = 1`, nunca cero silencioso). Esto **baja la cobertura**
-de consumo definido frente al ≈ 99.8 % de la versión anterior no auditada. El
-cambio es deliberado: no se infla la cobertura con equivalencias de unidad
-indefendibles.
+Los 13 pendientes se identifican con consumo y excedente **nulos (NaN)** y se
+**excluyen** de los volúmenes de optimización (ver punto 4). Esto **baja la
+cobertura** de consumo definido frente al ≈ 99.8 % de la versión anterior no
+auditada. El cambio es deliberado: no se infla la cobertura con equivalencias de
+unidad indefendibles.
 
 ### Cobertura por año y escenario de oferta
 
@@ -127,9 +134,10 @@ indefendibles.
 toneladas. El **denominador** es la oferta total pronosticada de todos los
 productos (excepto Caña de azúcar) para ese año y escenario de oferta. El numerador
 es la oferta de los 30 productos con consumo FAOSTAT definido (los 13 pendientes
-quedan fuera del numerador). La cobertura **no depende del escenario de consumo**
-(los pendientes tienen consumo 0 en bajo/base/alto por igual); por eso se reporta
-por año × escenario de oferta.
+quedan fuera del numerador pero **sí en el denominador**). Caña de azúcar está
+excluida de ambos. La cobertura **no depende del escenario de consumo** (los
+pendientes tienen consumo nulo en bajo/base/alto por igual); por eso se reporta por
+año × escenario de oferta.
 
 | Año | Oferta (bajo) | Oferta (base) | Oferta (alto) |
 |-----|--------------:|--------------:|--------------:|
