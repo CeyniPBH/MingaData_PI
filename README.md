@@ -51,16 +51,16 @@ oferta = pd.read_csv(
 
 ## Estado y pendientes
 
-El módulo de pronóstico está implementado en `src/ML_C/`. El siguiente trabajo previsto es desarrollar zonas de acopio, optimización, tablero e informe usando las tablas compartidas.
+Los módulos de pronóstico, zonas de acopio, excedentes, escenarios, optimización y tablero están implementados. Quedan como pendientes el informe final y el despliegue en la nube.
 
 - La matriz de tiempos actual es aproximada.
-- La tabla de población municipal DANE está pendiente; el pipeline puede terminar sin ella.
+- La población municipal DANE está procesada en `data/clean/poblacion_municipal.csv`.
 
 Los parámetros del pronóstico están en `config/ML_C/parametros.yaml`. Más detalles de columnas y resultados: `docs/ML_C/diccionario_datos.md`.
 
 ## Ejecutar el tablero interactivo (Streamlit)
 
-El tablero tiene 3 pantallas: Oferta, Zonas y Ubicación.
+El tablero tiene cinco opciones: Oferta, Zonas, Zonas de acopio (2b), Ubicación y Tablero central.
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
@@ -73,7 +73,11 @@ Luego abre http://localhost:8501 en tu navegador.
 
 1. **Oferta**: selecciona producto y municipio para ver la serie histórica (2000-2023) y el pronóstico con intervalo bajo/base/alto (2024-2028).
 2. **Zonas**: mapa con los 42 municipios coloreados por oferta pronosticada, por producto y año.
+2b. **Zonas de acopio**: polígonos de zona, centros de referencia, volúmenes nacional/exportación y advertencia de cobertura parcial.
 3. **Ubicación**: mapa con la central y acopios satélite, frontera de Pareto (costo de recolección vs distribución) y tabla de estabilidad por escenario.
+4. **Tablero central**: vista de cobertura con datos históricos (promedio 2021-2023). Responde cuánta área y producción alcanza cada sede; no reemplaza la pantalla 3, que minimiza el costo logístico (t·min) con el pronóstico 2024-2028. El indicador "recuperable" es una referencia del análisis original y no se recalcula desde el CSV.
+
+La vista 4 se abre por defecto para presentar primero la cobertura. Las pantallas 1, 2, 2b y 3 conservan el flujo de pronóstico, zonas y costo logístico.
 
 ## Módulo de optimización (OR-Tools)
 
@@ -93,4 +97,7 @@ python src/optimizacion/test_tarea1.py
 
 # Verificar Tarea 3 (tablero)
 python src/dashboard/test_tarea3.py
+
+# Verificar el tablero central (sincronización con el CSV)
+python src/dashboard/test_tablero_central.py
 ```

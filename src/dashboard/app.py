@@ -6,7 +6,9 @@ Fecha: 17-21 nov 2026
 Pantallas:
 1. Oferta: selector producto/municipio, serie historica y pronostico bajo/base/alto
 2. Zonas: mapa con municipios y oferta por producto/anio
+2b. Zonas de acopio: poligonos de zona, centros y volumenes por escenario
 3. Ubicacion: selector de escenario, mapa central+satelites, frontera de Pareto, tabla de estabilidad
+4. Tablero central: tablero visual de la central de acopio (mapa de puntos y respuestas)
 
 Ejecutar: streamlit run src/dashboard/app.py
 """
@@ -40,6 +42,8 @@ from utils import (
     obtener_serie_historica,
     obtener_pronostico_municipio,
 )
+
+from tablero_central import generar_html_tablero
 
 from optimizacion.modelo_real import (
     cargar_datos_reales,
@@ -90,17 +94,22 @@ st.sidebar.markdown("Valle del Cauca - Proyecto Integrador 1")
 
 pantalla = st.sidebar.radio(
     "Seleccionar pantalla:",
-    ["1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion"],
-    index=0,
+    ["1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion", "4. Tablero central"],
+    index=4,
 )
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Filtros globales")
-
 anos_disponibles = sorted(oferta["año"].unique()) if not oferta.empty else [2024]
-ano_seleccionado = st.sidebar.selectbox("Anio de pronostico:", anos_disponibles, index=0)
 
-escenario = st.sidebar.selectbox("Escenario de oferta:", ["base", "bajo", "alto"], index=0)
+if pantalla != "4. Tablero central":
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Filtros globales")
+    ano_seleccionado = st.sidebar.selectbox("Anio de pronostico:", anos_disponibles, index=0)
+    escenario = st.sidebar.selectbox("Escenario de oferta:", ["base", "bajo", "alto"], index=0)
+else:
+    st.sidebar.markdown("---")
+    st.sidebar.caption("Vista histórica 2021-2023. No usa los filtros de pronóstico.")
+    ano_seleccionado = anos_disponibles[0]
+    escenario = "base"
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Estado de los datos")
@@ -473,6 +482,11 @@ def pantalla_ubicacion():
     considerando el costo de recoleccion y distribucion bajo diferentes escenarios.
     Usa datos reales del modelo de optimización con OR-Tools y el adaptador de Alejandro.
     """)
+    st.caption(
+        "Esta pantalla minimiza el costo logístico (t·min) con OR-Tools. "
+        "La sección '4. Tablero central' maximiza área cubierta; por eso la sede "
+        "recomendada puede ser distinta."
+    )
 
     # Cargar datos base (cacheado)
     municipios, destinos, matriz_tiempos = cargar_datos_reales()
@@ -777,6 +791,33 @@ def pantalla_ubicacion():
 
 
 # =============================================================================
+# PANTALLA 4 - TABLERO CENTRAL DE ACOPIO (HTML)
+# =============================================================================
+def pantalla_tablero_central():
+    """Muestra el tablero visual de la central de acopio con sus propios controles."""
+    ruta_html = Path(__file__).resolve().parent / "assets" / "tablero_central_acopio_valle.html"
+
+    if not ruta_html.exists():
+        st.error("No se encontro el tablero en {}".format(ruta_html))
+        return
+
+    try:
+        html = generar_html_tablero(ruta_html, produccion)
+    except Exception as e:
+        st.error("No se pudo cargar el tablero central: {}".format(e))
+        return
+
+    st.caption(
+        "Vista de cobertura: responde cuánta área y producción alcanza cada sede "
+        "con datos históricos (promedio 2021-2023). No reemplaza la pantalla 3, "
+        "que minimiza el costo logístico con el pronóstico seleccionado. "
+        "El indicador 'recuperable' es una referencia del análisis original y no "
+        "se recalcula desde el CSV."
+    )
+    st.iframe(html, height=1150)
+
+
+# =============================================================================
 # RUTEO DE PANTALLAS
 # =============================================================================
 if pantalla == "1. Oferta":
@@ -787,6 +828,8 @@ elif pantalla == "2b. Zonas de acopio":
     pantalla_zonas_acopio()
 elif pantalla == "3. Ubicacion":
     pantalla_ubicacion()
+elif pantalla == "4. Tablero central":
+    pantalla_tablero_central()
 
 # =============================================================================
 # PIE DE PAGINA

@@ -23,5 +23,5 @@ osmnx>=1.9           # opcional: matriz de tiempos real por OSM
 ortools>=9.8
 plotly>=5.18
 folium>=0.15
-streamlit>=1.30
+streamlit>=1.67      # st.iframe para el tablero central
 streamlit-folium>=0.13
