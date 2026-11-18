@@ -1,0 +1,602 @@
+﻿producto,cod_dane,anio,escenario_oferta,oferta_original_t,oferta_recortada_t
+Ají,76001,2026,bajo,-0.27,0.0
+Ají,76001,2027,bajo,-0.38,0.0
+Ají,76001,2028,bajo,-0.61,0.0
+Ají,76054,2024,bajo,-0.64,0.0
+Ají,76054,2025,bajo,-0.76,0.0
+Ají,76054,2026,bajo,-0.92,0.0
+Ají,76054,2027,bajo,-0.94,0.0
+Ají,76054,2028,bajo,-0.96,0.0
+Ají,76111,2026,bajo,-0.58,0.0
+Ají,76111,2027,bajo,-0.64,0.0
+Ají,76111,2028,bajo,-0.77,0.0
+Ají,76126,2024,bajo,-0.88,0.0
+Ají,76126,2025,bajo,-0.92,0.0
+Ají,76126,2026,bajo,-0.97,0.0
+Ají,76126,2027,bajo,-0.97,0.0
+Ají,76126,2028,bajo,-0.98,0.0
+Ají,76318,2026,bajo,-0.35,0.0
+Ají,76318,2027,bajo,-0.45,0.0
+Ají,76318,2028,bajo,-0.65,0.0
+Ají,76377,2026,bajo,-0.03,0.0
+Ají,76377,2027,bajo,-0.18,0.0
+Ají,76377,2028,bajo,-0.48,0.0
+Ají,76403,2024,bajo,-0.87,0.0
+Ají,76403,2025,bajo,-0.91,0.0
+Ají,76403,2026,bajo,-0.96,0.0
+Ají,76403,2027,bajo,-0.97,0.0
+Ají,76403,2028,bajo,-0.98,0.0
+Ají,76563,2024,bajo,-0.73,0.0
+Ají,76563,2025,bajo,-0.81,0.0
+Ají,76563,2026,bajo,-0.94,0.0
+Ají,76563,2027,bajo,-0.94,0.0
+Ají,76563,2028,bajo,-0.96,0.0
+Ají,76823,2024,bajo,-0.86,0.0
+Ají,76823,2025,bajo,-0.9,0.0
+Ají,76823,2026,bajo,-0.97,0.0
+Ají,76823,2027,bajo,-0.97,0.0
+Ají,76823,2028,bajo,-0.98,0.0
+Ají,76828,2026,bajo,-0.52,0.0
+Ají,76828,2027,bajo,-0.59,0.0
+Ají,76828,2028,bajo,-0.74,0.0
+Ají,76863,2026,bajo,-0.61,0.0
+Ají,76863,2027,bajo,-0.66,0.0
+Ají,76863,2028,bajo,-0.79,0.0
+Arazá,76364,2024,bajo,-0.55,0.0
+Arazá,76364,2025,bajo,-0.83,0.0
+Arazá,76364,2026,bajo,-0.9,0.0
+Arazá,76364,2027,bajo,-0.93,0.0
+Arazá,76364,2028,bajo,-0.95,0.0
+Aromáticas,76001,2024,bajo,-0.97,0.0
+Aromáticas,76001,2025,bajo,-0.92,0.0
+Aromáticas,76001,2026,bajo,-0.96,0.0
+Aromáticas,76001,2027,bajo,-0.97,0.0
+Aromáticas,76001,2028,bajo,-0.98,0.0
+Aromáticas,76130,2024,bajo,-0.97,0.0
+Aromáticas,76130,2025,bajo,-0.92,0.0
+Aromáticas,76130,2026,bajo,-0.96,0.0
+Aromáticas,76130,2027,bajo,-0.97,0.0
+Aromáticas,76130,2028,bajo,-0.98,0.0
+Aromáticas,76233,2024,bajo,-0.97,0.0
+Aromáticas,76233,2025,bajo,-0.92,0.0
+Aromáticas,76233,2026,bajo,-0.96,0.0
+Aromáticas,76233,2027,bajo,-0.97,0.0
+Aromáticas,76233,2028,bajo,-0.98,0.0
+Aromáticas,76318,2024,bajo,-0.97,0.0
+Aromáticas,76318,2025,bajo,-0.92,0.0
+Aromáticas,76318,2026,bajo,-0.96,0.0
+Aromáticas,76318,2027,bajo,-0.97,0.0
+Aromáticas,76318,2028,bajo,-0.98,0.0
+Aromáticas,76377,2024,bajo,-0.97,0.0
+Aromáticas,76377,2025,bajo,-0.92,0.0
+Aromáticas,76377,2026,bajo,-0.96,0.0
+Aromáticas,76377,2027,bajo,-0.97,0.0
+Aromáticas,76377,2028,bajo,-0.98,0.0
+Aromáticas,76520,2024,bajo,-0.97,0.0
+Aromáticas,76520,2025,bajo,-0.92,0.0
+Aromáticas,76520,2026,bajo,-0.96,0.0
+Aromáticas,76520,2027,bajo,-0.97,0.0
+Aromáticas,76520,2028,bajo,-0.98,0.0
+Aromáticas,76736,2024,bajo,-0.97,0.0
+Aromáticas,76736,2025,bajo,-0.92,0.0
+Aromáticas,76736,2026,bajo,-0.96,0.0
+Aromáticas,76736,2027,bajo,-0.97,0.0
+Aromáticas,76736,2028,bajo,-0.98,0.0
+Aromáticas,76892,2024,bajo,-0.97,0.0
+Aromáticas,76892,2025,bajo,-0.92,0.0
+Aromáticas,76892,2026,bajo,-0.96,0.0
+Aromáticas,76892,2027,bajo,-0.97,0.0
+Aromáticas,76892,2028,bajo,-0.98,0.0
+Arracacha,76041,2024,bajo,-0.53,0.0
+Arracacha,76041,2025,bajo,-0.77,0.0
+Arracacha,76041,2026,bajo,-0.87,0.0
+Arracacha,76041,2027,bajo,-0.89,0.0
+Arracacha,76041,2028,bajo,-0.92,0.0
+Arracacha,76126,2024,bajo,-0.6,0.0
+Arracacha,76126,2025,bajo,-0.8,0.0
+Arracacha,76126,2026,bajo,-0.9,0.0
+Arracacha,76126,2027,bajo,-0.91,0.0
+Arracacha,76126,2028,bajo,-0.94,0.0
+Arracacha,76233,2024,bajo,-0.36,0.0
+Arracacha,76233,2025,bajo,-0.66,0.0
+Arracacha,76233,2026,bajo,-0.77,0.0
+Arracacha,76233,2027,bajo,-0.8,0.0
+Arracacha,76233,2028,bajo,-0.85,0.0
+Arracacha,76736,2027,bajo,-0.04,0.0
+Arracacha,76736,2028,bajo,-0.29,0.0
+Arracacha,76890,2024,bajo,-0.6,0.0
+Arracacha,76890,2025,bajo,-0.81,0.0
+Arracacha,76890,2026,bajo,-0.89,0.0
+Arracacha,76890,2027,bajo,-0.91,0.0
+Arracacha,76890,2028,bajo,-0.93,0.0
+Bananito,76606,2024,bajo,-0.8,0.0
+Bananito,76606,2025,bajo,-0.92,0.0
+Bananito,76606,2026,bajo,-0.96,0.0
+Bananito,76606,2027,bajo,-0.97,0.0
+Bananito,76606,2028,bajo,-0.98,0.0
+Brevo,76111,2024,bajo,-0.8,0.0
+Brevo,76111,2025,bajo,-0.92,0.0
+Brevo,76111,2026,bajo,-0.96,0.0
+Brevo,76111,2027,bajo,-0.97,0.0
+Brevo,76111,2028,bajo,-0.98,0.0
+Cacao,76250,2024,bajo,-0.54,0.0
+Cacao,76250,2025,bajo,-0.59,0.0
+Cacao,76250,2026,bajo,-0.64,0.0
+Cacao,76250,2027,bajo,-0.59,0.0
+Cacao,76250,2028,bajo,-0.63,0.0
+Cacao,76497,2024,bajo,-0.54,0.0
+Cacao,76497,2025,bajo,-0.59,0.0
+Cacao,76497,2026,bajo,-0.64,0.0
+Cacao,76497,2027,bajo,-0.59,0.0
+Cacao,76497,2028,bajo,-0.63,0.0
+Cacao,76892,2024,bajo,-0.35,0.0
+Cacao,76892,2025,bajo,-0.42,0.0
+Cacao,76892,2026,bajo,-0.49,0.0
+Cacao,76892,2027,bajo,-0.43,0.0
+Cacao,76892,2028,bajo,-0.49,0.0
+Cebolla Larga,76001,2024,bajo,-0.93,0.0
+Cebolla Larga,76001,2025,bajo,-0.98,0.0
+Cebolla Larga,76001,2026,bajo,-0.99,0.0
+Cebolla Larga,76001,2027,bajo,-0.78,0.0
+Cebolla Larga,76001,2028,bajo,-0.83,0.0
+Cebolla Larga,76054,2024,bajo,-0.94,0.0
+Cebolla Larga,76054,2025,bajo,-0.98,0.0
+Cebolla Larga,76054,2026,bajo,-0.99,0.0
+Cebolla Larga,76054,2027,bajo,-0.82,0.0
+Cebolla Larga,76054,2028,bajo,-0.86,0.0
+Cebolla Larga,76111,2025,bajo,-0.14,0.0
+Cebolla Larga,76111,2026,bajo,-0.41,0.0
+Cebolla Larga,76126,2024,bajo,-0.94,0.0
+Cebolla Larga,76126,2025,bajo,-0.98,0.0
+Cebolla Larga,76126,2026,bajo,-0.99,0.0
+Cebolla Larga,76126,2027,bajo,-0.84,0.0
+Cebolla Larga,76126,2028,bajo,-0.87,0.0
+Cebolla Larga,76243,2024,bajo,-0.94,0.0
+Cebolla Larga,76243,2025,bajo,-0.98,0.0
+Cebolla Larga,76243,2026,bajo,-0.99,0.0
+Cebolla Larga,76243,2027,bajo,-0.82,0.0
+Cebolla Larga,76243,2028,bajo,-0.85,0.0
+Cebolla Larga,76520,2024,bajo,-0.6,0.0
+Cebolla Larga,76520,2025,bajo,-0.88,0.0
+Cebolla Larga,76520,2026,bajo,-0.91,0.0
+Cebolla Larga,76622,2024,bajo,-0.93,0.0
+Cebolla Larga,76622,2025,bajo,-0.98,0.0
+Cebolla Larga,76622,2026,bajo,-0.99,0.0
+Cebolla Larga,76622,2027,bajo,-0.78,0.0
+Cebolla Larga,76622,2028,bajo,-0.82,0.0
+Cebolla Larga,76736,2024,bajo,-0.94,0.0
+Cebolla Larga,76736,2025,bajo,-0.98,0.0
+Cebolla Larga,76736,2026,bajo,-0.99,0.0
+Cebolla Larga,76736,2027,bajo,-0.82,0.0
+Cebolla Larga,76736,2028,bajo,-0.86,0.0
+Cebolla Larga,76834,2024,bajo,-0.81,0.0
+Cebolla Larga,76834,2025,bajo,-0.94,0.0
+Cebolla Larga,76834,2026,bajo,-0.96,0.0
+Cebolla Larga,76834,2027,bajo,-0.34,0.0
+Cebolla Larga,76834,2028,bajo,-0.47,0.0
+Cebolla Larga,76869,2024,bajo,-0.89,0.0
+Cebolla Larga,76869,2025,bajo,-0.96,0.0
+Cebolla Larga,76869,2026,bajo,-0.98,0.0
+Cebolla Larga,76869,2027,bajo,-0.66,0.0
+Cebolla Larga,76869,2028,bajo,-0.73,0.0
+Cebolla Larga,76890,2024,bajo,-0.94,0.0
+Cebolla Larga,76890,2025,bajo,-0.98,0.0
+Cebolla Larga,76890,2026,bajo,-0.99,0.0
+Cebolla Larga,76890,2027,bajo,-0.83,0.0
+Cebolla Larga,76890,2028,bajo,-0.86,0.0
+Cebolla Larga,76892,2024,bajo,-0.9,0.0
+Cebolla Larga,76892,2025,bajo,-0.97,0.0
+Cebolla Larga,76892,2026,bajo,-0.98,0.0
+Cebolla Larga,76892,2027,bajo,-0.65,0.0
+Cebolla Larga,76892,2028,bajo,-0.72,0.0
+Chontaduro,76100,2028,bajo,-0.29,0.0
+Curuba,76275,2028,bajo,-0.25,0.0
+Curuba,76520,2026,bajo,-0.43,0.0
+Curuba,76520,2027,bajo,-0.58,0.0
+Curuba,76520,2028,bajo,-0.72,0.0
+Curuba,76834,2027,bajo,-0.1,0.0
+Curuba,76834,2028,bajo,-0.4,0.0
+Durazno,76100,2028,bajo,-0.2,0.0
+Durazno,76243,2024,bajo,-0.18,0.0
+Durazno,76243,2025,bajo,-0.69,0.0
+Durazno,76243,2026,bajo,-0.83,0.0
+Durazno,76243,2027,bajo,-0.87,0.0
+Durazno,76243,2028,bajo,-0.91,0.0
+Flores y follajes,76001,2024,bajo,-0.94,0.0
+Flores y follajes,76001,2025,bajo,-0.97,0.0
+Flores y follajes,76001,2026,bajo,-0.96,0.0
+Flores y follajes,76001,2027,bajo,-0.97,0.0
+Flores y follajes,76001,2028,bajo,-0.98,0.0
+Flores y follajes,76020,2024,bajo,-0.94,0.0
+Flores y follajes,76020,2025,bajo,-0.97,0.0
+Flores y follajes,76020,2026,bajo,-0.96,0.0
+Flores y follajes,76020,2027,bajo,-0.97,0.0
+Flores y follajes,76020,2028,bajo,-0.98,0.0
+Flores y follajes,76111,2024,bajo,-0.94,0.0
+Flores y follajes,76111,2025,bajo,-0.97,0.0
+Flores y follajes,76111,2026,bajo,-0.96,0.0
+Flores y follajes,76111,2027,bajo,-0.97,0.0
+Flores y follajes,76111,2028,bajo,-0.98,0.0
+Flores y follajes,76275,2024,bajo,-0.94,0.0
+Flores y follajes,76275,2025,bajo,-0.97,0.0
+Flores y follajes,76275,2026,bajo,-0.96,0.0
+Flores y follajes,76275,2027,bajo,-0.97,0.0
+Flores y follajes,76275,2028,bajo,-0.98,0.0
+Flores y follajes,76520,2024,bajo,-0.94,0.0
+Flores y follajes,76520,2025,bajo,-0.97,0.0
+Flores y follajes,76520,2026,bajo,-0.96,0.0
+Flores y follajes,76520,2027,bajo,-0.97,0.0
+Flores y follajes,76520,2028,bajo,-0.98,0.0
+Flores y follajes,76606,2024,bajo,-0.94,0.0
+Flores y follajes,76606,2025,bajo,-0.97,0.0
+Flores y follajes,76606,2026,bajo,-0.96,0.0
+Flores y follajes,76606,2027,bajo,-0.97,0.0
+Flores y follajes,76606,2028,bajo,-0.98,0.0
+Flores y follajes,76828,2024,bajo,-0.94,0.0
+Flores y follajes,76828,2025,bajo,-0.97,0.0
+Flores y follajes,76828,2026,bajo,-0.96,0.0
+Flores y follajes,76828,2027,bajo,-0.97,0.0
+Flores y follajes,76828,2028,bajo,-0.98,0.0
+Flores y follajes,76863,2024,bajo,-0.94,0.0
+Flores y follajes,76863,2025,bajo,-0.97,0.0
+Flores y follajes,76863,2026,bajo,-0.96,0.0
+Flores y follajes,76863,2027,bajo,-0.97,0.0
+Flores y follajes,76863,2028,bajo,-0.98,0.0
+Flores y follajes,76892,2024,bajo,-0.94,0.0
+Flores y follajes,76892,2025,bajo,-0.97,0.0
+Flores y follajes,76892,2026,bajo,-0.96,0.0
+Flores y follajes,76892,2027,bajo,-0.97,0.0
+Flores y follajes,76892,2028,bajo,-0.98,0.0
+Fresa,76111,2024,bajo,-0.9,0.0
+Fresa,76111,2025,bajo,-0.97,0.0
+Fresa,76111,2026,bajo,-0.96,0.0
+Fresa,76111,2027,bajo,-0.97,0.0
+Fresa,76111,2028,bajo,-0.98,0.0
+Fresa,76243,2024,bajo,-0.9,0.0
+Fresa,76243,2025,bajo,-0.97,0.0
+Fresa,76243,2026,bajo,-0.96,0.0
+Fresa,76243,2027,bajo,-0.97,0.0
+Fresa,76243,2028,bajo,-0.98,0.0
+Fresa,76246,2024,bajo,-0.9,0.0
+Fresa,76246,2025,bajo,-0.97,0.0
+Fresa,76246,2026,bajo,-0.96,0.0
+Fresa,76246,2027,bajo,-0.97,0.0
+Fresa,76246,2028,bajo,-0.98,0.0
+Fresa,76248,2024,bajo,-0.9,0.0
+Fresa,76248,2025,bajo,-0.97,0.0
+Fresa,76248,2026,bajo,-0.96,0.0
+Fresa,76248,2027,bajo,-0.97,0.0
+Fresa,76248,2028,bajo,-0.98,0.0
+Fresa,76275,2024,bajo,-0.9,0.0
+Fresa,76275,2025,bajo,-0.97,0.0
+Fresa,76275,2026,bajo,-0.96,0.0
+Fresa,76275,2027,bajo,-0.97,0.0
+Fresa,76275,2028,bajo,-0.98,0.0
+Fresa,76622,2024,bajo,-0.9,0.0
+Fresa,76622,2025,bajo,-0.97,0.0
+Fresa,76622,2026,bajo,-0.96,0.0
+Fresa,76622,2027,bajo,-0.97,0.0
+Fresa,76622,2028,bajo,-0.98,0.0
+Fresa,76736,2024,bajo,-0.9,0.0
+Fresa,76736,2025,bajo,-0.97,0.0
+Fresa,76736,2026,bajo,-0.96,0.0
+Fresa,76736,2027,bajo,-0.97,0.0
+Fresa,76736,2028,bajo,-0.98,0.0
+Fresa,76834,2024,bajo,-0.9,0.0
+Fresa,76834,2025,bajo,-0.97,0.0
+Fresa,76834,2026,bajo,-0.96,0.0
+Fresa,76834,2027,bajo,-0.97,0.0
+Fresa,76834,2028,bajo,-0.98,0.0
+Fresa,76863,2024,bajo,-0.9,0.0
+Fresa,76863,2025,bajo,-0.97,0.0
+Fresa,76863,2026,bajo,-0.96,0.0
+Fresa,76863,2027,bajo,-0.97,0.0
+Fresa,76863,2028,bajo,-0.98,0.0
+Granadilla,76670,2024,bajo,-0.48,0.0
+Granadilla,76670,2025,bajo,-0.59,0.0
+Granadilla,76670,2026,bajo,-0.74,0.0
+Granadilla,76670,2027,bajo,-0.72,0.0
+Granadilla,76670,2028,bajo,-0.76,0.0
+Granadilla,76828,2024,bajo,-0.48,0.0
+Granadilla,76828,2025,bajo,-0.59,0.0
+Granadilla,76828,2026,bajo,-0.74,0.0
+Granadilla,76828,2027,bajo,-0.72,0.0
+Granadilla,76828,2028,bajo,-0.76,0.0
+Guanábana,76895,2026,bajo,-0.18,0.0
+Guanábana,76895,2027,bajo,-0.29,0.0
+Guanábana,76895,2028,bajo,-0.42,0.0
+Gulupa,76126,2024,bajo,-0.8,0.0
+Gulupa,76126,2025,bajo,-0.92,0.0
+Gulupa,76126,2026,bajo,-0.96,0.0
+Gulupa,76126,2027,bajo,-0.97,0.0
+Gulupa,76126,2028,bajo,-0.98,0.0
+Gulupa,76892,2027,bajo,-0.16,0.0
+Gulupa,76892,2028,bajo,-0.44,0.0
+Lulo,76823,2026,bajo,-0.04,0.0
+Lulo,76823,2027,bajo,-0.08,0.0
+Lulo,76823,2028,bajo,-0.21,0.0
+Lulo,76845,2024,bajo,-0.45,0.0
+Lulo,76845,2025,bajo,-0.53,0.0
+Lulo,76845,2026,bajo,-0.58,0.0
+Lulo,76845,2027,bajo,-0.6,0.0
+Lulo,76845,2028,bajo,-0.65,0.0
+Macadamia,76275,2024,bajo,-0.8,0.0
+Macadamia,76275,2025,bajo,-0.92,0.0
+Macadamia,76275,2026,bajo,-0.96,0.0
+Macadamia,76275,2027,bajo,-0.97,0.0
+Macadamia,76275,2028,bajo,-0.98,0.0
+Macadamia,76606,2024,bajo,-0.8,0.0
+Macadamia,76606,2025,bajo,-0.92,0.0
+Macadamia,76606,2026,bajo,-0.96,0.0
+Macadamia,76606,2027,bajo,-0.97,0.0
+Macadamia,76606,2028,bajo,-0.98,0.0
+Macadamia,76736,2024,bajo,-0.8,0.0
+Macadamia,76736,2025,bajo,-0.92,0.0
+Macadamia,76736,2026,bajo,-0.96,0.0
+Macadamia,76736,2027,bajo,-0.97,0.0
+Macadamia,76736,2028,bajo,-0.98,0.0
+Macadamia,76845,2024,bajo,-0.8,0.0
+Macadamia,76845,2025,bajo,-0.92,0.0
+Macadamia,76845,2026,bajo,-0.96,0.0
+Macadamia,76845,2027,bajo,-0.97,0.0
+Macadamia,76845,2028,bajo,-0.98,0.0
+Maracuyá,76246,2024,bajo,-0.41,0.0
+Maracuyá,76246,2025,bajo,-0.62,0.0
+Maracuyá,76246,2026,bajo,-0.63,0.0
+Maracuyá,76246,2027,bajo,-0.62,0.0
+Maracuyá,76246,2028,bajo,-0.68,0.0
+Maracuyá,76845,2024,bajo,-0.48,0.0
+Maracuyá,76845,2025,bajo,-0.67,0.0
+Maracuyá,76845,2026,bajo,-0.7,0.0
+Maracuyá,76845,2027,bajo,-0.69,0.0
+Maracuyá,76845,2028,bajo,-0.74,0.0
+Mora,76246,2024,bajo,-0.1,0.0
+Mora,76246,2025,bajo,-0.21,0.0
+Mora,76246,2026,bajo,-0.18,0.0
+Mora,76246,2027,bajo,-0.44,0.0
+Mora,76246,2028,bajo,-0.52,0.0
+Mora,76892,2027,bajo,-0.04,0.0
+Mora,76892,2028,bajo,-0.18,0.0
+Papaya,76100,2028,bajo,-0.05,0.0
+Papaya,76111,2024,bajo,-0.76,0.0
+Papaya,76111,2025,bajo,-0.92,0.0
+Papaya,76111,2026,bajo,-0.98,0.0
+Papaya,76111,2027,bajo,-0.98,0.0
+Papaya,76111,2028,bajo,-0.99,0.0
+Papaya,76364,2026,bajo,-0.78,0.0
+Papaya,76364,2027,bajo,-0.79,0.0
+Papaya,76364,2028,bajo,-0.88,0.0
+Papaya,76377,2026,bajo,-0.09,0.0
+Papaya,76377,2027,bajo,-0.17,0.0
+Papaya,76377,2028,bajo,-0.51,0.0
+Papaya,76403,2026,bajo,-0.33,0.0
+Papaya,76403,2027,bajo,-0.38,0.0
+Papaya,76403,2028,bajo,-0.64,0.0
+Papaya,76497,2026,bajo,-0.65,0.0
+Papaya,76497,2027,bajo,-0.67,0.0
+Papaya,76497,2028,bajo,-0.81,0.0
+Papaya,76845,2024,bajo,-0.79,0.0
+Papaya,76845,2025,bajo,-0.94,0.0
+Papaya,76845,2026,bajo,-0.99,0.0
+Papaya,76845,2027,bajo,-0.99,0.0
+Papaya,76845,2028,bajo,-0.99,0.0
+Papaya,76892,2026,bajo,-0.15,0.0
+Papaya,76892,2027,bajo,-0.18,0.0
+Papaya,76892,2028,bajo,-0.52,0.0
+Papaya,76895,2024,bajo,-0.54,0.0
+Papaya,76895,2025,bajo,-0.86,0.0
+Papaya,76895,2026,bajo,-0.96,0.0
+Papaya,76895,2027,bajo,-0.97,0.0
+Papaya,76895,2028,bajo,-0.98,0.0
+Pitaya,76041,2024,bajo,-0.96,0.0
+Pitaya,76041,2025,bajo,-0.98,0.0
+Pitaya,76041,2026,bajo,-0.98,0.0
+Pitaya,76041,2027,bajo,-0.99,0.0
+Pitaya,76041,2028,bajo,-0.99,0.0
+Pitaya,76100,2024,bajo,-0.96,0.0
+Pitaya,76100,2025,bajo,-0.98,0.0
+Pitaya,76100,2026,bajo,-0.98,0.0
+Pitaya,76100,2027,bajo,-0.99,0.0
+Pitaya,76100,2028,bajo,-0.99,0.0
+Pitaya,76113,2024,bajo,-0.96,0.0
+Pitaya,76113,2025,bajo,-0.98,0.0
+Pitaya,76113,2026,bajo,-0.98,0.0
+Pitaya,76113,2027,bajo,-0.99,0.0
+Pitaya,76113,2028,bajo,-0.99,0.0
+Pitaya,76243,2024,bajo,-0.96,0.0
+Pitaya,76243,2025,bajo,-0.98,0.0
+Pitaya,76243,2026,bajo,-0.98,0.0
+Pitaya,76243,2027,bajo,-0.99,0.0
+Pitaya,76243,2028,bajo,-0.99,0.0
+Pitaya,76250,2024,bajo,-0.28,0.0
+Pitaya,76250,2025,bajo,-0.62,0.0
+Pitaya,76250,2026,bajo,-0.67,0.0
+Pitaya,76250,2027,bajo,-0.8,0.0
+Pitaya,76250,2028,bajo,-0.88,0.0
+Pitaya,76275,2024,bajo,-0.96,0.0
+Pitaya,76275,2025,bajo,-0.98,0.0
+Pitaya,76275,2026,bajo,-0.98,0.0
+Pitaya,76275,2027,bajo,-0.99,0.0
+Pitaya,76275,2028,bajo,-0.99,0.0
+Pitaya,76400,2024,bajo,-0.96,0.0
+Pitaya,76400,2025,bajo,-0.98,0.0
+Pitaya,76400,2026,bajo,-0.98,0.0
+Pitaya,76400,2027,bajo,-0.99,0.0
+Pitaya,76400,2028,bajo,-0.99,0.0
+Pitaya,76606,2025,bajo,-0.08,0.0
+Pitaya,76606,2026,bajo,-0.2,0.0
+Pitaya,76606,2027,bajo,-0.52,0.0
+Pitaya,76606,2028,bajo,-0.72,0.0
+Pitaya,76616,2024,bajo,-0.81,0.0
+Pitaya,76616,2025,bajo,-0.9,0.0
+Pitaya,76616,2026,bajo,-0.91,0.0
+Pitaya,76616,2027,bajo,-0.95,0.0
+Pitaya,76616,2028,bajo,-0.97,0.0
+Pitaya,76622,2024,bajo,-0.96,0.0
+Pitaya,76622,2025,bajo,-0.98,0.0
+Pitaya,76622,2026,bajo,-0.98,0.0
+Pitaya,76622,2027,bajo,-0.99,0.0
+Pitaya,76622,2028,bajo,-0.99,0.0
+Pitaya,76736,2024,bajo,-0.96,0.0
+Pitaya,76736,2025,bajo,-0.98,0.0
+Pitaya,76736,2026,bajo,-0.98,0.0
+Pitaya,76736,2027,bajo,-0.99,0.0
+Pitaya,76736,2028,bajo,-0.99,0.0
+Pitaya,76828,2024,bajo,-0.96,0.0
+Pitaya,76828,2025,bajo,-0.98,0.0
+Pitaya,76828,2026,bajo,-0.98,0.0
+Pitaya,76828,2027,bajo,-0.99,0.0
+Pitaya,76828,2028,bajo,-0.99,0.0
+Pitaya,76863,2024,bajo,-0.96,0.0
+Pitaya,76863,2025,bajo,-0.98,0.0
+Pitaya,76863,2026,bajo,-0.98,0.0
+Pitaya,76863,2027,bajo,-0.99,0.0
+Pitaya,76863,2028,bajo,-0.99,0.0
+Pitaya,76890,2024,bajo,-0.96,0.0
+Pitaya,76890,2025,bajo,-0.98,0.0
+Pitaya,76890,2026,bajo,-0.98,0.0
+Pitaya,76890,2027,bajo,-0.99,0.0
+Pitaya,76890,2028,bajo,-0.99,0.0
+Pitaya,76892,2024,bajo,-0.96,0.0
+Pitaya,76892,2025,bajo,-0.98,0.0
+Pitaya,76892,2026,bajo,-0.98,0.0
+Pitaya,76892,2027,bajo,-0.99,0.0
+Pitaya,76892,2028,bajo,-0.99,0.0
+Piña,76041,2026,bajo,-0.22,0.0
+Piña,76041,2027,bajo,-0.38,0.0
+Piña,76041,2028,bajo,-0.63,0.0
+Piña,76109,2026,bajo,-0.48,0.0
+Piña,76109,2027,bajo,-0.59,0.0
+Piña,76109,2028,bajo,-0.76,0.0
+Piña,76243,2024,bajo,-0.85,0.0
+Piña,76243,2025,bajo,-0.96,0.0
+Piña,76243,2026,bajo,-0.98,0.0
+Piña,76243,2027,bajo,-0.98,0.0
+Piña,76243,2028,bajo,-0.99,0.0
+Piña,76400,2024,bajo,-0.29,0.0
+Piña,76400,2025,bajo,-0.81,0.0
+Piña,76400,2026,bajo,-0.9,0.0
+Piña,76400,2027,bajo,-0.92,0.0
+Piña,76400,2028,bajo,-0.96,0.0
+Piña,76616,2028,bajo,-0.35,0.0
+Piña,76823,2024,bajo,-0.8,0.0
+Piña,76823,2025,bajo,-0.95,0.0
+Piña,76823,2026,bajo,-0.96,0.0
+Piña,76823,2027,bajo,-0.97,0.0
+Piña,76823,2028,bajo,-0.98,0.0
+Piña,76892,2025,bajo,-0.66,0.0
+Piña,76892,2026,bajo,-0.81,0.0
+Piña,76892,2027,bajo,-0.85,0.0
+Piña,76892,2028,bajo,-0.91,0.0
+Piña,76895,2024,bajo,-0.84,0.0
+Piña,76895,2025,bajo,-0.95,0.0
+Piña,76895,2026,bajo,-0.97,0.0
+Piña,76895,2027,bajo,-0.98,0.0
+Piña,76895,2028,bajo,-0.99,0.0
+Sacha Inchi,76100,2024,bajo,-0.09,0.0
+Sacha Inchi,76100,2025,bajo,-0.74,0.0
+Sacha Inchi,76100,2026,bajo,-0.78,0.0
+Sacha Inchi,76100,2027,bajo,-0.84,0.0
+Sacha Inchi,76100,2028,bajo,-0.89,0.0
+Sacha Inchi,76111,2024,bajo,-0.82,0.0
+Sacha Inchi,76111,2025,bajo,-0.95,0.0
+Sacha Inchi,76111,2026,bajo,-0.96,0.0
+Sacha Inchi,76111,2027,bajo,-0.97,0.0
+Sacha Inchi,76111,2028,bajo,-0.98,0.0
+Sacha Inchi,76126,2024,bajo,-0.82,0.0
+Sacha Inchi,76126,2025,bajo,-0.95,0.0
+Sacha Inchi,76126,2026,bajo,-0.96,0.0
+Sacha Inchi,76126,2027,bajo,-0.97,0.0
+Sacha Inchi,76126,2028,bajo,-0.98,0.0
+Sacha Inchi,76233,2028,bajo,-0.27,0.0
+Sacha Inchi,76364,2024,bajo,-0.82,0.0
+Sacha Inchi,76364,2025,bajo,-0.95,0.0
+Sacha Inchi,76364,2026,bajo,-0.96,0.0
+Sacha Inchi,76364,2027,bajo,-0.97,0.0
+Sacha Inchi,76364,2028,bajo,-0.98,0.0
+Sacha Inchi,76606,2024,bajo,-0.82,0.0
+Sacha Inchi,76606,2025,bajo,-0.95,0.0
+Sacha Inchi,76606,2026,bajo,-0.96,0.0
+Sacha Inchi,76606,2027,bajo,-0.97,0.0
+Sacha Inchi,76606,2028,bajo,-0.98,0.0
+Sacha Inchi,76622,2024,bajo,-0.82,0.0
+Sacha Inchi,76622,2025,bajo,-0.95,0.0
+Sacha Inchi,76622,2026,bajo,-0.96,0.0
+Sacha Inchi,76622,2027,bajo,-0.97,0.0
+Sacha Inchi,76622,2028,bajo,-0.98,0.0
+Sacha Inchi,76828,2024,bajo,-0.82,0.0
+Sacha Inchi,76828,2025,bajo,-0.95,0.0
+Sacha Inchi,76828,2026,bajo,-0.96,0.0
+Sacha Inchi,76828,2027,bajo,-0.97,0.0
+Sacha Inchi,76828,2028,bajo,-0.98,0.0
+Stevia,76616,2024,bajo,-0.4,0.0
+Stevia,76616,2025,bajo,-0.77,0.0
+Stevia,76616,2026,bajo,-0.87,0.0
+Stevia,76616,2027,bajo,-0.9,0.0
+Stevia,76616,2028,bajo,-0.94,0.0
+Sábila,76020,2024,bajo,-0.83,0.0
+Sábila,76020,2025,bajo,-0.95,0.0
+Sábila,76020,2026,bajo,-0.12,0.0
+Sábila,76020,2027,bajo,-0.24,0.0
+Sábila,76020,2028,bajo,-0.38,0.0
+Sábila,76100,2025,bajo,-0.23,0.0
+Sábila,76126,2024,bajo,-0.64,0.0
+Sábila,76126,2025,bajo,-0.91,0.0
+Sábila,76126,2028,bajo,-0.19,0.0
+Sábila,76243,2025,bajo,-0.7,0.0
+Sábila,76250,2025,bajo,-0.44,0.0
+Sábila,76606,2024,bajo,-0.94,0.0
+Sábila,76606,2025,bajo,-0.98,0.0
+Sábila,76606,2026,bajo,-0.76,0.0
+Sábila,76606,2027,bajo,-0.8,0.0
+Sábila,76606,2028,bajo,-0.84,0.0
+Sábila,76622,2024,bajo,-0.94,0.0
+Sábila,76622,2025,bajo,-0.98,0.0
+Sábila,76622,2026,bajo,-0.79,0.0
+Sábila,76622,2027,bajo,-0.83,0.0
+Sábila,76622,2028,bajo,-0.86,0.0
+Tomate de Árbol,76318,2024,bajo,-0.33,0.0
+Tomate de Árbol,76318,2025,bajo,-0.49,0.0
+Tomate de Árbol,76318,2026,bajo,-0.57,0.0
+Tomate de Árbol,76318,2027,bajo,-0.71,0.0
+Tomate de Árbol,76318,2028,bajo,-0.75,0.0
+Uchuva,76126,2024,bajo,-0.8,0.0
+Uchuva,76126,2025,bajo,-0.92,0.0
+Uchuva,76126,2026,bajo,-0.96,0.0
+Uchuva,76126,2027,bajo,-0.97,0.0
+Uchuva,76126,2028,bajo,-0.98,0.0
+Vid,76111,2024,bajo,-0.28,0.0
+Vid,76111,2025,bajo,-0.46,0.0
+Vid,76111,2026,bajo,-0.39,0.0
+Vid,76111,2027,bajo,-0.76,0.0
+Vid,76111,2028,bajo,-0.81,0.0
+Yuca,76616,2024,bajo,-0.77,0.0
+Yuca,76616,2025,bajo,-0.86,0.0
+Yuca,76616,2026,bajo,-0.87,0.0
+Yuca,76616,2027,bajo,-0.84,0.0
+Yuca,76616,2028,bajo,-0.88,0.0
+Yuca,76845,2024,bajo,-0.27,0.0
+Yuca,76845,2025,bajo,-0.6,0.0
+Yuca,76845,2026,bajo,-0.61,0.0
+Yuca,76845,2027,bajo,-0.53,0.0
+Yuca,76845,2028,bajo,-0.64,0.0
+Zapote,76036,2024,bajo,-0.8,0.0
+Zapote,76036,2025,bajo,-0.92,0.0
+Zapote,76036,2026,bajo,-0.96,0.0
+Zapote,76036,2027,bajo,-0.97,0.0
+Zapote,76036,2028,bajo,-0.98,0.0
+Zapote,76364,2024,bajo,-0.8,0.0
+Zapote,76364,2025,bajo,-0.92,0.0
+Zapote,76364,2026,bajo,-0.96,0.0
+Zapote,76364,2027,bajo,-0.97,0.0
+Zapote,76364,2028,bajo,-0.98,0.0
+Zapote,76520,2024,bajo,-0.8,0.0
+Zapote,76520,2025,bajo,-0.92,0.0
+Zapote,76520,2026,bajo,-0.96,0.0
+Zapote,76520,2027,bajo,-0.97,0.0
+Zapote,76520,2028,bajo,-0.98,0.0
+Zapote,76892,2024,bajo,-0.8,0.0
+Zapote,76892,2025,bajo,-0.92,0.0
+Zapote,76892,2026,bajo,-0.96,0.0
+Zapote,76892,2027,bajo,-0.97,0.0
+Zapote,76892,2028,bajo,-0.98,0.0

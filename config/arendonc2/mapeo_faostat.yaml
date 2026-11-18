@@ -1,0 +1,215 @@
+# =============================================================================
+# Correspondencia productos del Valle <-> ítems de consumo per cápita FAOSTAT
+#
+# Unidades:
+#   - Producción del Valle (oferta): toneladas de cultivo cosechado en finca, en
+#     su FORMA PRIMARIA (p. ej. café pergamino, caña como tallo, cacao en grano).
+#   - FAOSTAT Food Balance Sheets, "Food supply quantity (kg/capita/yr)":
+#     disponibilidad del PRODUCTO CONSUMIBLE (procesado/equivalente) por persona.
+#
+# Regla de admisibilidad (auditoría 2):
+#   Una equivalencia es 'utilizable' sólo si la forma física de la producción y
+#   la del ítem FAOSTAT coinciden (fresco vs fresco). Si media una transformación
+#   materia prima -> producto consumible que requiere un factor de conversión NO
+#   respaldado por una fuente del repositorio, el producto se marca 'pendiente'.
+#   El reparto por producción histórica NO sustituye esa conversión.
+#   Nunca se inventan factores ni se asume consumo cero: los pendientes quedan
+#   visibles y su excedente = oferta completa (cobertura marcada < 100%).
+#
+# Reglas de mapeo:
+#  - 'items': ítems FAOSTAT cuyo consumo per cápita se SUMA (producto del Valle
+#    que agrega varios ítems, p. ej. Cítricos). No duplica categorías.
+#  - 'categoria_compartida': categoría FAOSTAT amplia cuyo consumo se REPARTE
+#    entre varios productos equivalentes por su producción regional 2019-2023.
+#    Las cuotas suman 1 dentro de la categoría. Sólo se usa cuando TODOS los
+#    cultivos relevantes de esa categoría en el Valle están representados y
+#    comparten la misma forma física que el ítem FAOSTAT.
+#  - 'pendiente: true': sin equivalencia de unidad defendible; se documenta motivo.
+#
+# Ningún ítem FAOSTAT puede usarse en dos grupos distintos (verificado por código).
+# =============================================================================
+
+mapeos:
+
+  # ===========================================================================
+  # UTILIZABLES — fruta fresca: comparten "Fruits, other" (fresco vs fresco)
+  # ===========================================================================
+  Aguacate:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca. FAOSTAT no reporta aguacate per cápita por separado; comparte Fruits, other (reparto por producción)."
+  Papaya:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Lulo:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Guayaba:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Maracuyá:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Borojó:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Guanábana:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Mora:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Mango:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Chontaduro:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruto fresco."
+  Granadilla:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Tomate de Árbol:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Pitaya:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Fresa:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Curuba:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Zapote:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Durazno:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Gulupa:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Brevo:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Arazá:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+  Uchuva:
+    categoria_compartida: "Fruits, other"
+    nota: "Fruta fresca."
+
+  # ===========================================================================
+  # UTILIZABLES — fruta fresca, ítems FAOSTAT específicos (fresco vs fresco)
+  # ===========================================================================
+  Banano:
+    categoria_compartida: "Bananas"
+    nota: "Banano fresco. Banano y Bananito comparten Bananas; reparto por producción para no duplicar."
+  Bananito:
+    categoria_compartida: "Bananas"
+    nota: "Variedad de banano fresca; comparte Bananas con Banano."
+  Plátano:
+    items: ["Plantains"]
+    nota: "Plátano fresco = Plantains (fresco)."
+  Piña:
+    items: ["Pineapples and products"]
+    nota: "Piña fresca = Pineapples (predominantemente fresco)."
+  Cítricos:
+    items: ["Oranges, Mandarines", "Lemons, Limes and products", "Grapefruit and products", "Citrus, Other"]
+    nota: "Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
+  Vid:
+    items: ["Grapes and products (excl wine)"]
+    nota: "Uva de mesa fresca = Grapes excl wine."
+
+  # ===========================================================================
+  # UTILIZABLES — raíces/tubérculos frescos (fresco vs fresco)
+  # ===========================================================================
+  Yuca:
+    items: ["Cassava and products"]
+    nota: "Yuca fresca = Cassava (raíz fresca)."
+  Papachina:
+    categoria_compartida: "Roots, Other"
+    nota: "Raíz tropical fresca; comparte Roots, Other con Arracacha."
+  Arracacha:
+    categoria_compartida: "Roots, Other"
+    nota: "Raíz andina fresca; comparte Roots, Other con Papachina."
+
+  # ===========================================================================
+  # PENDIENTES — requieren conversión materia prima -> consumible SIN FACTOR
+  #              respaldado (auditoría 2). No se inventan factores.
+  # ===========================================================================
+  Café:
+    pendiente: true
+    nota: >-
+      Producción en café PERGAMINO (t finca); FAOSTAT 'Coffee and products' mide
+      café verde/tostado consumible. Requiere factor pergamino->verde/tostado no
+      respaldado en el repo (docs/ML_C usan 0.63 pergamino->molido sólo para precio,
+      no para masa de consumo). Unidades incompatibles -> pendiente.
+  Caña panelera:
+    pendiente: true
+    nota: >-
+      Producción medida como CAÑA (tallo, t); FAOSTAT 'Sugar non-centrifugal' mide
+      PANELA consumible. Rendimiento caña->panela ~10% (docs/ML_C usan 0.10 sólo
+      para precio). Sin factor de masa respaldado, comparar 295k t de caña con
+      consumo de panela es un error de unidades de ~10x -> pendiente.
+  Cacao:
+    pendiente: true
+    nota: >-
+      Producción en GRANO de cacao; FAOSTAT 'Cocoa Beans and products' incluye
+      derivados (chocolate, etc.) e importaciones: el consumo nacional (0.81 kg/pc)
+      supera la producción local del Valle. No hay equivalencia de unidad/origen
+      defendible -> pendiente.
+  Coco:
+    pendiente: true
+    nota: >-
+      Producción de coco fresco; FAOSTAT 'Coconuts - Incl Copra' mezcla fruto
+      fresco y copra (seca). Sin factor fresco->copra respaldado -> pendiente.
+  Macadamia:
+    pendiente: true
+    nota: >-
+      Producción probablemente en NUEZ CON CÁSCARA; FAOSTAT 'Nuts and products' es
+      almendra/pulpa consumible. Factor cáscara->almendra no respaldado -> pendiente.
+  Sacha Inchi:
+    pendiente: true
+    nota: >-
+      Oleaginosa (semilla para aceite), no fruto seco de mesa; FAOSTAT 'Nuts and
+      products' no corresponde a su forma de consumo. Sin equivalencia defendible
+      -> pendiente.
+  Stevia:
+    pendiente: true
+    nota: >-
+      Producción de HOJA de stevia; el consumo como edulcorante refinado
+      ('Sweeteners, Other') requiere conversión hoja->glucósidos no respaldada
+      -> pendiente.
+  Té:
+    pendiente: true
+    nota: >-
+      Producción de hoja/té procesado local; 'Tea (including mate)' (0.02 kg/pc) no
+      distingue forma ni origen. Volumen marginal y forma incierta -> pendiente.
+  Ají:
+    pendiente: true
+    nota: >-
+      Se mapeaba a 'Vegetables, other' (22.42 kg/pc), categoría amplia de MUCHAS
+      hortalizas. Asignar todo ese consumo a un condimento menor (ají) sobreestima
+      el consumo ~17x frente a su producción. FAOSTAT no aísla ají -> pendiente.
+  Cebolla Larga:
+    pendiente: true
+    nota: >-
+      'Onions' (10.98 kg/pc) corresponde a cebolla de BULBO; cebolla larga (rama)
+      es otro producto y no está aislado en FAOSTAT. Asignar el consumo de bulbo a
+      cebolla larga no es defendible -> pendiente.
+
+  # ===========================================================================
+  # PENDIENTES — no alimentario / sin ítem de consumo FAOSTAT
+  # ===========================================================================
+  Flores y follajes:
+    pendiente: true
+    nota: "Ornamental, no alimentario. Sin ítem de consumo FAOSTAT. Excedente = oferta completa (marcado pendiente, no consumo cero)."
+  Aromáticas:
+    pendiente: true
+    nota: "Hierbas aromáticas/medicinales sin ítem de consumo FAOSTAT equivalente."
+  Sábila:
+    pendiente: true
+    nota: "Aloe vera, uso cosmético/medicinal; sin ítem de consumo alimentario FAOSTAT."
+
+# Producto excluido del análisis (no alimentario para consumo local directo):
+#   Caña de azúcar -> se excluye en config/arendonc2/parametros.yaml (productos_excluidos)
