@@ -1,6 +1,6 @@
 ﻿producto,kg_per_capita,pendiente,motivo
 Aguacate,27.418044,0,
-Ají,22.42,0,
+Ají,,1,"Se mapeaba a 'Vegetables, other' (22.42 kg/pc), categoría amplia de MUCHAS hortalizas. Asignar todo ese consumo a un condimento menor (ají) sobreestima el consumo ~17x frente a su producción. FAOSTAT no aísla ají -> pendiente."
 Arazá,0.000708,0,
 Aromáticas,,1,Hierbas aromáticas/medicinales sin ítem de consumo FAOSTAT equivalente.
 Arracacha,1.092143,0,
@@ -8,23 +8,23 @@ Bananito,0.336077,0,
 Banano,13.033923,0,
 Borojó,2.020447,0,
 Brevo,0.001065,0,
-Cacao,0.81,0,
-Café,1.44,0,
-Caña panelera,20.03,0,
-Cebolla Larga,10.98,0,
+Cacao,,1,"Producción en GRANO de cacao; FAOSTAT 'Cocoa Beans and products' incluye derivados (chocolate, etc.) e importaciones: el consumo nacional (0.81 kg/pc) supera la producción local del Valle. No hay equivalencia de unidad/origen defendible -> pendiente."
+Café,,1,"Producción en café PERGAMINO (t finca); FAOSTAT 'Coffee and products' mide café verde/tostado consumible. Requiere factor pergamino->verde/tostado no respaldado en el repo (docs/ML_C usan 0.63 pergamino->molido sólo para precio, no para masa de consumo). Unidades incompatibles -> pendiente."
+Caña panelera,,1,"Producción medida como CAÑA (tallo, t); FAOSTAT 'Sugar non-centrifugal' mide PANELA consumible. Rendimiento caña->panela ~10% (docs/ML_C usan 0.10 sólo para precio). Sin factor de masa respaldado, comparar 295k t de caña con consumo de panela es un error de unidades de ~10x -> pendiente."
+Cebolla Larga,,1,'Onions' (10.98 kg/pc) corresponde a cebolla de BULBO; cebolla larga (rama) es otro producto y no está aislado en FAOSTAT. Asignar el consumo de bulbo a cebolla larga no es defendible -> pendiente.
 Chontaduro,1.165572,0,
-Coco,1.97,0,
+Coco,,1,Producción de coco fresco; FAOSTAT 'Coconuts - Incl Copra' mezcla fruto fresco y copra (seca). Sin factor fresco->copra respaldado -> pendiente.
 Curuba,0.06959,0,
 Cítricos,27.31,0,
 Durazno,0.01377,0,
-Flores y follajes,,1,"Ornamental, no alimentario. Sin ítem de consumo FAOSTAT; excedente = oferta completa (no se asume consumo cero, se marca pendiente)."
+Flores y follajes,,1,"Ornamental, no alimentario. Sin ítem de consumo FAOSTAT. Excedente = oferta completa (marcado pendiente, no consumo cero)."
 Fresa,0.195105,0,
 Granadilla,1.025789,0,
 Guanábana,1.916238,0,
 Guayaba,5.234876,0,
 Gulupa,0.00951,0,
 Lulo,6.433009,0,
-Macadamia,0.6046,0,
+Macadamia,,1,Producción probablemente en NUEZ CON CÁSCARA; FAOSTAT 'Nuts and products' es almendra/pulpa consumible. Factor cáscara->almendra no respaldado -> pendiente.
 Mango,1.228503,0,
 Maracuyá,4.453295,0,
 Mora,1.680078,0,
@@ -33,11 +33,11 @@ Papaya,6.447043,0,
 Pitaya,0.326892,0,
 Piña,12.14,0,
 Plátano,37.18,0,
-Sacha Inchi,0.6954,0,
-Stevia,2.16,0,
+Sacha Inchi,,1,"Oleaginosa (semilla para aceite), no fruto seco de mesa; FAOSTAT 'Nuts and products' no corresponde a su forma de consumo. Sin equivalencia defendible -> pendiente."
+Stevia,,1,"Producción de HOJA de stevia; el consumo como edulcorante refinado ('Sweeteners, Other') requiere conversión hoja->glucósidos no respaldada -> pendiente."
 Sábila,,1,"Aloe vera, uso cosmético/medicinal; sin ítem de consumo alimentario FAOSTAT."
 Tomate de Árbol,0.579535,0,
-Té,0.02,0,
+Té,,1,Producción de hoja/té procesado local; 'Tea (including mate)' (0.02 kg/pc) no distingue forma ni origen. Volumen marginal y forma incierta -> pendiente.
 Uchuva,9.3e-05,0,
 Vid,1.29,0,
 Yuca,16.85,0,

@@ -143,10 +143,19 @@ def construir_features(geo, cfg: dict) -> pd.DataFrame:
     """
     Construye la tabla de features por municipio:
       - oferta valorizada (COP) del año/escenario base, excluyendo productos excluidos
-      - lat, lon
+      - coordenadas espaciales
 
-    Transformaciones documentadas en config: log1p sobre oferta, z-score en todas.
-    Devuelve DataFrame con columnas crudas + columnas '*_z' escaladas.
+    Espacio (auditoría 3): se usan **coordenadas proyectadas** (EPSG:3116,
+    MAGNA-SIRGAS / Colombia Bogotá, metros) del centroide municipal, escaladas por
+    un **factor común** (la desviación estándar conjunta de x e y), para que 1 km
+    al este pese igual que 1 km al norte y se conserve la geometría real. Esto
+    corrige la distorsión del z-score independiente de lat/lon, que estiraba el eje
+    este-oeste (el Valle es ~190 km N-S vs ~144 km E-W).
+
+    La oferta valorizada se transforma con log1p (colas largas) y z-score, y se
+    pondera con `peso_oferta` (config) frente a las dos coordenadas espaciales.
+
+    Devuelve DataFrame con columnas crudas + columnas '*_z' listas para Ward.
     """
     anio = cfg["zonas"]["anio_base"]
     esc = cfg["zonas"]["escenario_oferta"]
@@ -161,20 +170,35 @@ def construir_features(geo, cfg: dict) -> pd.DataFrame:
     feats = feats.merge(oferta_val, on="cod_dane", how="left")
     feats["oferta_valor_cop"] = feats["oferta_valor_cop"].fillna(0.0)
 
-    conf = cfg["zonas"]["features"]
+    zcfg = cfg["zonas"]
+    crs_metrico = cfg["general"].get("crs_metrico", "EPSG:3116")
+    metodo_espacio = zcfg.get("espacio", "proyectado_escala_comun")
+    peso_oferta = float(zcfg.get("peso_oferta", 1.0))
+    peso_espacio = float(zcfg.get("peso_espacio", 1.0))
 
-    def aplicar(col_src, spec):
-        x = feats[col_src].astype(float).to_numpy()
-        if spec["transform"] == "log1p":
-            x = np.log1p(x)
-        if spec["escala"] == "zscore":
-            mu, sd = x.mean(), x.std(ddof=0)
-            x = (x - mu) / sd if sd > 0 else x - mu
-        return x
+    # --- oferta valorizada: log1p + z-score ---
+    ov = np.log1p(feats["oferta_valor_cop"].astype(float).to_numpy())
+    sd = ov.std(ddof=0)
+    feats["oferta_valor_z"] = ((ov - ov.mean()) / sd if sd > 0 else ov - ov.mean()) * peso_oferta
 
-    feats["oferta_valor_z"] = aplicar("oferta_valor_cop", conf["oferta_valor"])
-    feats["lat_z"] = aplicar("lat", conf["lat"])
-    feats["lon_z"] = aplicar("lon", conf["lon"])
+    # --- espacio ---
+    if metodo_espacio == "proyectado_escala_comun":
+        cent = geo.to_crs(crs_metrico).geometry.centroid
+        x = cent.x.to_numpy()
+        y = cent.y.to_numpy()
+        feats["x_proj_m"] = x
+        feats["y_proj_m"] = y
+        # factor común: desviación estándar conjunta (conserva aspect ratio real)
+        xc = x - x.mean()
+        yc = y - y.mean()
+        escala_comun = np.sqrt(np.concatenate([xc, yc]).var())
+        feats["lon_z"] = (xc / escala_comun) * peso_espacio
+        feats["lat_z"] = (yc / escala_comun) * peso_espacio
+    else:  # "latlon_zscore" (método previo; se conserva por compatibilidad)
+        for src, dst in (("lat", "lat_z"), ("lon", "lon_z")):
+            v = feats[src].astype(float).to_numpy()
+            s = v.std(ddof=0)
+            feats[dst] = ((v - v.mean()) / s if s > 0 else v - v.mean()) * peso_espacio
     return feats
 
 

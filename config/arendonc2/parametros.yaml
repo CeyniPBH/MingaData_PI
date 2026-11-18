@@ -31,18 +31,22 @@ zonas:
   vecindad: "queen"
   # Agrupamiento: Ward con restricción de conectividad (connectivity de scikit-learn).
   metodo_cluster: "ward_connectivity"
-  # Variables de agrupamiento y su transformación.
-  #  - oferta valorizada (COP) -> log1p -> z-score
-  #  - lat, lon -> z-score
+  # Representación del espacio (auditoría 3):
+  #   "proyectado_escala_comun": centroides en EPSG:3116 (metros) escalados por un
+  #     factor común (desv. estándar conjunta de x,y), preservando distancias reales.
+  #     1 km al este pesa igual que 1 km al norte. RECOMENDADO.
+  #   "latlon_zscore": z-score independiente de lat y lon (método previo; distorsiona
+  #     el eje E-W porque el Valle es más alto N-S que ancho E-W). Se conserva por
+  #     compatibilidad, no recomendado.
+  espacio: "proyectado_escala_comun"
+  # Pesos relativos de los bloques de features (oferta vs espacio).
+  #   oferta = 1 variable (oferta valorizada); espacio = 2 variables (x, y).
+  peso_oferta: 1.0
+  peso_espacio: 1.0
+  # Transformación de la oferta valorizada: log1p (colas largas) + z-score.
   features:
     oferta_valor:
-      transform: "log1p"      # la oferta valorizada tiene colas largas
-      escala: "zscore"
-    lat:
-      transform: "none"
-      escala: "zscore"
-    lon:
-      transform: "none"
+      transform: "log1p"
       escala: "zscore"
 
 # ---------------------------------------------------------------------------

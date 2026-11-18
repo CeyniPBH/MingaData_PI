@@ -90,6 +90,31 @@ def test_metricas_k_todas_conexas():
     assert set(met["k"]) >= set(range(3, 9))
 
 
+@requiere_resultados
+def test_emparejamiento_geometrias_1a1():
+    """Auditoría 2: 42 municipios emparejados 1:1 con GADM, sin ambigüedad."""
+    emp = pd.read_csv(OUT / "emparejamiento_gadm_dane.csv", dtype={"cod_dane": str})
+    assert len(emp) == 42
+    assert (emp["emparejado"] == "sí").all()
+    assert emp["nombre_gadm_NAME_2"].notna().all()
+    # ningún polígono GADM usado más de una vez
+    assert emp["clave_match_gadm"].duplicated().sum() == 0
+
+
+@requiere_resultados
+def test_features_usan_coordenadas_proyectadas():
+    """Auditoría 3: el método espacial por defecto proyecta a EPSG:3116 con escala común."""
+    from arendonc2 import zonas_acopio as za
+
+    cfg = common.cargar_config()
+    assert cfg["zonas"]["espacio"] == "proyectado_escala_comun"
+    geo = za.cargar_geometrias(cfg)
+    feats = za.construir_features(geo, cfg)
+    assert {"x_proj_m", "y_proj_m"}.issubset(feats.columns)
+    # escala común: el aspect ratio real (N-S > E-W) se conserva en las features z
+    assert feats["lat_z"].std() > feats["lon_z"].std()
+
+
 # ----------------------------- TAREA #3 -----------------------------------
 
 @requiere_resultados
@@ -117,6 +142,32 @@ def test_9_combinaciones_por_anio(excedentes):
         lambda g: g[["escenario_oferta", "escenario_consumo"]].drop_duplicates().shape[0]
     )
     assert (comb == 9).all(), comb.to_dict()
+
+
+@requiere_resultados
+def test_ningun_item_faostat_en_dos_grupos():
+    """Auditoría 1: ningún ítem/categoría FAOSTAT se usa en grupos de tipo distinto,
+    ni un ítem sumado se asigna a más de un producto."""
+    cu = pd.read_csv(OUT / "faostat_mapeo_cuotas.csv")
+    usados = cu[cu["tipo_mapeo"].isin(["suma_items", "reparto_categoria"])]
+    # un nombre no puede aparecer en dos tipos distintos
+    por_nombre = usados.groupby("item_o_categoria")["tipo_mapeo"].nunique()
+    assert (por_nombre == 1).all(), por_nombre[por_nombre > 1].to_dict()
+    # un item 'suma_items' no puede estar en más de un producto
+    si = usados[usados["tipo_mapeo"] == "suma_items"]["item_o_categoria"].value_counts()
+    assert (si == 1).all(), si[si > 1].to_dict()
+
+
+@requiere_resultados
+def test_materia_prima_sin_factor_es_pendiente():
+    """Auditoría 1: productos que exigen conversión materia prima -> consumible sin
+    factor respaldado deben estar como pendientes (no utilizables)."""
+    aud = pd.read_csv(OUT / "auditoria_mapeo_faostat.csv")
+    deben_pendientes = {"Café", "Caña panelera", "Cacao", "Coco", "Macadamia",
+                        "Sacha Inchi", "Stevia", "Té", "Ají", "Cebolla Larga"}
+    estado = aud.set_index("producto")["estado"].to_dict()
+    for p in deben_pendientes:
+        assert estado.get(p) == "pendiente", f"{p} debería ser pendiente, es {estado.get(p)}"
 
 
 @requiere_resultados

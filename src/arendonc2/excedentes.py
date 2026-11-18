@@ -111,12 +111,34 @@ def construir_cuotas(mapeo: dict, lista_productos: pd.DataFrame, cfg: dict) -> p
             })
     df = pd.DataFrame(filas)
 
-    # Verificación: cuotas de reparto suman 1 por categoría (precisión completa)
+    # Verificación 1: cuotas de reparto suman 1 por categoría (precisión completa)
     rep = df[df["tipo_mapeo"] == "reparto_categoria"]
     sumas = rep.groupby("item_o_categoria")["cuota"].sum()
     malas = sumas[(sumas - 1.0).abs() > 1e-9]
     if len(malas) > 0:
         raise RuntimeError(f"Cuotas de reparto no suman 1: {malas.to_dict()}")
+
+    # Verificación 2: ningún ítem/categoría FAOSTAT se usa en dos grupos distintos
+    # (un ítem sumado por un producto no puede además repartirse en otro, etc.)
+    usados = df[df["tipo_mapeo"].isin(["suma_items", "reparto_categoria"])]
+    dup = usados["item_o_categoria"].value_counts()
+    # un ítem de reparto aparece una vez por producto de su categoría: eso es válido.
+    # lo inválido es que el MISMO nombre aparezca en tipos distintos.
+    por_nombre = usados.groupby("item_o_categoria")["tipo_mapeo"].nunique()
+    mezclados = por_nombre[por_nombre > 1]
+    if len(mezclados) > 0:
+        raise RuntimeError(
+            f"Ítems FAOSTAT usados en grupos de tipo distinto: {mezclados.index.tolist()}"
+        )
+    # un ítem 'suma_items' no puede repartirse entre varios productos
+    suma_items_dup = (
+        usados[usados["tipo_mapeo"] == "suma_items"]["item_o_categoria"].value_counts()
+    )
+    item_repetido = suma_items_dup[suma_items_dup > 1]
+    if len(item_repetido) > 0:
+        raise RuntimeError(
+            f"Ítem FAOSTAT (suma_items) asignado a más de un producto: {item_repetido.to_dict()}"
+        )
     return df
 
 

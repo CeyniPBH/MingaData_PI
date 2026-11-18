@@ -108,11 +108,21 @@ vecindad, métricas de k, cobertura, pendientes, cuotas FAOSTAT, auditoría de r
 
 ## Documentación
 
-- `docs/arendonc2/zonas_metodologia.md` — método y selección de k.
-- `docs/arendonc2/supuestos_excedentes.md` — supuestos, FAOSTAT, población, cobertura.
+- `docs/arendonc2/zonas_metodologia.md` — método, espacio proyectado y selección de k.
+- `docs/arendonc2/supuestos_excedentes.md` — supuestos, FAOSTAT auditado, población, cobertura.
 - `docs/arendonc2/escenarios_definicion.md` — definición de los 27 escenarios.
+- `docs/arendonc2/geometrias_fuente_y_desviacion.md` — GADM vs MGN DANE (desviación declarada).
+- `docs/arendonc2/reproducibilidad_evidencia.md` — pruebas A/B/C de reproducibilidad.
 - `docs/arendonc2/decisiones_pendientes_samuel.md` — observaciones al modelo de Samuel.
 - `notebooks/arendonc2/zonas_excedentes_escenarios.ipynb` — notebook reproducible con mapa.
+
+### Artefactos de auditoría (en `data/results/arendonc2/`)
+
+- `auditoria_mapeo_faostat.csv` — tabla producto↔FAOSTAT con unidad, tipo, factor y estado.
+- `emparejamiento_gadm_dane.csv` — emparejamiento completo GADM↔DANE con alias.
+- `faostat_mapeo_cuotas.csv`, `excedentes_cobertura.csv`, `excedentes_pendientes.csv`.
+
+Scripts de auditoría: `src/arendonc2/auditar_mapeo.py`, `src/arendonc2/auditar_geometrias.py`.
 
 ## Configuración
 

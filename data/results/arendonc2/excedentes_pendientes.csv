@@ -1,4 +1,14 @@
 ﻿producto,motivo
+Ají,"Se mapeaba a 'Vegetables, other' (22.42 kg/pc), categoría amplia de MUCHAS hortalizas. Asignar todo ese consumo a un condimento menor (ají) sobreestima el consumo ~17x frente a su producción. FAOSTAT no aísla ají -> pendiente."
 Aromáticas,Hierbas aromáticas/medicinales sin ítem de consumo FAOSTAT equivalente.
-Flores y follajes,"Ornamental, no alimentario. Sin ítem de consumo FAOSTAT; excedente = oferta completa (no se asume consumo cero, se marca pendiente)."
+Cacao,"Producción en GRANO de cacao; FAOSTAT 'Cocoa Beans and products' incluye derivados (chocolate, etc.) e importaciones: el consumo nacional (0.81 kg/pc) supera la producción local del Valle. No hay equivalencia de unidad/origen defendible -> pendiente."
+Café,"Producción en café PERGAMINO (t finca); FAOSTAT 'Coffee and products' mide café verde/tostado consumible. Requiere factor pergamino->verde/tostado no respaldado en el repo (docs/ML_C usan 0.63 pergamino->molido sólo para precio, no para masa de consumo). Unidades incompatibles -> pendiente."
+Caña panelera,"Producción medida como CAÑA (tallo, t); FAOSTAT 'Sugar non-centrifugal' mide PANELA consumible. Rendimiento caña->panela ~10% (docs/ML_C usan 0.10 sólo para precio). Sin factor de masa respaldado, comparar 295k t de caña con consumo de panela es un error de unidades de ~10x -> pendiente."
+Cebolla Larga,'Onions' (10.98 kg/pc) corresponde a cebolla de BULBO; cebolla larga (rama) es otro producto y no está aislado en FAOSTAT. Asignar el consumo de bulbo a cebolla larga no es defendible -> pendiente.
+Coco,Producción de coco fresco; FAOSTAT 'Coconuts - Incl Copra' mezcla fruto fresco y copra (seca). Sin factor fresco->copra respaldado -> pendiente.
+Flores y follajes,"Ornamental, no alimentario. Sin ítem de consumo FAOSTAT. Excedente = oferta completa (marcado pendiente, no consumo cero)."
+Macadamia,Producción probablemente en NUEZ CON CÁSCARA; FAOSTAT 'Nuts and products' es almendra/pulpa consumible. Factor cáscara->almendra no respaldado -> pendiente.
+Sacha Inchi,"Oleaginosa (semilla para aceite), no fruto seco de mesa; FAOSTAT 'Nuts and products' no corresponde a su forma de consumo. Sin equivalencia defendible -> pendiente."
+Stevia,"Producción de HOJA de stevia; el consumo como edulcorante refinado ('Sweeteners, Other') requiere conversión hoja->glucósidos no respaldada -> pendiente."
 Sábila,"Aloe vera, uso cosmético/medicinal; sin ítem de consumo alimentario FAOSTAT."
+Té,Producción de hoja/té procesado local; 'Tea (including mate)' (0.02 kg/pc) no distingue forma ni origen. Volumen marginal y forma incierta -> pendiente.

@@ -24,6 +24,7 @@ if __package__ in (None, ""):
 from arendonc2 import common
 from arendonc2 import descargar_geometrias, poblacion
 from arendonc2 import zonas_acopio, excedentes, escenarios
+from arendonc2 import auditar_geometrias, auditar_mapeo
 from arendonc2.adaptador import preparar_para_solver
 
 
@@ -40,8 +41,10 @@ def main():
 
     print("\n### 2. Tarea #2 — Zonas de acopio ###")
     zonas_acopio.ejecutar(cfg, guardar=True)
+    auditar_geometrias.main()
 
     print("\n### 3. Tarea #3 — Excedentes ###")
+    auditar_mapeo.main()
     excedentes.ejecutar(cfg, guardar=True)
 
     print("\n### 4. Tarea #4 — Escenarios de optimización ###")

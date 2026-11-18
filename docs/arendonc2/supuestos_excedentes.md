@@ -50,13 +50,26 @@ Total + Cabecera + Rural. Generada con `src/arendonc2/poblacion.py`.
    se sustituye un consumo desconocido por cero de forma silenciosa.
 5. **Caña de azúcar** se excluye del análisis (industrial, no consumo local directo).
 
-## Correspondencia FAOSTAT y cuotas de reparto
+## Correspondencia FAOSTAT y cuotas de reparto (auditada)
 
-Mapeo completo en `config/arendonc2/mapeo_faostat.yaml`; tabla con cuotas en
-`data/results/arendonc2/faostat_mapeo_cuotas.csv` y consumo per cápita resultante
-por producto en `data/results/arendonc2/faostat_consumo_percapita_producto.csv`.
+Regla de unidades (auditoría): la producción del Valle se mide en toneladas de
+cultivo **cosechado en finca** (forma primaria); FAOSTAT mide disponibilidad del
+**producto consumible** (kg/cápita/año, Food Balance Sheets). Una equivalencia es
+**utilizable** sólo si ambas formas físicas coinciden (fresco vs fresco). Si media
+una transformación materia prima → consumible que requiere un factor de conversión
+**no respaldado** por una fuente del repositorio, el producto queda **pendiente**.
+El reparto por producción histórica **no** sustituye esa conversión.
 
-### Mapeos directos (suma de ítems, sin reparto)
+Tabla completa (una fila por producto, con unidad, tipo, factor, fuente y estado):
+`data/results/arendonc2/auditoria_mapeo_faostat.csv`
+(generada por `src/arendonc2/auditar_mapeo.py`). Mapeo en
+`config/arendonc2/mapeo_faostat.yaml`; cuotas en
+`data/results/arendonc2/faostat_mapeo_cuotas.csv`.
+
+**Resultado: 30 productos utilizables, 13 pendientes.** Ningún ítem FAOSTAT se usa
+en dos grupos distintos (verificado en código).
+
+### Utilizables — mapeos directos (suma de ítems, fresco vs fresco)
 
 | Producto | Ítem(s) FAOSTAT | kg/persona (2023) |
 |----------|-----------------|-------------------|
@@ -64,41 +77,50 @@ por producto en `data/results/arendonc2/faostat_consumo_percapita_producto.csv`.
 | Cítricos | Oranges/Mandarines + Lemons/Limes + Grapefruit + Citrus Other | 27.31 |
 | Yuca | Cassava and products | 16.85 |
 | Piña | Pineapples and products | 12.14 |
-| Cebolla Larga | Onions | 10.98 |
-| Caña panelera | Sugar non-centrifugal | 20.03 |
 | Vid | Grapes (excl wine) | 1.29 |
-| Cacao | Cocoa Beans and products | 0.81 |
-| Café | Coffee and products | 1.44 |
-| Coco | Coconuts – Incl Copra | 1.97 |
-| Té | Tea (including mate) | 0.02 |
-| Stevia | Sweeteners, Other | 2.16 |
 
-### Categorías repartidas por producción 2019–2023 (cuotas suman 1)
+### Utilizables — categorías repartidas por producción 2019–2023 (cuotas suman 1)
 
-- **Fruits, other (60.26 kg/persona)** se reparte entre 21 frutas. Cuotas
+- **Fruits, other (60.26 kg/persona)** se reparte entre 21 frutas frescas. Cuotas
   principales: Aguacate 45.5 %, Papaya 10.7 %, Lulo 10.7 %, Guayaba 8.7 %,
   Maracuyá 7.4 %, Borojó 3.4 %, Guanábana 3.2 %, Mora 2.8 %, Mango 2.0 %,
-  Chontaduro 1.9 %, Granadilla 1.7 %, resto < 1 %.
+  Chontaduro 1.9 %, resto < 2 %.
 - **Bananas (13.37 kg)** → Banano 97.5 %, Bananito 2.5 %.
 - **Roots, Other (1.30 kg)** → Arracacha 84.0 %, Papachina 16.0 %.
-- **Nuts and products (1.30 kg)** → Sacha Inchi 53.5 %, Macadamia 46.5 %.
-- **Vegetables, other (22.42 kg)** → Ají 100 % (único del Valle en la categoría).
 
-> El reparto es una **aproximación**: FAOSTAT reporta consumo por categoría, no
-> por cultivo específico del Valle. Se usa producción regional como proxy de la
-> estructura de consumo, suponiendo que lo producido refleja lo consumido.
+> El reparto es una **aproximación**: FAOSTAT reporta consumo por categoría, no por
+> cultivo. Se usa producción regional como proxy de la estructura de consumo.
+> Sólo se aplica entre cultivos frescos de la misma forma física que el ítem.
 
-### Productos pendientes (sin equivalencia alimentaria FAOSTAT)
+### Pendientes — conversión materia prima → consumible no respaldada (10)
+
+| Producto | Unidad producción | Ítem FAOSTAT | Motivo (factor faltante) |
+|----------|-------------------|--------------|--------------------------|
+| Café | café pergamino | Coffee and products | pergamino → verde/tostado (0.63 es sólo para precio, no masa) |
+| Caña panelera | caña (tallo) | Sugar non-centrifugal | caña → panela ~10 % (0.10 es sólo para precio); mismatch ~10× |
+| Cacao | grano de cacao | Cocoa Beans and products | consumo (incl. chocolate e importaciones) > producción local |
+| Coco | coco fresco | Coconuts – Incl Copra | fresco → copra (seca) sin factor |
+| Macadamia | nuez con cáscara | Nuts and products | cáscara → almendra sin factor |
+| Sacha Inchi | semilla (oleaginosa) | Nuts and products | oleaginosa, no fruto seco de mesa |
+| Stevia | hoja | Sweeteners, Other | hoja → glucósidos refinados sin factor |
+| Té | hoja/procesado | Tea (including mate) | forma/origen incierto; volumen marginal |
+| Ají | ají fresco | Vegetables, other | asignar toda una categoría amplia a un condimento menor sobreestima ~17× |
+| Cebolla Larga | cebolla larga (rama) | Onions | Onions es bulbo, no cebolla de rama |
+
+### Pendientes — no alimentario / sin ítem FAOSTAT (3)
 
 | Producto | Motivo |
 |----------|--------|
-| Flores y follajes | Ornamental, no alimentario. Excedente = oferta completa (consumo no asumido cero, marcado pendiente). |
-| Aromáticas | Hierbas aromáticas/medicinales sin ítem de consumo FAOSTAT equivalente. |
-| Sábila | Aloe vera, uso cosmético/medicinal; sin ítem de consumo alimentario. |
+| Flores y follajes | Ornamental, no alimentario. |
+| Aromáticas | Hierbas aromáticas/medicinales sin ítem de consumo FAOSTAT. |
+| Sábila | Aloe vera, uso cosmético/medicinal. |
 
-Estos tres productos aportan < 0.3 % de la oferta total, por lo que la cobertura
-de consumo definido se mantiene ≈ 99.7–99.98 % según año y escenario (ver
-`data/results/arendonc2/excedentes_cobertura.csv`).
+Los 13 pendientes entran al análisis con su excedente completo (consumo 0 pero
+marcado `consumo_pendiente = 1`, nunca cero silencioso). Esto **baja la cobertura**
+de consumo definido a ≈ **74 %** (escenario base/base), frente al ≈ 99.8 % de la
+versión anterior no auditada. El cambio es deliberado: no se infla la cobertura con
+equivalencias de unidad indefendibles. Cobertura por año/escenario en
+`data/results/arendonc2/excedentes_cobertura.csv`.
 
 ## Sobreoferta (alerta coyuntural)
 
