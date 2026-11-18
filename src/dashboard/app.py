@@ -44,11 +44,14 @@ from utils import (
 from optimizacion.modelo_real import (
     cargar_datos_reales,
     construir_matriz_tiempos_dict,
-    obtener_oferta_por_municipio,
     resolver_ubicacion,
     calcular_frontera_pareto,
     calcular_estabilidad,
 )
+
+# Agregar src/ al path para importar el adaptador de Alejandro
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "arendonc2"))
+from adaptador import preparar_para_solver, listar_escenarios
 
 # =============================================================================
 # CONFIGURACION DE LA PAGINA
@@ -468,11 +471,11 @@ def pantalla_ubicacion():
     st.markdown("""
     Evalúa ubicaciones candidatas para la central de acopio y su red de satelites,
     considerando el costo de recoleccion y distribucion bajo diferentes escenarios.
-    Usa datos reales del modelo de optimización con OR-Tools.
+    Usa datos reales del modelo de optimización con OR-Tools y el adaptador de Alejandro.
     """)
 
-    # Cargar datos reales (cacheado)
-    municipios, destinos, matriz_tiempos, oferta = cargar_datos_reales()
+    # Cargar datos base (cacheado)
+    municipios, destinos, matriz_tiempos = cargar_datos_reales()
     tiempos = construir_matriz_tiempos_dict(matriz_tiempos, municipios, destinos)
 
     # Filtros: año y escenario (del sidebar global)
@@ -481,11 +484,38 @@ def pantalla_ubicacion():
     k_satelites = 4
     lam = 0.5
 
-    # Resolver modelo con datos reales
-    oferta_mun = obtener_oferta_por_municipio(oferta, ano=ano_sel, escenario=esc_sel)
+    # Construir id_escenario para el adaptador de Alejandro
+    # Formato: {anio}_O{oferta}_C{consumo}_M{pct_nac}{pct_exp}
+    esc_map = {"bajo": "Obajo", "base": "Obase", "alto": "Oalto"}
+    esc_sel_lower = esc_sel.lower()
+    id_escenario = "{}_{}_Cbase_M80_20".format(ano_sel, esc_map.get(esc_sel_lower, "Obase"))
+
+    # Cargar paquete de datos de Alejandro
+    try:
+        paquete = preparar_para_solver(id_escenario, ano_sel)
+    except Exception as e:
+        st.error("No se pudo cargar el paquete de datos de Alejandro: {}".format(e))
+        st.info("Verifica que hayas corrido: python src/arendonc2/ejecutar_todo.py")
+        return
+
+    # Mostrar advertencia de cobertura parcial si aplica
+    if paquete.cobertura_parcial:
+        st.warning(
+            "⚠️ **Cobertura parcial:** {:.2f}% de la oferta tiene consumo FAOSTAT definido. "
+            "Productos sin equivalencia (caña, café, flores) quedan excluidos del excedente."
+            .format(paquete.cobertura_oferta_pct)
+        )
+
+    # Mapear cod_dane -> zona para popups del mapa
+    mun_a_zona = dict(zip(paquete.zonas["cod_dane"], paquete.zonas["zona"]))
+
+    # Resolver modelo con datos reales de Alejandro
     res = resolver_ubicacion(
-        municipios, destinos, tiempos, oferta_mun,
-        k=k_satelites, lam=lam, pct_nac=0.8, pct_exp=0.2
+        paquete, municipios, destinos, tiempos,
+        k=k_satelites, lam=lam,
+        usar_zonas=False,
+        usar_flujo=False,
+        usar_satelite_central=True,
     )
 
     if res["status"] not in ("OPTIMAL", "FEASIBLE"):
@@ -494,22 +524,12 @@ def pantalla_ubicacion():
 
     # Obtener nombres de central y satélites
     central_cod = res["central"]
-    central_row = municipios[municipios["cod_dane"] == central_cod]
-    central_nombre = central_row["municipio"].iloc[0] if not central_row.empty else central_cod
-    central_lat = central_row["lat"].iloc[0] if not central_row.empty else 4.2
-    central_lon = central_row["lon"].iloc[0] if not central_row.empty else -76.2
+    central_nombre = res["central_nombre"]
+    central_zona = res["central_zona"]
+    central_lat = municipios[municipios["cod_dane"] == central_cod]["lat"].iloc[0]
+    central_lon = municipios[municipios["cod_dane"] == central_cod]["lon"].iloc[0]
 
-    satelites_cods = res["satelites"]
-    satelites_info = []
-    for s in satelites_cods:
-        s_row = municipios[municipios["cod_dane"] == s]
-        if not s_row.empty:
-            satelites_info.append({
-                "cod": s,
-                "nombre": s_row["municipio"].iloc[0],
-                "lat": s_row["lat"].iloc[0],
-                "lon": s_row["lon"].iloc[0],
-            })
+    satelites_info = res["satelites"]  # lista de dicts con nombre, zona, es_centro
 
     # Mapa de ubicación con datos reales
     st.markdown("### Mapa de Ubicacion")
@@ -518,6 +538,13 @@ def pantalla_ubicacion():
     with col1:
         centro_mapa = [central_lat, central_lon]
         m = folium.Map(location=centro_mapa, zoom_start=8, tiles="OpenStreetMap")
+
+        # Construir mapa de ofertas desde el paquete de Alejandro
+        oferta_mun = {}
+        for _, row in paquete.excedente_municipio.iterrows():
+            oferta_mun[row["cod_dane"]] = float(row["excedente_t"])
+
+        coord_map = {row["cod_dane"]: (row["lat"], row["lon"]) for _, row in municipios.iterrows()}
 
         # Agregar todos los municipios como puntos
         for _, row in municipios.iterrows():
@@ -528,20 +555,20 @@ def pantalla_ubicacion():
             ofe = oferta_mun.get(cod, 0.0)
 
             es_central = (cod == central_cod)
-            es_satelite = cod in satelites_cods
+            es_satelite = cod in [s["cod_dane"] for s in satelites_info]
 
             if es_central:
                 color = "red"
                 radius = 12
-                popup_txt = "<b>CENTRAL: {}</b> ({})<br>Oferta: {:,.0f} t".format(nom, cod, ofe)
+                popup_txt = "<b>CENTRAL: {}</b> ({})<br>Zona: {}<br>Excedente: {:,.0f} t".format(nom, cod, central_zona, ofe)
             elif es_satelite:
                 color = "orange"
                 radius = 9
-                popup_txt = "<b>SATELITE: {}</b> ({})<br>Oferta: {:,.0f} t".format(nom, cod, ofe)
+                popup_txt = "<b>SATELITE: {}</b> ({})<br>Zona: {}<br>Excedente: {:,.0f} t".format(nom, cod, mun_a_zona.get(cod, "?"), ofe)
             else:
                 color = "blue"
                 radius = 5
-                popup_txt = "{} ({})<br>Oferta: {:,.0f} t".format(nom, cod, ofe)
+                popup_txt = "{} ({})<br>Zona: {}<br>Excedente: {:,.0f} t".format(nom, cod, mun_a_zona.get(cod, "?"), ofe)
 
             folium.CircleMarker(
                 location=[lat, lon],
@@ -554,8 +581,7 @@ def pantalla_ubicacion():
                 fillOpacity=0.8,
             ).add_to(m)
 
-        # Líneas de municipios a sus satélites (asignaciones del modelo)
-        coord_map = {row["cod_dane"]: (row["lat"], row["lon"]) for _, row in municipios.iterrows()}
+        # Líneas de municipios a sus satélites
         for muni_cod, sat_cod in res["asignaciones_municipio_satelite"]:
             if muni_cod in coord_map and sat_cod in coord_map:
                 folium.PolyLine(
@@ -588,52 +614,51 @@ def pantalla_ubicacion():
     with col2:
         st.markdown("### Resultado del Modelo")
         st.metric("Central Seleccionada", central_nombre)
-        st.metric("Codigo DANE", central_cod)
-        st.metric("N° de Satelites", len(satelites_cods))
+        st.metric("Zona de la Central", central_zona)
+        st.metric("Código DANE", central_cod)
+        st.metric("N° de Satelites", len(satelites_info))
 
         st.markdown("**Acopios Satelite:**")
         for i, s_info in enumerate(satelites_info):
-            st.write("{}. {} ({})".format(i+1, s_info["nombre"], s_info["cod"]))
+            st.write("{}. {} (zona {}, {})".format(
+                i+1, s_info["nombre"], s_info["zona"],
+                "centro de zona" if s_info["es_centro"] else ""
+            ))
 
         st.markdown("---")
         st.markdown("### Costos (toneladas × minutos)")
-        st.metric("Costo Recoleccion", "{:,.0f}".format(res["costo_recoleccion"]))
-        st.metric("Costo Distribucion", "{:,.0f}".format(res["costo_distribucion"]))
+        st.metric("Costo Recoleccion (Z1)", "{:,.0f}".format(res["costo_recoleccion"]))
+        st.metric("Costo Satelite->Central (Z2b)", "{:,.0f}".format(res["costo_satelite_central"]))
+        st.metric("Costo Central->Destinos (Z2a)", "{:,.0f}".format(res["costo_central_destinos"]))
+        st.metric("Costo Distribucion (Z2)", "{:,.0f}".format(res["costo_distribucion"]))
         st.metric("Costo Total Ponderado", "{:,.0f}".format(res["costo_total"]))
 
         st.markdown("---")
         st.markdown("**Parametros:**")
         st.write("Año: {}".format(ano_sel))
-        st.write("Escenario: {}".format(esc_sel))
+        st.write("Escenario: {} / {}".format(paquete.escenario_oferta, paquete.escenario_consumo))
+        st.write("Mezcla Nacional/Exportacion: {:.0%} / {:.0%}".format(paquete.pct_nacional, paquete.pct_exportacion))
         st.write("k (satelites): {}".format(k_satelites))
         st.write("λ (peso recoleccion): {}".format(lam))
+        st.write("Cobertura oferta: {:.2f}%".format(res["cobertura"]))
 
     st.markdown("---")
 
-    # ===== Calcular costos para los 3 escenarios =====
-    costos_escenarios = {}
-    for esc in ["bajo", "base", "alto"]:
-        oferta_esc = obtener_oferta_por_municipio(oferta, ano=ano_sel, escenario=esc)
-        res_esc = resolver_ubicacion(
-            municipios, destinos, tiempos, oferta_esc,
-            k=k_satelites, lam=lam, pct_nac=0.8, pct_exp=0.2
-        )
-        if res_esc["status"] in ("OPTIMAL", "FEASIBLE"):
-            costos_escenarios[esc] = res_esc["costo_total"]
-
-    # ===== Frontera de Pareto real =====
+    # ===== Frontera de Pareto real (P4: filtrada por no-dominancia) =====
     st.markdown("### Frontera de Pareto")
     st.markdown("""
     Variando el peso (λ) entre el costo de recoleccion y el costo de distribucion,
     se obtiene la frontera de soluciones no dominadas, calculada con OR-Tools sobre
-    datos reales de oferta y tiempos de viaje.
+    datos reales de Alejandro (excedentes, zonas, escenarios).
     """)
 
     df_pareto = calcular_frontera_pareto(
-        municipios, destinos, tiempos, oferta_mun,
+        paquete, municipios, destinos, tiempos,
         k=k_satelites,
         lambdas=[i / 10 for i in range(11)],
-        pct_nac=0.8, pct_exp=0.2
+        usar_zonas=False,
+        usar_flujo=False,
+        usar_satelite_central=True,
     )
 
     fig_pareto = go.Figure()
@@ -661,19 +686,21 @@ def pantalla_ubicacion():
     st.markdown("### Tabla de Estabilidad por Escenario")
     st.markdown("""
     Para cada escenario de oferta (bajo/base/alto), se muestra qué municipio es
-    seleccionado como central por el modelo, calculado con datos reales.
+    seleccionado como central por el modelo, calculado con datos reales de Alejandro.
     El escenario actualmente seleccionado en el filtro se marca con ✅.
     """)
 
     df_estab = calcular_estabilidad(
-        municipios, destinos, tiempos, oferta,
-        k=k_satelites, lam=lam, anos=[ano_sel],
-        escenarios=["bajo", "base", "alto"]
+        paquete, municipios, destinos, tiempos,
+        k=k_satelites, lam=lam,
+        usar_zonas=False,
+        usar_flujo=False,
+        usar_satelite_central=True,
     )
 
     # Marcar el escenario seleccionado con un icono
     def marcar_escenario(row):
-        if row["escenario"] == esc_sel:
+        if row["escenario"] == id_escenario:
             return "✅ {}".format(row["escenario"])
         return row["escenario"]
 
@@ -684,9 +711,9 @@ def pantalla_ubicacion():
     )
 
     st.dataframe(
-        df_estab_display[["escenario", "central_seleccionada", "costo_total"]]
+        df_estab_display[["escenario", "central_seleccionada", "costo_total", "cobertura"]]
         .rename(columns={"central_seleccionada": "central"})
-        .style.format({"costo_total": "{:,.0f}"}),
+        .style.format({"costo_total": "{:,.0f}", "cobertura": "{:.2f}%"}),
         use_container_width=True,
     )
 
@@ -714,32 +741,35 @@ def pantalla_ubicacion():
     # ===== Comparación de costos =====
     st.markdown("### Comparación de Costos por Escenario")
 
-    if len(costos_escenarios) == 3:
+    if len(df_estab) == 3:
         col_c1, col_c2, col_c3 = st.columns(3)
+        df_estab_sorted = df_estab.sort_values("escenario")
         with col_c1:
             st.metric(
                 "Escenario bajo",
-                "{:,.0f} t·min".format(costos_escenarios.get("bajo", 0)),
+                "{:,.0f} t·min".format(df_estab_sorted.iloc[0]["costo_total"]),
                 delta=None
             )
         with col_c2:
-            delta_base = costos_escenarios.get("base", 0) - costos_escenarios.get("bajo", 0)
+            c_base = df_estab_sorted.iloc[1]["costo_total"]
+            c_bajo = df_estab_sorted.iloc[0]["costo_total"]
+            delta_base = c_base - c_bajo
             st.metric(
                 "Escenario base",
-                "{:,.0f} t·min".format(costos_escenarios.get("base", 0)),
+                "{:,.0f} t·min".format(c_base),
                 delta="{:,.0f}".format(delta_base) if delta_base != 0 else None
             )
         with col_c3:
-            delta_alto = costos_escenarios.get("alto", 0) - costos_escenarios.get("base", 0)
+            c_alto = df_estab_sorted.iloc[2]["costo_total"]
+            delta_alto = c_alto - c_base
             st.metric(
                 "Escenario alto",
-                "{:,.0f} t·min".format(costos_escenarios.get("alto", 0)),
+                "{:,.0f} t·min".format(c_alto),
                 delta="{:,.0f}".format(delta_alto) if delta_alto != 0 else None
             )
 
-        # Rango de variación
-        costo_min = min(costos_escenarios.values())
-        costo_max = max(costos_escenarios.values())
+        costo_min = df_estab["costo_total"].min()
+        costo_max = df_estab["costo_total"].max()
         variacion_pct = ((costo_max - costo_min) / costo_min * 100) if costo_min > 0 else 0
         st.info("""
         **Variación de costos entre escenarios:** {:.1f}% (de {:,.0f} a {:,.0f} t·min)
