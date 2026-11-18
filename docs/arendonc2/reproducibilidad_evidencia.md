@@ -5,7 +5,8 @@ realmente ejecutadas, distinguiendo tres niveles.
 
 Se compararon cuatro salidas por md5: `data/results/zonas.csv`,
 `data/results/excedentes.csv`, `data/results/escenarios.csv`,
-`data/clean/poblacion_municipal.csv`.
+`data/clean/poblacion_municipal.csv`. Los dos insumos externos descargados se
+compararon por **SHA-256** (ver Nivel C).
 
 ## Nivel A — Regenerar resultados desde insumos ya descargados
 
@@ -32,15 +33,22 @@ Se compararon cuatro salidas por md5: `data/results/zonas.csv`,
 
 ## Nivel C — Descargar nuevamente las fuentes externas
 
-- **Entorno:** se **borraron** los crudos (`data/raw/geo/*.zip`,
-  `data/raw/poblacion/*.xlsx`).
-- **Comandos:** `python src/arendonc2/descargar_geometrias.py`,
-  `python src/arendonc2/poblacion.py`, `python src/arendonc2/ejecutar_todo.py`.
-- **Resultado:** GADM se re-descargó a 1 133 733 B y el Excel DANE a 1 878 067 B
-  (mismos tamaños), y las cuatro salidas quedaron **byte-idénticas**. Las dos
-  fuentes externas tienen URL estable y descarga reproducible:
+- **Entorno:** se re-descargaron ambos crudos a una carpeta temporal y se comparó
+  su **SHA-256** con el de los archivos usados por el pipeline.
+- **Comandos:** descarga directa de ambas URLs; luego
+  `python src/arendonc2/ejecutar_todo.py`.
+- **Resultado:** ambos archivos re-descargados tienen **SHA-256 idéntico** al
+  original (no sólo el mismo tamaño), y las cuatro salidas del pipeline quedaron
+  **byte-idénticas** (md5). SHA-256 verificados:
+  - GADM 4.1 `gadm41_COL_2.json.zip`:
+    `557aa8699b9b6f3928bc3cfa87371ccc618677304322386ca7d7b9e954a55dc0`
+  - DANE `DCD-area-proypoblacion-Mun-2020-2035-ActPostCOVID-19.xlsx`:
+    `4a696919048712ba386c034f48c476ac1c500e0e575be311e384fb461f44e6ba`
+- **URLs:**
   - GADM 4.1: `https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_COL_2.json.zip`
   - DANE proyecciones: `https://www.dane.gov.co/files/censo2018/proyecciones-de-poblacion/Municipal/DCD-area-proypoblacion-Mun-2020-2035-ActPostCOVID-19.xlsx`
+- **Alcance:** la identidad SHA-256 se comprobó en este momento; no garantiza que
+  las fuentes publiquen el mismo archivo indefinidamente.
 
 ## Qué permanece disponible y qué se regenera
 

@@ -117,10 +117,32 @@ en dos grupos distintos (verificado en código).
 
 Los 13 pendientes entran al análisis con su excedente completo (consumo 0 pero
 marcado `consumo_pendiente = 1`, nunca cero silencioso). Esto **baja la cobertura**
-de consumo definido a ≈ **74 %** (escenario base/base), frente al ≈ 99.8 % de la
-versión anterior no auditada. El cambio es deliberado: no se infla la cobertura con
-equivalencias de unidad indefendibles. Cobertura por año/escenario en
-`data/results/arendonc2/excedentes_cobertura.csv`.
+de consumo definido frente al ≈ 99.8 % de la versión anterior no auditada. El
+cambio es deliberado: no se infla la cobertura con equivalencias de unidad
+indefendibles.
+
+### Cobertura por año y escenario de oferta
+
+**Definición:** `cobertura = oferta_con_consumo_t / oferta_total_t`, ambas en
+toneladas. El **denominador** es la oferta total pronosticada de todos los
+productos (excepto Caña de azúcar) para ese año y escenario de oferta. El numerador
+es la oferta de los 30 productos con consumo FAOSTAT definido (los 13 pendientes
+quedan fuera del numerador). La cobertura **no depende del escenario de consumo**
+(los pendientes tienen consumo 0 en bajo/base/alto por igual); por eso se reporta
+por año × escenario de oferta.
+
+| Año | Oferta (bajo) | Oferta (base) | Oferta (alto) |
+|-----|--------------:|--------------:|--------------:|
+| 2024 | 77.4 % | 73.8 % | 79.8 % |
+| 2025 | 81.9 % | 74.0 % | 83.7 % |
+| 2026 | 84.5 % | 74.1 % | 85.5 % |
+| 2027 | 89.4 % | 74.2 % | 88.0 % |
+| 2028 | 90.7 % | 74.2 % | 89.3 % |
+
+Tabla completa (toneladas y %) en `data/results/arendonc2/excedentes_cobertura.csv`.
+La cobertura sube en años y escenarios de oferta altos porque el peso relativo de
+los productos pendientes (varios de ellos de alto volumen, como café y caña
+panelera) cae cuando crece la oferta de los productos frescos cubiertos.
 
 ## Sobreoferta (alerta coyuntural)
 

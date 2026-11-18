@@ -108,6 +108,7 @@ vecindad, métricas de k, cobertura, pendientes, cuotas FAOSTAT, auditoría de r
 
 ## Documentación
 
+- `docs/arendonc2/estado_entrega.md` — estado de #2, #3, #4 frente a sus criterios.
 - `docs/arendonc2/zonas_metodologia.md` — método, espacio proyectado y selección de k.
 - `docs/arendonc2/supuestos_excedentes.md` — supuestos, FAOSTAT auditado, población, cobertura.
 - `docs/arendonc2/escenarios_definicion.md` — definición de los 27 escenarios.

@@ -23,14 +23,22 @@ El issue #2 pedía:
 
 ### Motivo de la sustitución
 
-El MGN del DANE **no tiene una URL de descarga estática estable** que permita una
-descarga reproducible y verificable desde un script:
+No se logró obtener el MGN del DANE mediante una descarga directa desde script en
+el tiempo de este trabajo. Intentos realizados y su resultado:
 
-- Los enlaces directos del geoportal DANE probados devuelven HTTP 404
-  (`geoportal.dane.gov.co/descargas/...`): el portal sirve el MGN a través de una
-  aplicación ArcGIS dinámica, no de archivos estáticos.
-- Los servicios ArcGIS REST de terceros que reexponen el MGN no están versionados
-  ni garantizados; introducirlos sería **menos** trazable que GADM.
+- URLs directas de archivo probadas en el geoportal DANE
+  (`geoportal.dane.gov.co/descargas/mgn_2018/...` y
+  `.../descargas/mgn/MGN_MPIO_POLITICO.zip`): respondieron **HTTP 404**.
+- Dos servicios ArcGIS REST de terceros que reexponen capas municipales:
+  respondieron HTTP 200 pero con metadatos nulos (`name`/`maxRecordCount` vacíos),
+  por lo que no se pudo confirmar que correspondieran al MGN oficial ni descargar
+  la capa de forma verificable.
+
+No se afirma que ArcGIS impida la reproducibilidad: es posible que exista una ruta
+de descarga del MGN (por ejemplo, exportación manual desde el geoportal o un
+servicio REST correcto) que no se identificó aquí. La decisión de usar GADM es por
+no haber confirmado una descarga del MGN reproducible desde script, no por una
+limitación inherente de la plataforma.
 
 Para el **único uso** que se les da a los polígonos —construir la vecindad por
 contigüidad Queen (qué municipios comparten frontera)— GADM es adecuado: la
