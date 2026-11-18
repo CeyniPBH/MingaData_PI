@@ -1,0 +1,140 @@
+# =============================================================================
+# Correspondencia productos del Valle <-> ítems de consumo per cápita FAOSTAT
+#
+# Reglas:
+#  - 'items': lista de ítems FAOSTAT cuyo consumo per cápita se SUMA para el
+#    producto. Se usa cuando un producto del Valle agrupa varios ítems FAOSTAT
+#    (ej. Cítricos = naranjas + limones + toronjas). Esto NO duplica categorías.
+#  - 'categoria_compartida': nombre de una categoría FAOSTAT amplia (ej.
+#    "Fruits, other") cuyo consumo per cápita se REPARTE entre varios productos
+#    equivalentes según su producción histórica regional 2019-2023. Las cuotas
+#    de reparto suman 1 dentro de cada categoría (ver src/arendonc2/excedentes.py).
+#    Un producto NO puede estar a la vez en 'items' y 'categoria_compartida'.
+#  - 'pendiente: true': producto sin equivalencia defendible. Su consumo local
+#    NO se asume cero: queda identificado como pendiente y visible en la salida.
+#  - 'nota': justificación breve del emparejamiento.
+#
+# El consumo NUNCA se sustituye por cero para un producto desconocido; sólo los
+# productos con equivalencia explícita reciben consumo per cápita.
+# =============================================================================
+
+mapeos:
+
+  # ---- Mapeos directos (items sumados) --------------------------------------
+  Banano:
+    categoria_compartida: "Bananas"
+    nota: "Banano y Bananito comparten la categoría Bananas; se reparte por producción 2019-2023 para no duplicar."
+  Bananito:
+    categoria_compartida: "Bananas"
+    nota: "Bananito es una variedad de banano; comparte la categoría Bananas con Banano (reparto por producción)."
+  Plátano:
+    items: ["Plantains"]
+    nota: "Plátano = Plantains."
+  Yuca:
+    items: ["Cassava and products"]
+    nota: "Yuca = Cassava."
+  Papachina:
+    categoria_compartida: "Roots, Other"
+    nota: "Raíz tropical; comparte Roots, Other con Arracacha."
+  Arracacha:
+    categoria_compartida: "Roots, Other"
+    nota: "Raíz andina; comparte Roots, Other con Papachina."
+  Piña:
+    items: ["Pineapples and products"]
+    nota: "Piña = Pineapples."
+  Cítricos:
+    items: ["Oranges, Mandarines", "Lemons, Limes and products", "Grapefruit and products", "Citrus, Other"]
+    nota: "Cítricos agrega naranjas/mandarinas, limones/limas, toronjas y otros cítricos (suma, no reparto)."
+  Vid:
+    items: ["Grapes and products (excl wine)"]
+    nota: "Vid (uva de mesa) = Grapes (excl wine)."
+  Cacao:
+    items: ["Cocoa Beans and products"]
+    nota: "Cacao = Cocoa Beans."
+  Café:
+    items: ["Coffee and products"]
+    nota: "Café = Coffee. Gran parte es exportación; el consumo local per cápita es bajo."
+  Coco:
+    items: ["Coconuts - Incl Copra"]
+    nota: "Coco = Coconuts (incl copra)."
+  Cebolla Larga:
+    items: ["Onions"]
+    nota: "Cebolla larga mapeada a Onions (aprox.; FAOSTAT no separa cebolla larga de bulbo)."
+  Ají:
+    categoria_compartida: "Vegetables, other"
+    nota: "Ají (pimiento/chile fresco) comparte Vegetables, other."
+  Caña panelera:
+    items: ["Sugar non-centrifugal"]
+    nota: "Caña panelera -> panela = Sugar non-centrifugal."
+  Macadamia:
+    categoria_compartida: "Nuts and products"
+    nota: "Macadamia comparte Nuts and products."
+  Sacha Inchi:
+    categoria_compartida: "Nuts and products"
+    nota: "Sacha inchi (semilla oleaginosa de consumo tipo nuez) comparte Nuts and products."
+  Té:
+    items: ["Tea (including mate)"]
+    nota: "Té = Tea."
+  Stevia:
+    items: ["Sweeteners, Other"]
+    nota: "Stevia (edulcorante) = Sweeteners, Other (aprox.)."
+
+  # ---- Frutas que comparten "Fruits, other" (reparto por producción) --------
+  Aguacate:
+    categoria_compartida: "Fruits, other"
+    nota: "FAOSTAT no reporta aguacate per cápita por separado; comparte Fruits, other."
+  Papaya:
+    categoria_compartida: "Fruits, other"
+    nota: "Comparte Fruits, other."
+  Lulo:
+    categoria_compartida: "Fruits, other"
+  Guayaba:
+    categoria_compartida: "Fruits, other"
+  Maracuyá:
+    categoria_compartida: "Fruits, other"
+  Borojó:
+    categoria_compartida: "Fruits, other"
+  Guanábana:
+    categoria_compartida: "Fruits, other"
+  Mora:
+    categoria_compartida: "Fruits, other"
+  Mango:
+    categoria_compartida: "Fruits, other"
+  Chontaduro:
+    categoria_compartida: "Fruits, other"
+  Granadilla:
+    categoria_compartida: "Fruits, other"
+  Tomate de Árbol:
+    categoria_compartida: "Fruits, other"
+  Pitaya:
+    categoria_compartida: "Fruits, other"
+  Fresa:
+    categoria_compartida: "Fruits, other"
+  Curuba:
+    categoria_compartida: "Fruits, other"
+  Zapote:
+    categoria_compartida: "Fruits, other"
+  Durazno:
+    categoria_compartida: "Fruits, other"
+  Gulupa:
+    categoria_compartida: "Fruits, other"
+  Brevo:
+    categoria_compartida: "Fruits, other"
+  Arazá:
+    categoria_compartida: "Fruits, other"
+  Uchuva:
+    categoria_compartida: "Fruits, other"
+
+  # ---- Pendientes (sin equivalencia defendible; consumo NO asumido cero) -----
+  Flores y follajes:
+    pendiente: true
+    nota: "Ornamental, no alimentario. Sin ítem de consumo FAOSTAT; excedente = oferta completa (no se asume consumo cero, se marca pendiente)."
+  Aromáticas:
+    pendiente: true
+    nota: "Hierbas aromáticas/medicinales sin ítem de consumo FAOSTAT equivalente."
+  Sábila:
+    pendiente: true
+    nota: "Aloe vera, uso cosmético/medicinal; sin ítem de consumo alimentario FAOSTAT."
+
+# Producto excluido del análisis (no alimentario para consumo local directo):
+#   Caña de azúcar -> se excluye en config/arendonc2/parametros.yaml (productos_excluidos)

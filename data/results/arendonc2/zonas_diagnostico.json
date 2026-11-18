@@ -1,0 +1,111 @@
+{
+  "diagnostico_geometrias": {
+    "n_municipios": 42,
+    "esperados": 42,
+    "geometrias_nulas": 0,
+    "cod_dane_duplicados": [],
+    "geometrias_invalidas": 0,
+    "municipios_sin_poligono": []
+  },
+  "diagnostico_vecindad": {
+    "n_componentes_conexas": 1,
+    "islas": [],
+    "min_vecinos": 1,
+    "max_vecinos": 9,
+    "promedio_vecinos": 4.29
+  },
+  "k_seleccionado": 5,
+  "centros": {
+    "Z1": "76736",
+    "Z2": "76233",
+    "Z3": "76497",
+    "Z4": "76248",
+    "Z5": "76054"
+  },
+  "metricas_k": [
+    {
+      "k": 3,
+      "todas_conexas": true,
+      "pct_zonas_conexas": 100.0,
+      "inercia_intra": 55.639,
+      "silhouette": 0.3021,
+      "tam_min": 9,
+      "tam_max": 19,
+      "oferta_min_cop": 823081548332.1,
+      "oferta_max_cop": 1383012419095.0,
+      "oferta_cv": 0.25,
+      "tiempo_prom_centro_min": 52.9,
+      "tiempo_max_centro_min": 57.6
+    },
+    {
+      "k": 4,
+      "todas_conexas": true,
+      "pct_zonas_conexas": 100.0,
+      "inercia_intra": 47.127,
+      "silhouette": 0.2741,
+      "tam_min": 4,
+      "tam_max": 15,
+      "oferta_min_cop": 347970266597.2,
+      "oferta_max_cop": 1383012419095.0,
+      "oferta_cv": 0.515,
+      "tiempo_prom_centro_min": 51.4,
+      "tiempo_max_centro_min": 57.6
+    },
+    {
+      "k": 5,
+      "todas_conexas": true,
+      "pct_zonas_conexas": 100.0,
+      "inercia_intra": 41.149,
+      "silhouette": 0.2259,
+      "tam_min": 4,
+      "tam_max": 15,
+      "oferta_min_cop": 347970266597.2,
+      "oferta_max_cop": 1383012419095.0,
+      "oferta_cv": 0.636,
+      "tiempo_prom_centro_min": 45.9,
+      "tiempo_max_centro_min": 57.6
+    },
+    {
+      "k": 6,
+      "todas_conexas": true,
+      "pct_zonas_conexas": 100.0,
+      "inercia_intra": 35.31,
+      "silhouette": 0.2539,
+      "tam_min": 2,
+      "tam_max": 15,
+      "oferta_min_cop": 347970266597.2,
+      "oferta_max_cop": 750730708812.3,
+      "oferta_cv": 0.283,
+      "tiempo_prom_centro_min": 38.7,
+      "tiempo_max_centro_min": 51.3
+    },
+    {
+      "k": 7,
+      "todas_conexas": true,
+      "pct_zonas_conexas": 100.0,
+      "inercia_intra": 29.928,
+      "silhouette": 0.2455,
+      "tam_min": 1,
+      "tam_max": 15,
+      "oferta_min_cop": 16729539672.0,
+      "oferta_max_cop": 750730708812.3,
+      "oferta_cv": 0.502,
+      "tiempo_prom_centro_min": 31.1,
+      "tiempo_max_centro_min": 50.9
+    },
+    {
+      "k": 8,
+      "todas_conexas": true,
+      "pct_zonas_conexas": 100.0,
+      "inercia_intra": 26.101,
+      "silhouette": 0.1714,
+      "tam_min": 1,
+      "tam_max": 15,
+      "oferta_min_cop": 16729539672.0,
+      "oferta_max_cop": 733039770801.0,
+      "oferta_cv": 0.639,
+      "tiempo_prom_centro_min": 27.3,
+      "tiempo_max_centro_min": 50.9
+    }
+  ]
+}

@@ -32,6 +32,9 @@ from utils import (
     cargar_matriz_tiempos,
     cargar_produccion_limpia,
     cargar_lista_productos,
+    cargar_zonas,
+    cargar_zonas_geometrias,
+    cargar_escenarios_opt,
     obtener_productos_disponibles,
     obtener_municipios_por_producto,
     obtener_serie_historica,
@@ -84,7 +87,7 @@ st.sidebar.markdown("Valle del Cauca - Proyecto Integrador 1")
 
 pantalla = st.sidebar.radio(
     "Seleccionar pantalla:",
-    ["1. Oferta", "2. Zonas", "3. Ubicacion"],
+    ["1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion"],
     index=0,
 )
 
@@ -330,6 +333,130 @@ def pantalla_zonas():
     col1.metric("Oferta Total", "{:,.0f} t".format(total))
     col2.metric("Oferta Promedio por Municipio", "{:,.0f} t".format(promedio))
     col3.metric("Municipios con Produccion", "{}".format(len(resumen)))
+
+
+# =============================================================================
+# PANTALLA 2b: ZONAS DE ACOPIO (Alejandro - tareas #2, #3, #4)
+# =============================================================================
+def _color_zona(zona, zonas_lista):
+    paleta = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+              "#8c564b", "#e377c2", "#7f7f7f"]
+    try:
+        i = sorted(zonas_lista).index(zona)
+    except ValueError:
+        i = 0
+    return paleta[i % len(paleta)]
+
+
+def pantalla_zonas_acopio():
+    st.title("🧭 Pantalla 2b - Zonas de Acopio (vecindad + agrupamiento espacial)")
+    st.markdown("""
+    Zonas de acopio espacialmente conexas (contigüidad Queen + Ward con restricción
+    de conectividad). Los **centros de zona son referencias** (tiempos ponderados por
+    oferta), no la ubicación óptima del modelo de optimización de Samuel.
+    """)
+
+    zonas_df = cargar_zonas()
+    if zonas_df.empty or municipios.empty:
+        st.error("No se encontró `data/results/zonas.csv`. Corre: python src/arendonc2/zonas_acopio.py")
+        return
+
+    zonas_geo = cargar_zonas_geometrias()
+    escen = cargar_escenarios_opt()
+
+    zonas_lista = sorted(zonas_df["zona"].unique())
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        anios_esc = sorted(escen["anio"].unique()) if not escen.empty else [ano_seleccionado]
+        anio_z = st.selectbox("Año:", anios_esc, index=0, key="zacopio_anio")
+    with col2:
+        if not escen.empty:
+            ids = sorted(escen[escen["anio"] == anio_z]["id_escenario"].unique())
+            id_esc = st.selectbox("Escenario de optimización:", ids,
+                                  index=ids.index(f"{anio_z}_Obase_Cbase_M80_20")
+                                  if f"{anio_z}_Obase_Cbase_M80_20" in ids else 0,
+                                  key="zacopio_id")
+        else:
+            id_esc = None
+    with col3:
+        st.metric("Zonas", len(zonas_lista))
+
+    # Mapa de zonas
+    mun_coord = municipios.merge(zonas_df, on="cod_dane", how="left", suffixes=("", "_z"))
+    m = folium.Map(location=[4.2, -76.2], zoom_start=8, tiles="OpenStreetMap")
+
+    if zonas_geo is not None:
+        for _, row in zonas_geo.iterrows():
+            color = _color_zona(row["zona"], zonas_lista)
+            folium.GeoJson(
+                row["geometry"].__geo_interface__,
+                style_function=lambda x, c=color: {
+                    "fillColor": c, "color": "black", "weight": 1, "fillOpacity": 0.35
+                },
+                tooltip=f"Zona {row['zona']}",
+            ).add_to(m)
+
+    for _, row in mun_coord.iterrows():
+        color = _color_zona(row.get("zona"), zonas_lista)
+        es_centro = int(row.get("es_centro_zona", 0) or 0) == 1
+        folium.CircleMarker(
+            location=[row["lat"], row["lon"]],
+            radius=10 if es_centro else 5,
+            popup=folium.Popup(
+                "<b>{}</b> ({})<br>Zona: {}<br>{}".format(
+                    row["municipio"], row["cod_dane"], row.get("zona"),
+                    "CENTRO de zona (referencia)" if es_centro else ""
+                ), max_width=220),
+            color="black", weight=2 if es_centro else 1,
+            fill=True, fillColor=color,
+            fillOpacity=0.95 if es_centro else 0.7,
+        ).add_to(m)
+
+    st_folium(m, width=900, height=560, key="mapa_zonas_acopio")
+
+    # Volúmenes por zona del escenario seleccionado + advertencia de cobertura
+    if id_esc is not None and not escen.empty:
+        fila = escen[(escen["id_escenario"] == id_esc) & (escen["anio"] == anio_z)].copy()
+        if not fila.empty:
+            cobertura = float(fila["cobertura_oferta_pct"].min())
+            if cobertura < 100.0:
+                st.warning(
+                    "⚠️ **Cobertura parcial de consumo:** {:.2f}% de la oferta tiene consumo "
+                    "FAOSTAT definido. Los productos sin equivalencia (p. ej. flores, aromáticas, "
+                    "sábila) no descuentan consumo local; su excedente es la oferta completa."
+                    .format(cobertura)
+                )
+            fila["excedente_zona_t"] = fila["volumen_nacional"] + fila["volumen_exportacion"]
+            st.markdown("### Volúmenes por zona — {}".format(id_esc))
+            tabla = fila[["zona", "volumen_nacional", "volumen_exportacion",
+                          "excedente_zona_t", "cobertura_oferta_pct"]].sort_values("zona")
+            st.dataframe(
+                tabla.style.format({
+                    "volumen_nacional": "{:,.1f}", "volumen_exportacion": "{:,.1f}",
+                    "excedente_zona_t": "{:,.1f}", "cobertura_oferta_pct": "{:.2f}%",
+                }),
+                use_container_width=True,
+            )
+            col_a, col_b = st.columns(2)
+            col_a.metric("Excedente total (t)", "{:,.0f}".format(tabla["excedente_zona_t"].sum()))
+            col_b.metric("Hacia exportación (t)", "{:,.0f}".format(tabla["volumen_exportacion"].sum()))
+
+            st.download_button(
+                "⬇️ Descargar volúmenes de este escenario (CSV)",
+                data=tabla.to_csv(index=False).encode("utf-8-sig"),
+                file_name="volumenes_{}.csv".format(id_esc),
+                mime="text/csv",
+            )
+
+    st.markdown("### Asignación municipio → zona")
+    tz = zonas_df.copy()
+    tz["es_centro_zona"] = tz["es_centro_zona"].map({1: "centro (ref.)", 0: ""})
+    st.dataframe(tz.sort_values(["zona", "municipio"]), use_container_width=True)
+    st.download_button(
+        "⬇️ Descargar zonas.csv",
+        data=zonas_df.to_csv(index=False).encode("utf-8-sig"),
+        file_name="zonas.csv", mime="text/csv",
+    )
 
 
 # =============================================================================
@@ -625,6 +752,8 @@ if pantalla == "1. Oferta":
     pantalla_oferta()
 elif pantalla == "2. Zonas":
     pantalla_zonas()
+elif pantalla == "2b. Zonas de acopio":
+    pantalla_zonas_acopio()
 elif pantalla == "3. Ubicacion":
     pantalla_ubicacion()
 

@@ -4,6 +4,12 @@ data/raw/*.xlsx
 *.rar
 *.zip
 
+# Insumos crudos descargables de arendonc2 (se regeneran con sus scripts):
+#   - GADM (zonas): python src/arendonc2/descargar_geometrias.py
+#   - población DANE: python src/arendonc2/poblacion.py
+data/raw/geo/
+data/raw/poblacion/
+
 # Python / Jupyter
 __pycache__/
 .ipynb_checkpoints/

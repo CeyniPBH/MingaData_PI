@@ -84,6 +84,47 @@ def cargar_lista_productos():
     return pd.read_csv(path)
 
 
+@st.cache_data
+def cargar_zonas():
+    """Carga data/results/zonas.csv (tarea #2 de Alejandro): cod_dane, municipio, zona, es_centro_zona."""
+    path = DATA_RES.parent / "zonas.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    return pd.read_csv(path, dtype={"cod_dane": str})
+
+
+@st.cache_data
+def cargar_zonas_geometrias():
+    """Carga el GeoJSON de polígonos de zona (si geopandas está disponible)."""
+    path = DATA_RES.parent / "arendonc2" / "zonas_geometrias.geojson"
+    if not path.exists():
+        return None
+    try:
+        import geopandas as gpd
+
+        return gpd.read_file(path)
+    except Exception:
+        return None
+
+
+@st.cache_data
+def cargar_escenarios_opt():
+    """Carga data/results/escenarios.csv (tarea #4 de Alejandro)."""
+    path = DATA_RES.parent / "escenarios.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    return pd.read_csv(path)
+
+
+@st.cache_data
+def cargar_excedentes():
+    """Carga data/results/excedentes.csv (tarea #3 de Alejandro)."""
+    path = DATA_RES.parent / "excedentes.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    return pd.read_csv(path, dtype={"cod_dane": str})
+
+
 def obtener_productos_disponibles(df_oferta):
     """Devuelve lista ordenada de productos únicos."""
     if df_oferta.empty:

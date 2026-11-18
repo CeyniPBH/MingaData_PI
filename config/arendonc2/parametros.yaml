@@ -1,0 +1,79 @@
+# =============================================================================
+# Parámetros de los módulos de Alejandro Rendón Correa (arendonc2)
+# Tareas #2 (zonas), #3 (excedentes) y #4 (escenarios de optimización).
+#
+# Todo supuesto configurable vive aquí para que los resultados sean
+# reproducibles y auditables. No se codifican cifras mágicas en los scripts.
+# =============================================================================
+
+general:
+  # Códigos DANE siempre como texto (5 dígitos). Nunca convertir a int.
+  crs_metrico: "EPSG:3116"   # MAGNA-SIRGAS / Colombia Bogotá zone, para áreas y buffers
+  crs_geografico: "EPSG:4326"
+  # Producto excluido del dimensionamiento y de excedentes (industrial, no alimentario
+  # para consumo local directo; distorsiona por su volumen).
+  productos_excluidos:
+    - "Caña de azúcar"
+
+# ---------------------------------------------------------------------------
+# TAREA #2 — Zonas de acopio
+# ---------------------------------------------------------------------------
+zonas:
+  # Rango de k a evaluar (inclusive).
+  k_min: 3
+  k_max: 8
+  # k que se publica como selección final (configurable). Se justifica con métricas.
+  k_seleccionado: 5
+  # Año de oferta base usado para el dimensionamiento de zonas.
+  anio_base: 2024
+  escenario_oferta: "base"
+  # Vecindad: contigüidad Queen a partir de polígonos.
+  vecindad: "queen"
+  # Agrupamiento: Ward con restricción de conectividad (connectivity de scikit-learn).
+  metodo_cluster: "ward_connectivity"
+  # Variables de agrupamiento y su transformación.
+  #  - oferta valorizada (COP) -> log1p -> z-score
+  #  - lat, lon -> z-score
+  features:
+    oferta_valor:
+      transform: "log1p"      # la oferta valorizada tiene colas largas
+      escala: "zscore"
+    lat:
+      transform: "none"
+      escala: "zscore"
+    lon:
+      transform: "none"
+      escala: "zscore"
+
+# ---------------------------------------------------------------------------
+# TAREA #3 — Excedentes
+# ---------------------------------------------------------------------------
+excedentes:
+  anio_base: 2024
+  anios: [2024, 2025, 2026, 2027, 2028]
+  # Factores de los tres escenarios de consumo (multiplican el consumo base).
+  factores_consumo:
+    bajo: 0.8
+    base: 1.0
+    alto: 1.2
+  escenarios_oferta: ["bajo", "base", "alto"]
+  escenarios_consumo: ["bajo", "base", "alto"]
+  # Último año de consumo per cápita disponible (FAOSTAT). Se aplica a todos
+  # los años proyectados por falta de serie futura; se documenta como supuesto.
+  anio_consumo_referencia: 2023
+  # Ventana histórica para la mezcla de reparto FAOSTAT y para la alerta de sobreoferta.
+  ventana_historica: [2019, 2020, 2021, 2022, 2023]
+  # Sobreoferta: oferta > media_hist + n_desv * desviación estándar muestral.
+  sobreoferta_n_desv: 1.0
+  sobreoferta_min_anios: 3   # mínimo de años de historia para evaluar la alerta
+
+# ---------------------------------------------------------------------------
+# TAREA #4 — Escenarios de optimización
+# ---------------------------------------------------------------------------
+escenarios:
+  anios: [2024, 2025, 2026, 2027, 2028]
+  # Mezclas nacional/exportación (escenarios de sensibilidad, sin evidencia empírica aún).
+  mezclas:
+    - {nombre: "80_20", pct_nacional: 0.8, pct_exportacion: 0.2}
+    - {nombre: "50_50", pct_nacional: 0.5, pct_exportacion: 0.5}
+    - {nombre: "20_80", pct_nacional: 0.2, pct_exportacion: 0.8}

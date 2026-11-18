@@ -1,0 +1,181 @@
+﻿cod_dane,municipio,cod_dane_vecino,municipio_vecino
+76001,Cali,76109,Buenaventura
+76001,Cali,76130,Candelaria
+76001,Cali,76233,Dagua
+76001,Cali,76364,Jamundí
+76001,Cali,76377,La Cumbre
+76001,Cali,76520,Palmira
+76001,Cali,76892,Yumbo
+76020,Alcalá,76147,Cartago
+76020,Alcalá,76845,Ulloa
+76036,Andalucia,76113,Bugalagrande
+76036,Andalucia,76616,Riofrío
+76036,Andalucia,76828,Trujillo
+76036,Andalucia,76834,Tuluá
+76041,Ansermanuevo,76054,Argelia
+76041,Ansermanuevo,76147,Cartago
+76041,Ansermanuevo,76243,El Aguila
+76041,Ansermanuevo,76246,El Cairo
+76041,Ansermanuevo,76823,Toro
+76054,Argelia,76041,Ansermanuevo
+76054,Argelia,76246,El Cairo
+76054,Argelia,76823,Toro
+76054,Argelia,76863,Versalles
+76100,Bolivar,76113,Bugalagrande
+76100,Bolivar,76250,El Dovio
+76100,Bolivar,76622,Roldanillo
+76100,Bolivar,76828,Trujillo
+76100,Bolivar,76895,Zarzal
+76109,Buenaventura,76001,Cali
+76109,Buenaventura,76126,Calima Darién
+76109,Buenaventura,76233,Dagua
+76109,Buenaventura,76364,Jamundí
+76111,Buga,76248,El Cerrito
+76111,Buga,76306,Ginebra
+76111,Buga,76318,Guacarí
+76111,Buga,76670,San Pedro
+76111,Buga,76736,Sevilla
+76111,Buga,76834,Tuluá
+76111,Buga,76890,Yotoco
+76113,Bugalagrande,76036,Andalucia
+76113,Bugalagrande,76100,Bolivar
+76113,Bugalagrande,76736,Sevilla
+76113,Bugalagrande,76828,Trujillo
+76113,Bugalagrande,76834,Tuluá
+76113,Bugalagrande,76895,Zarzal
+76122,Caicedonia,76736,Sevilla
+76126,Calima Darién,76109,Buenaventura
+76126,Calima Darién,76233,Dagua
+76126,Calima Darién,76606,Restrepo
+76126,Calima Darién,76616,Riofrío
+76126,Calima Darién,76890,Yotoco
+76130,Candelaria,76001,Cali
+76130,Candelaria,76275,Florida
+76130,Candelaria,76520,Palmira
+76130,Candelaria,76563,Pradera
+76147,Cartago,76020,Alcalá
+76147,Cartago,76041,Ansermanuevo
+76147,Cartago,76497,Obando
+76233,Dagua,76001,Cali
+76233,Dagua,76109,Buenaventura
+76233,Dagua,76126,Calima Darién
+76233,Dagua,76377,La Cumbre
+76233,Dagua,76606,Restrepo
+76243,El Aguila,76041,Ansermanuevo
+76246,El Cairo,76041,Ansermanuevo
+76246,El Cairo,76054,Argelia
+76246,El Cairo,76863,Versalles
+76248,El Cerrito,76111,Buga
+76248,El Cerrito,76306,Ginebra
+76248,El Cerrito,76318,Guacarí
+76248,El Cerrito,76520,Palmira
+76248,El Cerrito,76869,Vijes
+76248,El Cerrito,76890,Yotoco
+76250,El Dovio,76100,Bolivar
+76250,El Dovio,76400,La Unión
+76250,El Dovio,76622,Roldanillo
+76250,El Dovio,76863,Versalles
+76275,Florida,76130,Candelaria
+76275,Florida,76563,Pradera
+76306,Ginebra,76111,Buga
+76306,Ginebra,76248,El Cerrito
+76306,Ginebra,76318,Guacarí
+76318,Guacarí,76111,Buga
+76318,Guacarí,76248,El Cerrito
+76318,Guacarí,76306,Ginebra
+76318,Guacarí,76890,Yotoco
+76364,Jamundí,76001,Cali
+76364,Jamundí,76109,Buenaventura
+76377,La Cumbre,76001,Cali
+76377,La Cumbre,76233,Dagua
+76377,La Cumbre,76606,Restrepo
+76377,La Cumbre,76869,Vijes
+76377,La Cumbre,76892,Yumbo
+76400,La Unión,76250,El Dovio
+76400,La Unión,76403,La Victoria
+76400,La Unión,76622,Roldanillo
+76400,La Unión,76823,Toro
+76400,La Unión,76863,Versalles
+76403,La Victoria,76400,La Unión
+76403,La Victoria,76497,Obando
+76403,La Victoria,76622,Roldanillo
+76403,La Victoria,76895,Zarzal
+76497,Obando,76147,Cartago
+76497,Obando,76403,La Victoria
+76497,Obando,76823,Toro
+76520,Palmira,76001,Cali
+76520,Palmira,76130,Candelaria
+76520,Palmira,76248,El Cerrito
+76520,Palmira,76563,Pradera
+76520,Palmira,76892,Yumbo
+76563,Pradera,76130,Candelaria
+76563,Pradera,76275,Florida
+76563,Pradera,76520,Palmira
+76606,Restrepo,76126,Calima Darién
+76606,Restrepo,76233,Dagua
+76606,Restrepo,76377,La Cumbre
+76606,Restrepo,76869,Vijes
+76606,Restrepo,76890,Yotoco
+76616,Riofrío,76036,Andalucia
+76616,Riofrío,76126,Calima Darién
+76616,Riofrío,76828,Trujillo
+76616,Riofrío,76834,Tuluá
+76616,Riofrío,76890,Yotoco
+76622,Roldanillo,76100,Bolivar
+76622,Roldanillo,76250,El Dovio
+76622,Roldanillo,76400,La Unión
+76622,Roldanillo,76403,La Victoria
+76622,Roldanillo,76895,Zarzal
+76670,San Pedro,76111,Buga
+76670,San Pedro,76834,Tuluá
+76670,San Pedro,76890,Yotoco
+76736,Sevilla,76111,Buga
+76736,Sevilla,76113,Bugalagrande
+76736,Sevilla,76122,Caicedonia
+76736,Sevilla,76834,Tuluá
+76736,Sevilla,76895,Zarzal
+76823,Toro,76041,Ansermanuevo
+76823,Toro,76054,Argelia
+76823,Toro,76400,La Unión
+76823,Toro,76497,Obando
+76823,Toro,76863,Versalles
+76828,Trujillo,76036,Andalucia
+76828,Trujillo,76100,Bolivar
+76828,Trujillo,76113,Bugalagrande
+76828,Trujillo,76616,Riofrío
+76834,Tuluá,76036,Andalucia
+76834,Tuluá,76111,Buga
+76834,Tuluá,76113,Bugalagrande
+76834,Tuluá,76616,Riofrío
+76834,Tuluá,76670,San Pedro
+76834,Tuluá,76736,Sevilla
+76834,Tuluá,76890,Yotoco
+76845,Ulloa,76020,Alcalá
+76863,Versalles,76054,Argelia
+76863,Versalles,76246,El Cairo
+76863,Versalles,76250,El Dovio
+76863,Versalles,76400,La Unión
+76863,Versalles,76823,Toro
+76869,Vijes,76248,El Cerrito
+76869,Vijes,76377,La Cumbre
+76869,Vijes,76606,Restrepo
+76869,Vijes,76890,Yotoco
+76869,Vijes,76892,Yumbo
+76890,Yotoco,76111,Buga
+76890,Yotoco,76126,Calima Darién
+76890,Yotoco,76248,El Cerrito
+76890,Yotoco,76318,Guacarí
+76890,Yotoco,76606,Restrepo
+76890,Yotoco,76616,Riofrío
+76890,Yotoco,76670,San Pedro
+76890,Yotoco,76834,Tuluá
+76890,Yotoco,76869,Vijes
+76892,Yumbo,76001,Cali
+76892,Yumbo,76377,La Cumbre
+76892,Yumbo,76520,Palmira
+76892,Yumbo,76869,Vijes
+76895,Zarzal,76100,Bolivar
+76895,Zarzal,76113,Bugalagrande
+76895,Zarzal,76403,La Victoria
+76895,Zarzal,76622,Roldanillo
+76895,Zarzal,76736,Sevilla
