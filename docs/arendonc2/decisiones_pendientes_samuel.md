@@ -24,15 +24,19 @@ Autor: Alejandro Rendón Correa (arendonc2).
 > (OPTIMAL/FEASIBLE/INFEASIBLE). Detalle en `docs/formulacion_optimizacion.md`.
 >
 > **Integralidad y calidad de la solución:** `x, y` binarias; `z, w` relajadas a
-> [0,1] pero con **verificación de integralidad** (tol 1e-6) y de estructura antes de
-> construir asignaciones; si hubiera fracciones o incoherencias se lanza error (no se
-> redondea). Se reporta diagnóstico del solver (solver, estado, objetivo, mejor cota,
-> brecha efectiva con su fórmula, tiempo, brecha solicitada y si fue aceptada). El
-> `gap_relativo` por defecto es 0 (óptimo certificado); la comparación libre/zonas se
-> regeneró con brecha 0 y la diferencia 0,50 % es certificada. El tablero añade un
-> botón "Calcular" y cachea resultados serializables (no objetos del solver), con
-> claves que incluyen escenario, año, modo, k, λ, pesos, parámetros del solver y una
-> huella de los datos.
+> [0,1]. La integralidad se comprueba antes de aceptar cada solución; si se detectan
+> asignaciones fraccionarias fuera de la tolerancia (1e-6), la ejecución genera un
+> error explícito (no se redondea). También se verifica la estructura antes de
+> construir asignaciones. Se reporta diagnóstico del solver (solver, estado,
+> objetivo, mejor cota, brecha efectiva con su fórmula, tiempo, brecha solicitada y
+> si fue aceptada). El `gap_relativo` por defecto es 0: solicitar gap 0 exige buscar
+> una solución sin brecha, pero el límite de tiempo puede impedir alcanzarla; la
+> calidad obtenida se informa mediante el estado del solver, la mejor cota y la
+> brecha efectiva. En los resultados guardados de la comparación libre/zonas ambos
+> modos reportaron OPTIMAL y brecha efectiva 0, con diferencia 0,50 %. El tablero
+> añade un botón "Calcular" y cachea resultados serializables (no objetos del
+> solver), con claves que incluyen escenario, año, modo, k, λ, pesos, parámetros del
+> solver y una huella de los datos.
 >
 > **Supuestos que permanecen:** sin capacidades por acopio; mezclas nacional/
 > exportación como sensibilidad; cobertura parcial de consumo. **Pendiente de

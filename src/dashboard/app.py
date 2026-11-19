@@ -594,14 +594,16 @@ def pantalla_ubicacion():
 
     with st.expander("Parámetros del solver (avanzado)"):
         cs1, cs2 = st.columns(2)
-        gap_relativo = cs1.number_input("Brecha relativa objetivo (0 = óptimo certificado):",
+        gap_relativo = cs1.number_input("Brecha relativa objetivo (0 = sin brecha):",
                                         min_value=0.0, max_value=0.2, value=0.0, step=0.005,
                                         format="%.3f", key="opt_gap")
         tiempo_limite_s = cs2.number_input("Límite de tiempo por solve (s):",
                                            min_value=10, max_value=600, value=120, step=10,
                                            key="opt_tlim")
         st.caption("El límite de tiempo NO se reduce por defecto para aparentar velocidad. "
-                   "Con brecha > 0, la solución puede ser factible y no certificada óptima.")
+                   "Solicitar gap 0 exige buscar una solución sin brecha, pero el límite de "
+                   "tiempo puede impedir alcanzarla; la calidad se informa con el estado del "
+                   "solver, la mejor cota y la brecha efectiva.")
 
     k_satelites = 5
     id_escenario = "{}_O{}_C{}_M{}".format(ano_sel, oferta_sel, consumo_sel, mezcla_sel)

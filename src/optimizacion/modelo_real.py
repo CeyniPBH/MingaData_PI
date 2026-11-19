@@ -82,7 +82,7 @@ def _configurar_gap(solver, gap_relativo):
     Devuelve (aceptado: bool, detalle: str). NO oculta fallos: informa si no se aplicó.
     """
     if not gap_relativo or gap_relativo <= 0:
-        return True, "gap solicitado = 0 (óptimo certificado)"
+        return True, "gap solicitado = 0 (se busca solución sin brecha; el límite de tiempo puede impedirlo)"
     nombre = solver.SolverVersion().lower()
     intentos = []
     if "scip" in nombre:
@@ -261,14 +261,16 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
                   la ubicación dentro de cada zona (los centros de zonas.csv no se fuerzan).
 
     Variables x, y BINARIAS; z, w relajadas a [0,1] (p-mediana con relajación LP
-    integral); f continua. Antes de construir las asignaciones se verifica
-    integralidad de x, y, z, w (tol_int) y la estructura (un satélite por municipio y
+    integral); f continua. La integralidad se comprueba antes de aceptar cada
+    solución: si se detectan asignaciones fraccionarias fuera de la tolerancia
+    (tol_int), la ejecución genera un error explícito (ValueError, no se redondea en
+    silencio). También se verifica la estructura (un satélite por municipio y
     abierto; cada satélite abierto enlaza con la única central; coherencia
-    flujo/costos). Si hay fracciones o incoherencias se lanza ValueError (no se
-    redondea en silencio); garantiza una asignación integral válida con objetivo
-    verificado contra el solver.
+    flujo/costos) y el objetivo recalculado contra el del solver.
 
-    gap_relativo=0.0 -> óptimo certificado. tiempo_limite_s acota el tiempo del solver.
+    gap_relativo=0.0: solicitar gap 0 exige buscar una solución sin brecha, pero el
+    límite de tiempo (tiempo_limite_s) puede impedir alcanzarla; la calidad obtenida
+    se informa en 'diagnostico' (estado del solver, mejor cota y brecha efectiva).
 
     Retorna dict con estado, central, satélites, asignaciones, flujos, costos (A, B,
     tres tramos y objetivo) y 'diagnostico' (solver, estado, objetivo, mejor_cota,
