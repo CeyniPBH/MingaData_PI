@@ -2,10 +2,35 @@
 
 Autor: Alejandro Rendón Correa (arendonc2).
 
-Este documento **no modifica** el código de Samuel. Reporta observaciones sobre el
-modelo de optimización (`src/optimizacion/modelo_real.py` y `modelo_esqueleto.py`)
-para que Samuel decida. Mi entrega de datos (zonas, excedentes, escenarios y el
-adaptador) **ya está lista** y es independiente de estas decisiones.
+> ## Estado tras la integración (rama feat/samuel-flujo-satelite-central)
+>
+> La integración del modelo con los entregables de arendonc2 ya implementó varias
+> de estas decisiones en `src/optimizacion/modelo_real.py`. Resumen:
+>
+> | # | Tema | Estado |
+> |---|------|--------|
+> | P1 | Cuota nacional/exportación por destino | **Corregido.** La cuota de cada grupo se reparte entre sus destinos (pesos internos suman 1); no se multiplica la cuota completa por cada destino. Una sola central mueve todo el volumen conocido Q. |
+> | P2 | Costo satélite→central ausente | **Corregido.** Tramo con flujo explícito `f[s,c] ≥ 0`, conservación `Σ_c f[s,c] = Σ_m q_m·z[m,s]`, vinculación `f[s,c] ≤ Q·w[s,c]`, costo `Σ f[s,c]·t[s,c]`. **Obligatorio** (sin opción de desactivarlo). Ya no se usa `oferta[s]`. |
+> | P3 | Zonas no restringían la asignación | **Implementado como modo.** `modo="zonas"`: un satélite por zona y municipios asignados dentro de su zona. `modo="libre"`: 5 satélites sin restricción. Comparables con las mismas entradas. |
+> | P4 | "Pareto" sin filtrar dominancia | **Corregido.** Se reportan "soluciones no dominadas encontradas" en (A, B), con deduplicado y filtro de dominancia (tolerancia relativa documentada, 1e-6). No se afirma recuperar toda la frontera. |
+> | P5 | R6/R7 no implementadas | **R6 implementada** (conservación de flujo, siempre activa). **R7 (capacidad) no**: la versión base no impone capacidades por falta de valores respaldados (declarado en formulación y tablero). |
+> | P6 | Tiempos faltantes = 0 | **Corregido.** `construir_matriz_tiempos_dict` valida presencia, valores finitos no negativos y claves duplicadas; lanza error identificando los pares. Sin `.get(..., 0)`. |
+>
+> Otros arreglos de esta integración: `calcular_estabilidad()` ya no fija escenarios
+> de 2024 (recibe año, consumo, mezcla, modo, k, λ); el objetivo usa A = recolección
+> + satélite→central y B = central→destinos de forma consistente en optimización,
+> resultados y Pareto; el tablero permite elegir configuración, consumo y mezcla,
+> compara libre/zonas con entradas iguales y distingue estados del solver
+> (OPTIMAL/FEASIBLE/INFEASIBLE). Detalle en `docs/formulacion_optimizacion.md`.
+>
+> **Supuestos que permanecen:** sin capacidades por acopio; mezclas nacional/
+> exportación como sensibilidad; cobertura parcial de consumo. **Pendiente de
+> aceptación del equipo:** uso de GADM en vez del MGN del DANE. Ninguno de estos
+> está marcado como aceptado.
+
+Este documento conserva abajo el análisis original de cada punto (P1–P6) tal como se
+reportó antes de la integración. Mi entrega de datos (zonas, excedentes, escenarios y
+el adaptador) es independiente de estas decisiones.
 
 Distinción clave:
 - **Entrega de datos (mía):** está validada y funciona. El adaptador

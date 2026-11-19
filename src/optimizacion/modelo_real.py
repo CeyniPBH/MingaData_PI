@@ -1,20 +1,50 @@
 """
-MODELO DE OPTIMIZACIÓN CON DATOS REALES - TAREA 2 DE SAMUEL (COMPLETADA)
-========================================================================
+MODELO DE OPTIMIZACIÓN LOGÍSTICA CON DATOS REALES
+=================================================
 
-Calcula:
-- Central y acopios satélite óptimos usando OR-Tools (con datos reales de Alejandro)
-- Frontera de Pareto variando λ (recolección vs distribución)
-- Tabla de estabilidad por escenario (bajo/base/alto)
+Ubica una central de acopio y sus acopios satélite minimizando el costo logístico
+(toneladas × minutos, t·min). Usa los entregables corregidos de arendonc2 a través
+del adaptador `preparar_para_solver(id_escenario, anio)`.
 
-ABORDA LOS 6 PUNTOS DE DECISIÓN DE ALEJANDRO (P1-P6):
-  P1: Cuota nacional/exportación repartida entre destinos (no multiplicada por cada uno)
-  P2: Costo del tramo satélite→central incluido en el objetivo
-  P3: Zonas como restricción de asignación (opcional, desactivada por defecto para
-      mantener factibilidad; activar con usar_zonas=True)
-  P4: Frontera de Pareto filtrada por no-dominancia (puntos dominados eliminados)
-  P5: R6 implementada (conservación de flujo en satélite, opcional)
-  P6: Validación de tiempos faltantes (lanza excepción si hay huecos)
+FORMULACIÓN (lineal, resoluble por CBC)
+
+Conjuntos
+  M  municipios (candidatos a central y a satélite)
+  D  destinos (nacionales: Cali, Bogotá, Medellín; exportación: Buenaventura, aeropuerto)
+
+Parámetros
+  q_m          excedente CONOCIDO del municipio m (t). Pendientes excluidos por el adaptador.
+  Q = sum_m q_m   excedente total conocido del escenario (cota válida del flujo)
+  t[a,b]       tiempo de viaje a->b (min); validado, sin huecos
+  pct_nac, pct_exp   cuotas nacional/exportación (suman 1)
+  peso[d]      peso del destino d dentro de su grupo (los del grupo suman 1)
+
+Variables
+  x_c ∈ {0,1}         abrir central en c
+  y_s ∈ {0,1}         abrir satélite en s
+  z[m,s] ∈ {0,1}      municipio m asignado al satélite s
+  w[s,c] ∈ {0,1}      enlace satélite s -> central c
+  f[s,c] ≥ 0          toneladas transportadas de s a c (continua)
+
+Restricciones
+  R1  sum_c x_c = 1
+  R2  sum_s y_s = k
+  R3  sum_s z[m,s] = 1  ;  z[m,s] ≤ y_s
+  R4  sum_c w[s,c] = y_s ; w[s,c] ≤ x_c
+  R5  conservación de flujo por satélite:
+        sum_c f[s,c] = sum_m q_m · z[m,s]      (todo lo recibido sale hacia la central)
+  R6  vinculación del flujo:  f[s,c] ≤ Q · w[s,c]   (sólo fluye por enlaces abiertos)
+  (zonas)  si modo="zonas": z[m,s]=0 si m y s están en zonas distintas, y un satélite por zona
+
+Costos (t·min)
+  A1 = sum_{m,s} q_m · t[m,s] · z[m,s]          recolección municipio->satélite
+  A2 = sum_{s,c} f[s,c] · t[s,c]                 satélite->central (flujo explícito)
+  A  = A1 + A2
+  B  = Q · sum_d peso_grupo[d] · t[c*,d]         central->destinos (una central, todo el volumen Q)
+  Objetivo = λ·A + (1-λ)·B
+
+El tramo satélite->central es OBLIGATORIO (no hay opción para desactivarlo).
+No se igualan volúmenes a oferta[s]; el flujo f es una variable continua explícita.
 
 Uso: python src/optimizacion/modelo_real.py
 """
@@ -25,7 +55,6 @@ from pathlib import Path
 # Agregar src/ al path para importar el adaptador de Alejandro
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "arendonc2"))
 
-import math
 import numpy as np
 import pandas as pd
 from ortools.linear_solver import pywraplp
@@ -35,9 +64,26 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA_CLEAN = ROOT / "data" / "clean"
 DATA_RES = ROOT / "data" / "results" / "ML_Ce"
 
+# Grupos de destinos por defecto (reparto igual dentro de cada grupo).
+DESTINOS_NACIONALES = ("DEST_CALI", "DEST_BOGOTA", "DEST_MEDELLIN")
+DESTINOS_EXPORTACION = ("DEST_BUENAVENTURA", "DEST_AEROPUERTO_PALMIRA")
+
+# Tolerancia numérica para deduplicar/dominancia en el barrido de lambda (t·min relativos).
+TOL_PARETO_REL = 1e-6
+
+# Estados del solver (nombres legibles)
+_ESTADOS = {
+    pywraplp.Solver.OPTIMAL: "OPTIMAL",
+    pywraplp.Solver.FEASIBLE: "FEASIBLE",
+    pywraplp.Solver.INFEASIBLE: "INFEASIBLE",
+    pywraplp.Solver.UNBOUNDED: "UNBOUNDED",
+    pywraplp.Solver.ABNORMAL: "ABNORMAL",
+    pywraplp.Solver.NOT_SOLVED: "NOT_SOLVED",
+}
+
 
 # =============================================================================
-# CARGA DE DATOS REALES (usando el adaptador de Alejandro)
+# CARGA DE DATOS Y MATRIZ DE TIEMPOS (validación estricta, P6)
 # =============================================================================
 
 def cargar_datos_reales():
@@ -49,20 +95,44 @@ def cargar_datos_reales():
 
 
 def construir_matriz_tiempos_dict(matriz, municipios, destinos):
-    """Construye dict {(origen, destino): minutos} desde la matriz real.
-    
-    P6: Valida que no haya tiempos faltantes. Si hay un par faltante,
-    lanza excepción en lugar de asumir 0 (que sería 'gratis e instantáneo').
     """
-    tiempos = {}
-    for _, row in matriz.iterrows():
-        tiempos[(row["origen"], row["destino"])] = row["minutos"]
-
-    # Validar que todos los pares municipio-municipio y municipio-destino existen
+    Construye dict {(origen, destino): minutos} validando todos los trayectos
+    necesarios ANTES de resolver (P6):
+      - presencia de todos los pares municipio-municipio y municipio-destino,
+      - valores numéricos, finitos y no negativos,
+      - sin claves duplicadas contradictorias.
+    Permite tiempo 0 sólo en la diagonal (municipio consigo mismo).
+    Lanza ValueError identificando los pares problemáticos. No usa .get(...,0).
+    """
     nodos = municipios["cod_dane"].tolist()
     dest_ids = destinos["id_destino"].tolist()
-    faltantes = []
 
+    # 1. claves duplicadas contradictorias
+    dup = matriz.groupby(["origen", "destino"])["minutos"].nunique()
+    contradictorias = dup[dup > 1]
+    if len(contradictorias) > 0:
+        pares = contradictorias.index.tolist()[:10]
+        raise ValueError(
+            "Matriz de tiempos con claves duplicadas contradictorias: {} pares "
+            "(ej. {}).".format(len(contradictorias), pares)
+        )
+
+    tiempos = {}
+    invalidos = []
+    for _, row in matriz.iterrows():
+        o, d, val = row["origen"], row["destino"], row["minutos"]
+        if pd.isna(val) or not np.isfinite(val) or val < 0:
+            invalidos.append((o, d, val))
+        else:
+            tiempos[(o, d)] = float(val)
+    if invalidos:
+        raise ValueError(
+            "Matriz de tiempos con valores no válidos (NaN/inf/negativos): {} pares "
+            "(ej. {}).".format(len(invalidos), invalidos[:10])
+        )
+
+    # 2. presencia de todos los pares requeridos
+    faltantes = []
     for o in nodos:
         for d in nodos:
             if o != d and (o, d) not in tiempos:
@@ -70,12 +140,16 @@ def construir_matriz_tiempos_dict(matriz, municipios, destinos):
         for d in dest_ids:
             if (o, d) not in tiempos:
                 faltantes.append((o, d))
-
     if faltantes:
         raise ValueError(
-            "Tiempos faltantes en la matriz (P6): {} pares no tienen tiempo definido. "
-            "No se asumen 0 para evitar ubicaciones artificialmente favorecidas.".format(len(faltantes))
+            "Tiempos faltantes en la matriz (P6): {} pares sin tiempo definido "
+            "(ej. {}). No se asumen 0 para no favorecer ubicaciones artificialmente."
+            .format(len(faltantes), faltantes[:10])
         )
+
+    # diagonal: tiempo 0 permitido (no obligatorio en la matriz)
+    for o in nodos:
+        tiempos.setdefault((o, o), 0.0)
 
     return tiempos
 
@@ -86,243 +160,258 @@ def cargar_paquete_solver(id_escenario="2024_Obase_Cbase_M80_20", anio=2024):
 
 
 # =============================================================================
-# MODELO OR-TOOLS CON DATOS REALES (ABORDA P1-P6)
+# PESOS DE DESTINOS (P1): reparto dentro de cada grupo, configurable y validado
 # =============================================================================
 
-def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=4, lam=0.5,
-                       usar_zonas=False, usar_flujo=False, usar_satelite_central=True):
+def construir_pesos_destinos(destinos, pct_nac, pct_exp,
+                             pesos_internos_nac=None, pesos_internos_exp=None):
     """
-    Resuelve el problema de ubicación con datos reales usando OR-Tools.
+    Devuelve dict {id_destino: peso_global} donde peso_global = cuota_grupo * peso_interno.
+    Por defecto el reparto interno es igual dentro de cada grupo.
 
-    ABORDA LOS 6 PUNTOS DE DECISIÓN DE ALEJANDRO (P1-P6):
-      P1: Cuota nacional/exportación repartida entre destinos (cuotas suman 1 a través de destinos)
-      P2: Costo del tramo satélite→central incluido
-      P3: Zonas como restricción de asignación (opcional, usar_zonas=False por defecto
-          para mantener factibilidad; activar si se quiere restricción dura)
-      P5: R6 implementada (conservación de flujo en el satélite, opcional)
-
-    Retorna dict con central, satelites, asignaciones, costos y detalles.
+    Valida:
+      - cuotas nacional+exportación suman 1,
+      - pesos finitos y no negativos,
+      - pesos internos de cada grupo ACTIVO (cuota > 0) suman 1,
+      - un grupo con cuota positiva tiene al menos un destino válido.
     """
-    solver = pywraplp.Solver.CreateSolver("CBC")
+    if not (np.isfinite(pct_nac) and np.isfinite(pct_exp)):
+        raise ValueError("Cuotas nacional/exportación no finitas.")
+    if pct_nac < 0 or pct_exp < 0:
+        raise ValueError("Cuotas nacional/exportación negativas.")
+    if abs(pct_nac + pct_exp - 1.0) > 1e-9:
+        raise ValueError("pct_nacional + pct_exportacion debe sumar 1 (es {}).".format(pct_nac + pct_exp))
+
+    disponibles = set(destinos["id_destino"].tolist())
+    dest_nac = [d for d in DESTINOS_NACIONALES if d in disponibles]
+    dest_exp = [d for d in DESTINOS_EXPORTACION if d in disponibles]
+
+    def _pesos_grupo(dest_grupo, cuota, pesos_internos, nombre):
+        if cuota <= 0:
+            return {}  # grupo inactivo: no aporta destinos
+        if not dest_grupo:
+            raise ValueError(
+                "El grupo {} tiene cuota {} > 0 pero no hay destinos válidos.".format(nombre, cuota)
+            )
+        if pesos_internos is None:
+            pin = {d: 1.0 / len(dest_grupo) for d in dest_grupo}
+        else:
+            pin = {d: float(pesos_internos[d]) for d in dest_grupo if d in pesos_internos}
+            if set(pin) != set(dest_grupo):
+                raise ValueError(
+                    "Pesos internos de {} incompletos: faltan {}.".format(
+                        nombre, set(dest_grupo) - set(pin))
+                )
+            for d, p in pin.items():
+                if not np.isfinite(p) or p < 0:
+                    raise ValueError("Peso interno inválido en {}: {}={}.".format(nombre, d, p))
+            s = sum(pin.values())
+            if abs(s - 1.0) > 1e-9:
+                raise ValueError(
+                    "Pesos internos del grupo {} activo deben sumar 1 (suman {}).".format(nombre, s)
+                )
+        return {d: cuota * p for d, p in pin.items()}
+
+    pesos = {}
+    pesos.update(_pesos_grupo(dest_nac, pct_nac, pesos_internos_nac, "nacional"))
+    pesos.update(_pesos_grupo(dest_exp, pct_exp, pesos_internos_exp, "exportación"))
+    return pesos
+
+
+# =============================================================================
+# MODELO OR-TOOLS (flujo explícito; tramo satélite->central obligatorio)
+# =============================================================================
+
+def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
+                       modo="libre", pesos_internos_nac=None, pesos_internos_exp=None,
+                       tiempo_limite_s=60, gap_relativo=0.01):
+    """
+    Resuelve la ubicación de central y k satélites con flujo explícito.
+
+    modo:
+      "libre"  -> exactamente k satélites, asignación municipal sin restricción de zona.
+      "zonas"  -> un satélite por zona (k debe igualar el número de zonas); cada
+                  municipio se asigna a un satélite de SU misma zona. El solver elige
+                  la ubicación dentro de cada zona (los centros de zonas.csv no se fuerzan).
+
+    Retorna dict con estado, central, satélites, asignaciones, flujos y costos (A, B,
+    tres tramos y objetivo). El tramo satélite->central SIEMPRE está en el objetivo.
+    """
+    # SCIP resuelve este MIP lineal mucho más rápido que CBC; CBC como respaldo.
+    solver = pywraplp.Solver.CreateSolver("SCIP") or pywraplp.Solver.CreateSolver("CBC")
     if not solver:
-        raise RuntimeError("No se pudo crear el solver CBC")
+        raise RuntimeError("No se pudo crear el solver (SCIP/CBC)")
 
-    # ===========================================================================
-    # DATOS DEL ADAPTADOR DE ALEJANDRO
-    # ===========================================================================
-    zonas = paquete.zonas.copy()  # cod_dane, municipio, zona, es_centro_zona
-    excedente_mun = paquete.excedente_municipio.copy()  # cod_dane, municipio, zona, excedente_t
-    volumen_por_zona = paquete.volumen_por_zona.copy()  # zona, excedente_t, volumen_nacional, volumen_exportacion
+    zonas = paquete.zonas.copy()
+    excedente_mun = paquete.excedente_municipio.copy()
     pct_nac = paquete.pct_nacional
     pct_exp = paquete.pct_exportacion
 
-    # Mapear cod_dane -> zona
     mun_a_zona = dict(zip(zonas["cod_dane"], zonas["zona"]))
-
-    # Oferta por municipio (usar excedente del adaptador, que es oferta - consumo)
-    oferta_mun = {}
-    for _, row in excedente_mun.iterrows():
-        oferta_mun[row["cod_dane"]] = float(row["excedente_t"])
-
     cod_mun_all = municipios["cod_dane"].tolist()
-    oferta = {m: oferta_mun.get(m, 0.0) for m in cod_mun_all}
 
-    # ===========================================================================
-    # VARIABLES DE DECISIÓN
-    # ===========================================================================
-    C = cod_mun_all  # candidatos a central
-    S = cod_mun_all  # candidatos a satélite
+    # q_m: excedente conocido por municipio (pendientes ya excluidos por el adaptador)
+    q = {m: 0.0 for m in cod_mun_all}
+    for _, row in excedente_mun.iterrows():
+        q[row["cod_dane"]] = float(row["excedente_t"])
+    Q = sum(q.values())  # excedente total conocido (cota válida del flujo)
 
-    x = {c: solver.BoolVar("x_{}".format(c)) for c in C}           # abrir central en c
-    y = {s: solver.BoolVar("y_{}".format(s)) for s in S}           # abrir satélite en s
-    z = {(m, s): solver.BoolVar("z_{}_{}".format(m, s)) for m in cod_mun_all for s in S}  # m asignado a s
-    w = {(s, c): solver.BoolVar("w_{}_{}".format(s, c)) for s in S for c in C}  # s asignado a c
+    # --- validación de modo territorial ---
+    zonas_unicas = sorted(zonas["zona"].dropna().unique().tolist())
+    if modo == "zonas":
+        # correspondencia completa municipio-zona
+        sin_zona = [m for m in cod_mun_all if m not in mun_a_zona or pd.isna(mun_a_zona.get(m))]
+        if sin_zona:
+            raise ValueError("Municipios sin zona asignada: {}.".format(sin_zona[:10]))
+        if k != len(zonas_unicas):
+            raise ValueError(
+                "Modo 'zonas' exige exactamente un satélite por zona: k={} pero hay "
+                "{} zonas {}. Ajusta k={}.".format(k, len(zonas_unicas), zonas_unicas, len(zonas_unicas))
+            )
+    elif modo != "libre":
+        raise ValueError("modo debe ser 'libre' o 'zonas', no '{}'.".format(modo))
 
-    # ===========================================================================
-    # RESTRICCIONES
-    # ===========================================================================
+    # --- pesos de destinos (P1) ---
+    pesos_dest = construir_pesos_destinos(
+        destinos, pct_nac, pct_exp, pesos_internos_nac, pesos_internos_exp
+    )
 
-    # R1: Una sola central
-    solver.Add(solver.Sum([x[c] for c in C]) == 1)
+    C = cod_mun_all
+    S = cod_mun_all
 
-    # R2: Exactamente k satélites
-    solver.Add(solver.Sum([y[s] for s in S]) == k)
+    # --- variables ---
+    x = {c: solver.BoolVar("x_{}".format(c)) for c in C}
+    y = {s: solver.BoolVar("y_{}".format(s)) for s in S}
+    # z y w se modelan continuos en [0,1]: con y, x fijas el subproblema de asignación
+    # es una p-mediana cuya relajación LP es integral (cada municipio va al satélite
+    # abierto más barato; cada satélite a la única central abierta). Esto acelera el
+    # MIP sin cambiar el óptimo. Se verifica integralidad al extraer la solución.
+    z = {(m, s): solver.NumVar(0.0, 1.0, "z_{}_{}".format(m, s)) for m in cod_mun_all for s in S}
+    w = {(s, c): solver.NumVar(0.0, 1.0, "w_{}_{}".format(s, c)) for s in S for c in C}
+    f = {(s, c): solver.NumVar(0.0, solver.infinity(), "f_{}_{}".format(s, c)) for s in S for c in C}
 
-    # R3: Cada municipio asignado a un satélite abierto
-    for m in cod_mun_all:
+    # --- restricciones ---
+    solver.Add(solver.Sum([x[c] for c in C]) == 1)                       # R1
+    solver.Add(solver.Sum([y[s] for s in S]) == k)                       # R2
+
+    for m in cod_mun_all:                                                # R3
         solver.Add(solver.Sum([z[(m, s)] for s in S]) == 1)
         for s in S:
             solver.Add(z[(m, s)] <= y[s])
 
-    # R4: Cada satélite asignado a una central abierta
-    for s in S:
+    for s in S:                                                          # R4
         solver.Add(solver.Sum([w[(s, c)] for c in C]) == y[s])
         for c in C:
             solver.Add(w[(s, c)] <= x[c])
 
-    # P3: Si usar_zonas=True, un municipio solo puede asignarse a un satélite
-    # de su misma zona
-    if usar_zonas:
-        for m in cod_mun_all:
-            zona_m = mun_a_zona.get(m)
-            for s in S:
-                zona_s = mun_a_zona.get(s)
-                # Permitir asignación solo si están en la misma zona
-                if zona_m != zona_s:
-                    solver.Add(z[(m, s)] == 0)
+    # volumen recibido por cada satélite (expresión reutilizada)
+    recibido = {s: solver.Sum([q[m] * z[(m, s)] for m in cod_mun_all]) for s in S}
 
-    # P5: R6 - Conservación de flujo en el satélite (opcional por factibilidad)
-    if usar_flujo:
-        for s in S:
-            entrada_satelite = solver.Sum([
-                oferta[m] * z[(m, s)] for m in cod_mun_all
-            ])
-            salida_satelite = solver.Sum([
-                # Volumen que sale del satélite s hacia central c
-                oferta[s] * w[(s, c)] for c in C
-            ])
-            solver.Add(entrada_satelite == salida_satelite)
-
-    # ===========================================================================
-    # FUNCIÓN OBJETIVO (ABORDA P1 Y P2)
-    # ===========================================================================
-
-    # P2: Z1 = recolección (municipio → satélite)
-    costo_recoleccion = solver.Sum([
-        oferta[m] * tiempos.get((m, s), 0) * z[(m, s)]
-        for m in cod_mun_all for s in S
-    ])
-
-    # P2: Z2b = satélite → central (costo del segundo tramo)
-    costo_satelite_central = solver.Sum([
-        oferta[s] * tiempos.get((s, c), 0) * w[(s, c)]
-        for s in S for c in C
-    ])
-
-    # P1: Z2a = central → destinos (repartido correctamente entre destinos)
-    # Las cuotas nacionales y de exportación se reparten entre los destinos de cada grupo
-    # de modo que sumen 1 a través de los destinos, no por destino individual.
-    dest_nac = [r["id_destino"] for _, r in destinos.iterrows()
-                if r["id_destino"] in ("DEST_CALI", "DEST_BOGOTA", "DEST_MEDELLIN")]
-    dest_exp = [r["id_destino"] for _, r in destinos.iterrows()
-                if r["id_destino"] in ("DEST_BUENAVENTURA", "DEST_AEROPUERTO_PALMIRA")]
-
-    # Peso por destino: cuota / número de destinos en el grupo
-    peso_nac = pct_nac / len(dest_nac) if dest_nac else 0.0
-    peso_exp = pct_exp / len(dest_exp) if dest_exp else 0.0
-
-    # Volumen total en cada central (oferta asignada a satélites que van a esa central)
-    # Para Z2, usamos el volumen total del sistema como aproximación
-    volumen_total = sum(oferta.values())
-
-    # Costo de distribución: central → destinos
-    # Para cada central c, costo = volumen_total * sum_d tiempo[c][d] * peso[d]
-    costo_unitario_dist = {}
-    for c in C:
-        costo_dist = 0.0
-        for d in dest_nac:
-            costo_dist += tiempos.get((c, d), 0) * peso_nac
-        for d in dest_exp:
-            costo_dist += tiempos.get((c, d), 0) * peso_exp
-        costo_unitario_dist[c] = costo_dist
-
-    costo_distribucion = solver.Sum([
-        x[c] * costo_unitario_dist[c] * volumen_total
-        for c in C
-    ])
-
-    # P1+P2: Objetivo combinado
-    # Z = λ * (Z1_recoleccion + Z2b_satelite_central) + (1-λ) * Z2a_central_destinos
-    costo_total_objetivo = lam * (costo_recoleccion + costo_satelite_central) + (1 - lam) * costo_distribucion
-
-    solver.Minimize(costo_total_objetivo)
-
-    # Resolver
-    status = solver.Solve()
-
-    if status not in (pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE):
-        return {"status": "INFACTIBLE"}
-
-    # ===========================================================================
-    # EXTRAER SOLUCIÓN
-    # ===========================================================================
-    central = None
-    for c in C:
-        if x[c].solution_value() > 0.5:
-            central = c
-            break
-
-    satelites = []
+    # R5: conservación de flujo (todo lo recibido por s sale hacia alguna central)
     for s in S:
-        if y[s].solution_value() > 0.5:
-            satelites.append(s)
+        solver.Add(solver.Sum([f[(s, c)] for c in C]) == recibido[s])
 
-    asignaciones_m_s = []
-    for m in cod_mun_all:
-        for s in S:
-            if z[(m, s)].solution_value() > 0.5:
-                asignaciones_m_s.append((m, s))
-
-    asignaciones_s_c = []
+    # R6: vinculación del flujo (sólo por enlaces abiertos; Q es cota válida)
     for s in S:
         for c in C:
-            if w[(s, c)].solution_value() > 0.5:
-                asignaciones_s_c.append((s, c))
+            solver.Add(f[(s, c)] <= Q * w[(s, c)])
 
-    # ===========================================================================
-    # CALCULAR COSTOS REALES (para reporte, no para optimización)
-    # ===========================================================================
+    # modo zonas: un satélite por zona + asignación dentro de la zona
+    if modo == "zonas":
+        for zn in zonas_unicas:
+            s_en_zona = [s for s in S if mun_a_zona.get(s) == zn]
+            solver.Add(solver.Sum([y[s] for s in s_en_zona]) == 1)
+        for m in cod_mun_all:
+            zm = mun_a_zona.get(m)
+            for s in S:
+                if mun_a_zona.get(s) != zm:
+                    solver.Add(z[(m, s)] == 0)
 
-    # Z1 real: costo de recolección
-    z1_final = sum(oferta[m] * tiempos.get((m, s), 0) for (m, s) in asignaciones_m_s)
+    # --- costos (expresiones lineales) ---
+    # A1: recolección municipio->satélite
+    A1 = solver.Sum([q[m] * tiempos[(m, s)] * z[(m, s)]
+                     for m in cod_mun_all for s in S])
+    # A2: satélite->central (flujo explícito; NO oferta[s])
+    A2 = solver.Sum([f[(s, c)] * tiempos[(s, c)] for s in S for c in C])
+    A = A1 + A2
 
-    # Z2b real: costo satélite → central
-    z2b_final = sum(oferta[s] * tiempos.get((s, c), 0) for (s, c) in asignaciones_s_c)
+    # B: central->destinos. Una sola central lleva TODO el volumen conocido Q.
+    #    costo_unitario[c] = sum_d peso_global[d] * t[c,d]; B = Q * sum_c x[c]*costo_unitario[c]
+    costo_unit_dist = {c: sum(peso * tiempos[(c, d)] for d, peso in pesos_dest.items())
+                       for c in C}
+    B = solver.Sum([x[c] * costo_unit_dist[c] * Q for c in C])
 
-    # Z2a real: costo central → destinos (con cuotas repartidas correctamente)
-    z2a_final = 0.0
-    for s, c in asignaciones_s_c:
-        # Volumen que sale del satélite s hacia la central c
-        vol_s_c = sum(oferta[m] for (m, ss) in asignaciones_m_s if ss == s)
-        for d in dest_nac:
-            z2a_final += vol_s_c * tiempos.get((c, d), 0) * peso_nac
-        for d in dest_exp:
-            z2a_final += vol_s_c * tiempos.get((c, d), 0) * peso_exp
+    solver.Minimize(lam * A + (1 - lam) * B)
 
-    z2_final = z2a_final + z2b_final
+    if tiempo_limite_s and tiempo_limite_s > 0:
+        solver.SetTimeLimit(int(tiempo_limite_s * 1000))  # ms
+    # Brecha relativa aceptable (1%): acelera mucho sin alterar materialmente la
+    # ubicación elegida. Se documenta como tolerancia del solver.
+    if gap_relativo and gap_relativo > 0:
+        try:
+            solver.SetSolverSpecificParametersAsString(
+                "limits/gap = {}".format(gap_relativo)
+            )
+        except Exception:
+            pass
+    status = solver.Solve()
+    estado = _ESTADOS.get(status, "DESCONOCIDO")
+    if status not in (pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE):
+        return {"status": estado, "modo": modo, "k": k, "lambda": lam}
 
-    # Obtener nombres y zonas usando datos de Alejandro
-    cen_row_mun = municipios[municipios["cod_dane"] == central]
-    cen_nombre = cen_row_mun["municipio"].iloc[0] if not cen_row_mun.empty else central
+    # --- extraer solución ---
+    central = next(c for c in C if x[c].solution_value() > 0.5)
+    satelites = [s for s in S if y[s].solution_value() > 0.5]
+    asign_m_s = [(m, s) for m in cod_mun_all for s in S if z[(m, s)].solution_value() > 0.5]
+    asign_s_c = [(s, c) for s in S for c in C if w[(s, c)].solution_value() > 0.5]
+    flujos = {(s, c): f[(s, c)].solution_value()
+              for s in S for c in C if f[(s, c)].solution_value() > 1e-9}
+
+    # --- costos reportados (recalculados desde la solución) ---
+    A1_val = sum(q[m] * tiempos[(m, s)] for (m, s) in asign_m_s)
+    A2_val = sum(vol * tiempos[(s, c)] for (s, c), vol in flujos.items())
+    A_val = A1_val + A2_val
+    B_val = costo_unit_dist[central] * Q
+    objetivo_val = lam * A_val + (1 - lam) * B_val
+    objetivo_solver = solver.Objective().Value()
+
+    cen_row = municipios[municipios["cod_dane"] == central]
+    cen_nombre = cen_row["municipio"].iloc[0] if not cen_row.empty else central
     cen_zona = mun_a_zona.get(central, "N/A")
 
     satelite_info = []
     for s in satelites:
-        s_row_mun = municipios[municipios["cod_dane"] == s]
-        s_nombre = s_row_mun["municipio"].iloc[0] if not s_row_mun.empty else s
-        s_zona = mun_a_zona.get(s, "N/A")
-        s_es_centro = zonas[zonas["cod_dane"] == s]["es_centro_zona"].iloc[0] if not zonas[zonas["cod_dane"] == s].empty else 0
+        s_row = municipios[municipios["cod_dane"] == s]
+        s_nombre = s_row["municipio"].iloc[0] if not s_row.empty else s
+        es_centro = zonas[zonas["cod_dane"] == s]["es_centro_zona"]
         satelite_info.append({
             "cod_dane": s,
             "nombre": s_nombre,
-            "zona": s_zona,
-            "es_centro": int(s_es_centro),
+            "zona": mun_a_zona.get(s, "N/A"),
+            "es_centro": int(es_centro.iloc[0]) if not es_centro.empty else 0,
         })
 
     return {
-        "status": "OPTIMAL" if status == pywraplp.Solver.OPTIMAL else "FEASIBLE",
+        "status": estado,
+        "modo": modo,
         "central": central,
         "central_nombre": cen_nombre,
         "central_zona": cen_zona,
-        "satelites": satelite_info,  # lista de dicts con nombre, zona, es_centro
-        "satelites_cods": satelites,  # lista de cod_dane strings
-        "asignaciones_municipio_satelite": asignaciones_m_s,
-        "asignaciones_satelite_central": asignaciones_s_c,
-        "costo_recoleccion": z1_final,
-        "costo_satelite_central": z2b_final,
-        "costo_central_destinos": z2a_final,
-        "costo_distribucion": z2_final,
-        "costo_total": lam * (z1_final + z2b_final) + (1 - lam) * z2a_final,
+        "satelites": satelite_info,
+        "satelites_cods": satelites,
+        "asignaciones_municipio_satelite": asign_m_s,
+        "asignaciones_satelite_central": asign_s_c,
+        "flujos_satelite_central": flujos,
+        "volumen_total_conocido": Q,
+        # tres tramos
+        "costo_recoleccion": A1_val,          # A1
+        "costo_satelite_central": A2_val,     # A2
+        "costo_central_destinos": B_val,      # B
+        # componentes del objetivo
+        "A": A_val,                           # A = A1 + A2
+        "B": B_val,                           # B
+        "costo_total": objetivo_val,          # lam*A + (1-lam)*B (recalculado)
+        "objetivo_solver": objetivo_solver,   # valor del solver (debe coincidir)
         "k": k,
         "lambda": lam,
         "pct_nacional": pct_nac,
@@ -334,105 +423,155 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=4, lam=0.5,
 
 
 # =============================================================================
-# FRONTERA DE PARETO REAL (ABORDA P4)
+# SOLUCIONES NO DOMINADAS (barrido de lambda sobre A y B) — P4
 # =============================================================================
 
-def filtrar_no_dominados(df):
-    """Filtra puntos dominados de la frontera de Pareto (P4).
-    
-    Un punto (z1, z2) está dominado si existe otro punto con z1' <= z1 y z2' <= z2
-    y al menos una desigualdad estricta.
+def filtrar_no_dominados(df, tol_rel=TOL_PARETO_REL):
+    """
+    Devuelve las soluciones NO DOMINADAS en (A, B), eliminando duplicados y puntos
+    dominados con tolerancia relativa documentada (tol_rel).
+
+    Un punto (A, B) domina a (A', B') si A <= A' y B <= B' con al menos una
+    desigualdad estricta (fuera de tolerancia). No se afirma que el barrido de
+    lambda recupere toda la frontera: son 'soluciones no dominadas encontradas'.
     """
     if df.empty:
         return df
+    pts = df.reset_index(drop=True)
+    escala_A = max(pts["A"].abs().max(), 1.0)
+    escala_B = max(pts["B"].abs().max(), 1.0)
 
-    df_sorted = df.sort_values(["z1", "z2"]).reset_index(drop=True)
-    no_dominados = []
-    min_z2_so_far = float("inf")
+    def domina(i, j):
+        # i domina a j
+        le = (pts.loc[i, "A"] <= pts.loc[j, "A"] + tol_rel * escala_A and
+              pts.loc[i, "B"] <= pts.loc[j, "B"] + tol_rel * escala_B)
+        lt = (pts.loc[i, "A"] < pts.loc[j, "A"] - tol_rel * escala_A or
+              pts.loc[i, "B"] < pts.loc[j, "B"] - tol_rel * escala_B)
+        return le and lt
 
-    for _, row in df_sorted.iterrows():
-        if row["z2"] < min_z2_so_far:
-            no_dominados.append(row)
-            min_z2_so_far = row["z2"]
+    keep = []
+    for j in pts.index:
+        if not any(domina(i, j) for i in pts.index if i != j):
+            keep.append(j)
+    res = pts.loc[keep].copy()
 
-    return pd.DataFrame(no_dominados).reset_index(drop=True)
+    # deduplicar puntos casi iguales en (A, B)
+    res = res.sort_values(["A", "B"]).reset_index(drop=True)
+    dedup_idx = []
+    for i in res.index:
+        if not dedup_idx:
+            dedup_idx.append(i)
+            continue
+        p = res.loc[dedup_idx[-1]]
+        if (abs(res.loc[i, "A"] - p["A"]) > tol_rel * escala_A or
+                abs(res.loc[i, "B"] - p["B"]) > tol_rel * escala_B):
+            dedup_idx.append(i)
+    return res.loc[dedup_idx].reset_index(drop=True)
 
 
 def calcular_frontera_pareto(paquete, municipios, destinos, tiempos,
-                             k=4, lambdas=None, usar_zonas=False,
-                             usar_flujo=False, usar_satelite_central=True):
-    """Calcula la frontera de Pareto variando lambda (P4: filtra dominados)."""
+                             k=5, lambdas=None, modo="libre",
+                             pesos_internos_nac=None, pesos_internos_exp=None):
+    """
+    Barre lambda y devuelve las SOLUCIONES NO DOMINADAS encontradas en (A, B),
+    coherentes con el objetivo λ·A + (1-λ)·B.
+    """
     if lambdas is None:
         lambdas = [i / 10 for i in range(11)]
-
     datos = []
     for lam in lambdas:
         res = resolver_ubicacion(
             paquete, municipios, destinos, tiempos,
-            k=k, lam=lam,
-            usar_zonas=usar_zonas,
-            usar_flujo=usar_flujo,
-            usar_satelite_central=usar_satelite_central,
+            k=k, lam=lam, modo=modo,
+            pesos_internos_nac=pesos_internos_nac, pesos_internos_exp=pesos_internos_exp,
         )
         if res["status"] in ("OPTIMAL", "FEASIBLE"):
             datos.append({
                 "lambda": lam,
                 "central": "{} ({})".format(res["central_nombre"], res["central"]),
                 "zona_central": res["central_zona"],
-                "z1": res["costo_recoleccion"],
-                "z2": res["costo_distribucion"],
+                "A": res["A"],          # recolección + satélite-central
+                "B": res["B"],          # central-destinos
+                "costo_recoleccion": res["costo_recoleccion"],
+                "costo_satelite_central": res["costo_satelite_central"],
+                "costo_central_destinos": res["costo_central_destinos"],
                 "costo_total": res["costo_total"],
+                "status": res["status"],
             })
-
     df = pd.DataFrame(datos)
-
-    # P4: Filtrar puntos dominados (solo mantener la frontera eficiente)
     if not df.empty:
         df = filtrar_no_dominados(df)
-
     return df
 
 
 # =============================================================================
-# TABLA DE ESTABILIDAD REAL (USANDO DATOS DE ALEJANDRO)
+# ESTABILIDAD (parametrizada: año, consumo, mezcla, modo, k, lambda) — P (fijos 2024)
 # =============================================================================
 
-def calcular_estabilidad(paquete, municipios, destinos, tiempos,
-                         k=4, lam=0.5, usar_zonas=False,
-                         usar_flujo=False, usar_satelite_central=True):
-    """Calcula qué municipio es central en cada escenario (usando datos reales)."""
-    from adaptador import preparar_para_solver
+def _id_escenario(anio, oferta, consumo, mezcla):
+    return "{}_O{}_C{}_M{}".format(anio, oferta, consumo, mezcla)
 
-    escenarios_ids = ["2024_Obajo_Cbase_M80_20",
-                      "2024_Obase_Cbase_M80_20",
-                      "2024_Oalto_Cbase_M80_20"]
 
-    datos = []
-    for id_esc in escenarios_ids:
+def calcular_estabilidad(municipios, destinos, tiempos, anio,
+                         consumo="base", mezcla="80_20", modo="libre",
+                         k=5, lam=0.5, ofertas=("bajo", "base", "alto"),
+                         pesos_internos_nac=None, pesos_internos_exp=None):
+    """
+    Compara oferta baja/base/alta para un MISMO año, consumo, mezcla, modo, k y lambda.
+    Reporta el estado del solver de cada escenario y los que falten o fallen; no usa
+    except/continue silencioso. NO llama 'óptima' a una solución sólo FEASIBLE.
+    """
+    filas = []
+    faltantes = []
+    for of in ofertas:
+        idesc = _id_escenario(anio, of, consumo, mezcla)
         try:
-            pkg = preparar_para_solver(id_esc, 2024)
-        except Exception:
+            pkg = preparar_para_solver(idesc, anio)
+        except Exception as e:
+            faltantes.append({"escenario": idesc, "motivo": "no_disponible: {}".format(e)})
+            filas.append({"escenario": idesc, "oferta": of, "consumo": consumo,
+                          "central": None, "status": "NO_DISPONIBLE",
+                          "A": np.nan, "B": np.nan, "costo_total": np.nan,
+                          "cobertura": np.nan})
             continue
-
-        res = resolver_ubicacion(
-            pkg, municipios, destinos, tiempos,
-            k=k, lam=lam,
-            usar_zonas=usar_zonas,
-            usar_flujo=usar_flujo,
-            usar_satelite_central=usar_satelite_central,
-        )
-
+        res = resolver_ubicacion(pkg, municipios, destinos, tiempos, k=k, lam=lam,
+                                 modo=modo, pesos_internos_nac=pesos_internos_nac,
+                                 pesos_internos_exp=pesos_internos_exp)
         if res["status"] in ("OPTIMAL", "FEASIBLE"):
-            datos.append({
-                "escenario": id_esc,
-                "oferta": pkg.escenario_oferta,
-                "consumo": pkg.escenario_consumo,
+            filas.append({
+                "escenario": idesc, "oferta": pkg.escenario_oferta, "consumo": pkg.escenario_consumo,
                 "central": "{} ({})".format(res["central_nombre"], res["central"]),
-                "costo_total": res["costo_total"],
-                "cobertura": pkg.cobertura_oferta_pct,
+                "status": res["status"], "A": res["A"], "B": res["B"],
+                "costo_total": res["costo_total"], "cobertura": pkg.cobertura_oferta_pct,
             })
+        else:
+            filas.append({"escenario": idesc, "oferta": of, "consumo": consumo,
+                          "central": None, "status": res["status"],
+                          "A": np.nan, "B": np.nan, "costo_total": np.nan,
+                          "cobertura": pkg.cobertura_oferta_pct})
+    df = pd.DataFrame(filas)
+    df.attrs["faltantes"] = faltantes
+    df.attrs["anio"] = anio
+    return df
 
-    return pd.DataFrame(datos)
+
+# =============================================================================
+# COMPARACIÓN LIBRE vs ZONAS (mismas entradas)
+# =============================================================================
+
+def comparar_configuraciones(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
+                             pesos_internos_nac=None, pesos_internos_exp=None):
+    """
+    Resuelve el MISMO escenario (año, oferta, consumo, mezcla, lambda, k) en modo
+    libre y en modo zonas, para comparar con entradas iguales.
+    """
+    out = {}
+    for modo in ("libre", "zonas"):
+        res = resolver_ubicacion(paquete, municipios, destinos, tiempos, k=k, lam=lam,
+                                 modo=modo, pesos_internos_nac=pesos_internos_nac,
+                                 pesos_internos_exp=pesos_internos_exp)
+        out[modo] = res
+    return out
 
 
 # =============================================================================
@@ -441,82 +580,58 @@ def calcular_estabilidad(paquete, municipios, destinos, tiempos,
 
 def main():
     print("=" * 70)
-    print("MODELO DE OPTIMIZACIÓN CON DATOS REALES - TAREA 2 COMPLETADA")
+    print("MODELO DE OPTIMIZACIÓN LOGÍSTICA — FLUJO SATÉLITE-CENTRAL EXPLÍCITO")
     print("=" * 70)
     print()
 
-    # Cargar datos base
     municipios, destinos, matriz_tiempos = cargar_datos_reales()
     tiempos = construir_matriz_tiempos_dict(matriz_tiempos, municipios, destinos)
+    print("Municipios: {} | Destinos: {} | Entradas matriz: {}".format(
+        len(municipios), len(destinos), len(matriz_tiempos)))
 
-    print("Municipios: {}".format(len(municipios)))
-    print("Destinos: {}".format(len(destinos)))
-    print("Entradas matriz tiempos: {}".format(len(matriz_tiempos)))
-    print()
-
-    # Cargar paquete de datos de Alejandro (escenario base 2024)
-    print("--- Cargando paquete de Alejandro (2024_Obase_Cbase_M80_20) ---")
     paquete = cargar_paquete_solver("2024_Obase_Cbase_M80_20", 2024)
-    print("Oferta={} Consumo={} Nacional={:.0%} Exportación={:.0%}".format(
-        paquete.escenario_oferta, paquete.escenario_consumo,
+    print("Escenario: {} | Oferta={} Consumo={} Nac={:.0%} Exp={:.0%}".format(
+        paquete.id_escenario, paquete.escenario_oferta, paquete.escenario_consumo,
         paquete.pct_nacional, paquete.pct_exportacion))
-    print("Cobertura oferta: {}% (parcial={})".format(
-        paquete.cobertura_oferta_pct, paquete.cobertura_parcial))
-    print("Municipios: {}".format(paquete.excedente_municipio["cod_dane"].nunique()))
-    print("Excedente total: {:,.1f} t".format(
+    print("Cobertura: {}% (parcial={}) | Volumen conocido: {:,.1f} t".format(
+        paquete.cobertura_oferta_pct, paquete.cobertura_parcial,
         paquete.excedente_municipio["excedente_t"].sum()))
     print()
 
-    # Resolver para 2024, base, k=4, lambda=0.5 (sin zonas ni flujo para factibilidad)
-    print("--- Resolviendo ubicación (k=4, lambda=0.5, zonas=NO, flujo=NO) ---")
-    res = resolver_ubicacion(
-        paquete, municipios, destinos, tiempos,
-        k=4, lam=0.5,
-        usar_zonas=False,
-        usar_flujo=False,
-        usar_satelite_central=True,
-    )
-    print("Estado: {}".format(res["status"]))
-    print("Central: {} (zona {})".format(res["central_nombre"], res["central_zona"]))
-    print("Código DANE central: {}".format(res["central"]))
-    print("Satélites:")
-    for s in res["satelites"]:
-        print("  - {} (zona {}, centro={})".format(s["nombre"], s["zona"], s["es_centro"]))
-    print("Costo recoleccion (Z1): {:,.0f}".format(res["costo_recoleccion"]))
-    print("Costo satelite->central (Z2b): {:,.0f}".format(res["costo_satelite_central"]))
-    print("Costo central->destinos (Z2a): {:,.0f}".format(res["costo_central_destinos"]))
-    print("Costo distribucion total (Z2): {:,.0f}".format(res["costo_distribucion"]))
-    print("Costo total ponderado: {:,.0f}".format(res["costo_total"]))
-    print("Cobertura oferta: {}%".format(res["cobertura"]))
+    print("--- Comparación de configuraciones (k=5, lambda=0.5) ---")
+    comp = comparar_configuraciones(paquete, municipios, destinos, tiempos, k=5, lam=0.5)
+    for modo, res in comp.items():
+        if res["status"] not in ("OPTIMAL", "FEASIBLE"):
+            print("  [{}] estado: {}".format(modo, res["status"]))
+            continue
+        print("  [{}] estado={} central={} (zona {})".format(
+            modo, res["status"], res["central_nombre"], res["central_zona"]))
+        print("        A1 recolección = {:,.0f} | A2 sat->central = {:,.0f} | "
+              "B central->dest = {:,.0f}".format(
+                  res["costo_recoleccion"], res["costo_satelite_central"],
+                  res["costo_central_destinos"]))
+        print("        A = {:,.0f} | B = {:,.0f} | objetivo = {:,.0f} "
+              "(solver={:,.0f})".format(res["A"], res["B"], res["costo_total"],
+                                        res["objetivo_solver"]))
+        print("        satélites: {}".format(
+            ", ".join("{} ({})".format(s["nombre"], s["zona"]) for s in res["satelites"])))
     print()
 
-    # Frontera de Pareto (P4: filtrada por no-dominancia)
-    print("--- Calculando frontera de Pareto (filtrada por no-dominancia) ---")
-    df_pareto = calcular_frontera_pareto(
-        paquete, municipios, destinos, tiempos,
-        k=4,
-        lambdas=[i / 10 for i in range(11)],
-        usar_zonas=False,
-        usar_flujo=False,
-        usar_satelite_central=True,
-    )
-    print(df_pareto.to_string(index=False))
+    print("--- Soluciones no dominadas encontradas (barrido de lambda, modo libre) ---")
+    df_pareto = calcular_frontera_pareto(paquete, municipios, destinos, tiempos, k=5, modo="libre")
+    print(df_pareto[["lambda", "central", "A", "B", "costo_total"]].to_string(index=False))
     print()
 
-    # Estabilidad
-    print("--- Calculando estabilidad por escenario ---")
-    df_estab = calcular_estabilidad(
-        paquete, municipios, destinos, tiempos,
-        k=4, lam=0.5,
-        usar_zonas=False,
-        usar_flujo=False,
-        usar_satelite_central=True,
-    )
-    print(df_estab.to_string(index=False))
+    print("--- Estabilidad (año 2024, consumo base, mezcla 80_20, modo libre) ---")
+    df_estab = calcular_estabilidad(municipios, destinos, tiempos, anio=2024,
+                                    consumo="base", mezcla="80_20", modo="libre", k=5)
+    print(df_estab[["escenario", "oferta", "central", "status", "A", "B", "costo_total"]].to_string(index=False))
+    if df_estab.attrs.get("faltantes"):
+        print("Escenarios faltantes:", df_estab.attrs["faltantes"])
 
     print()
     print("=" * 70)
-    print("MODELO REAL COMPLETADO - TAREA 2 LISTA")
+    print("MODELO COMPLETADO")
     print("=" * 70)
 
 

@@ -1,0 +1,3 @@
+﻿modo,estado,central,A1_recoleccion,A2_sat_central,B_central_dest,A,B,objetivo,satelites
+libre,OPTIMAL,Bugalagrande (Z3),63647423,7543821,263230918,71191244,263230918,167211081,"Andalucia, Bugalagrande, Caicedonia, Guacarí, San Pedro"
+zonas,OPTIMAL,Bugalagrande (Z3),43113995,29759724,263230918,72873718,263230918,168052318,"Bugalagrande, San Pedro, Versalles, Yotoco, Zarzal"

@@ -108,5 +108,60 @@ $$cap_{min} \cdot y_s \leq \sum_{m \in M} \sum_{p \in P} o_{p,m} \cdot z_{m,s} \
 - Si Ceyni no incluye los mercados nacionales en la matriz de tiempos, usar distancias aproximadas
 
 ---
-*Autor: Samuel Gutiérrez Jaramillo*  
-*Fecha: 12-16 nov 2026*
+
+## 10. Formulación implementada (integración con arendonc2)
+
+Esta sección documenta lo que implementa `src/optimizacion/modelo_real.py` tras la
+integración, que **precisa y corrige** la formulación original de arriba. El modelo
+es lineal (resoluble por CBC; se usa SCIP por velocidad) y toma los datos del
+adaptador `preparar_para_solver(id_escenario, anio)`.
+
+### Parámetros efectivos
+- $q_m$: excedente **conocido** del municipio $m$ (t). Los productos con consumo
+  pendiente se excluyen (no aportan volumen). $Q = \sum_m q_m$ es el volumen total
+  conocido y cota válida del flujo.
+- $t_{a,b}$: tiempo de viaje (min), validado (presente, finito, no negativo; sin
+  `.get(...,0)`).
+- Pesos de destino: la cuota de cada grupo (nacional/exportación) se reparte entre
+  sus destinos con pesos internos que suman 1 (por defecto, reparto igual).
+
+### Variables
+$x_c, y_s, z_{m,s}, w_{s,c} \in \{0,1\}$ (z, w relajadas a $[0,1]$; salen enteras por
+la estructura de asignación) y **$f_{s,c} \ge 0$** (toneladas transportadas de $s$ a $c$).
+
+### Restricción R6 corregida — conservación con flujo explícito
+$$\sum_{c \in C} f_{s,c} = \sum_{m \in M} q_m \, z_{m,s}, \quad \forall s \in S$$
+$$f_{s,c} \le Q \, w_{s,c}, \quad \forall s,c$$
+
+Se **elimina** la igualdad incorrecta que usaba $o_{p,s}$ (oferta del propio
+municipio satélite) como salida. El tramo satélite→central es **obligatorio**.
+
+### Modos territoriales
+- **Libre:** exactamente 5 satélites, asignación municipal sin restricción de zona.
+- **Zonas:** un satélite por cada una de las 5 zonas; cada municipio se asigna a un
+  satélite de su misma zona (los centros de `zonas.csv` son referencia, no se fuerzan).
+  Pedir $k \ne$ nº de zonas lanza error antes de resolver.
+
+### Objetivo (unidades: toneladas × minutos, t·min)
+$$A = \underbrace{\sum_{m,s} q_m\, t_{m,s}\, z_{m,s}}_{A_1:\ \text{recolección}} +
+      \underbrace{\sum_{s,c} f_{s,c}\, t_{s,c}}_{A_2:\ \text{satélite}\to\text{central}}$$
+$$B = Q \sum_{c} x_c \sum_{d} \text{peso}_d\, t_{c,d} \quad (\text{central}\to\text{destinos})$$
+$$\min\ \lambda A + (1-\lambda) B$$
+
+Los mismos $A$ y $B$ se usan en resultados, en el gráfico de soluciones no dominadas
+(barrido de $\lambda$, con filtro de dominancia y tolerancia relativa documentada) y
+en la comparación libre/zonas.
+
+### R7 — Capacidades: NO se implementan
+La versión base **no** impone capacidad mínima ni máxima por acopio, por falta de
+valores respaldados. Es un supuesto declarado aquí y en el tablero; no se inventan
+capacidades.
+
+### Supuestos y limitaciones vigentes
+- Mezclas nacional/exportación: escenarios de **sensibilidad**, sin respaldo empírico.
+- Cobertura parcial de consumo: productos pendientes excluidos del volumen.
+- Geometrías de zonas: GADM (pendiente de aceptación como sustituto del MGN del DANE).
+
+---
+*Autor original de las secciones 1–9: Samuel Gutiérrez Jaramillo (12-16 nov 2026).*
+*Sección 10 (formulación implementada): integración con arendonc2.*
