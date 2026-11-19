@@ -113,6 +113,19 @@ Definiciones: `costo_total = λ·A + (1−λ)·B` es el objetivo del solver;
 `costo_total_suma = A1 + A2 + B` es la suma física de los tres tramos. El detalle
 de columnas está en `data/results/opt/LEEME.md`.
 
+### Sensibilidad por valor (SIPSA)
+
+La ubicación también se probó ponderando el excedente por valor (toneladas × precio SIPSA):
+
+```powershell
+python src/optimizacion/corrida_valor.py
+```
+
+Genera `comparacion_toneladas_vs_valor.csv` y su resumen. En el escenario base la
+central no cambia (Bugalagrande), pero en 21 de 54 escenarios de 2024/2028 sí
+cambia. El detalle metodológico y los resultados están en
+`data/results/opt/LEEME_valor.md`.
+
 ## Pruebas automatizadas
 
 ```powershell

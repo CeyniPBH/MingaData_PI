@@ -1,0 +1,42 @@
+{
+  "generado": "2026-11-19T10:21:56-05:00",
+  "git_commit": "bcfebe8b295e804ba5d735bfc1301e85cf581903",
+  "python": "3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]",
+  "parametros": {
+    "escenarios": 54,
+    "anios": [
+      2024,
+      2028
+    ],
+    "k": 5,
+    "lambda": 0.5,
+    "gap_relativo": 0.0,
+    "tiempo_limite_s": 120,
+    "tiempo_reintento_s": 600,
+    "reusar_toneladas": true
+  },
+  "nota": "q_eq = Q * V_m / V_total; el solver minimiza la misma formulación pero con excedente ponderado por valor. Los costos se reportan en t·min (red real) y COP·min (red ponderada).",
+  "entradas": {
+    "data/results/excedentes.csv": {
+      "bytes": 5267447,
+      "sha256": "b86997f54b56fd53c9647ff11585540633281f199564771e4595ebc4e2b633c2"
+    },
+    "data/results/ML_Ce/oferta_escenarios_valor.csv": {
+      "bytes": 280213,
+      "sha256": "1ac7ac41ec81f13d93ce185e8d88d56e3e53a6f1e1cf7b9c6ea18d0226dd451e"
+    },
+    "data/results/opt/estabilidad_escenarios.csv": {
+      "bytes": 19019,
+      "sha256": "9b113289c2a7d441afc9ec31a723df109e3ad245c8bc5d42c024563b75aa7b58"
+    }
+  },
+  "salidas": {
+    "comparacion_toneladas_vs_valor.csv": {
+      "filas": 54,
+      "sha256": "b68d0f5be8ed81e3c21cf3e83d18ca09e06b25dc8989a59697a8e2886ac41ae2"
+    },
+    "comparacion_toneladas_vs_valor_resumen.csv": {
+      "sha256": "549e4d1ccc685646b53068e653ca70dfd551895589dacccd7d9c3bee1cdbede7"
+    }
+  }
+}

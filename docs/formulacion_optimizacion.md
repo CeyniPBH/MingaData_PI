@@ -228,6 +228,31 @@ devolver otro conjunto de satélites con el mismo costo; la central y los costos
 son la referencia. Los archivos se regeneran con el script y se verifican con
 `python src/optimizacion/test_resultados_opt.py`.
 
+### 11.1 Sensibilidad por valor (SIPSA)
+
+El script `src/optimizacion/corrida_valor.py` repite la optimización ponderando
+el excedente municipal por su valor (`excedente_t × 1000 × precio_cop_kg`) en
+lugar de sólo toneladas. Para conservar la escala, el excedente ponderado se
+normaliza al total de toneladas. No se modifica `modelo_real.py`: se usa
+`dataclasses.replace` para cambiar sólo el excedente que recibe el solver.
+
+Resultados (2024 y 2028, `k=5`, `λ=0.5`):
+
+- La central cambia en **21 de 54 escenarios**: 12/27 en 2024 y 9/27 en 2028.
+- En el escenario base (`M80_20`, oferta/consumo base) se mantiene
+  **Bugalagrande** en ambos años.
+- Patrones: `M50_50` → Riofrío/Andalucía; `M80_20` con oferta alta →
+  Bugalagrande/Bolívar; `M80_20` con oferta baja en 2024 → Sevilla/Zarzal.
+- En los casos con cambio, la red por valor cuesta entre 0,05 % y 0,70 % más en
+  t·min y reduce el objetivo de valor entre 0,07 % y 0,63 %. Es una sensibilidad
+  pequeña, no una inversión del resultado base.
+- Cobertura de precio: 99,37 %–100 % del excedente; los productos sin precio usan
+  el precio de referencia ponderado del escenario.
+
+Archivos: `comparacion_toneladas_vs_valor.csv`,
+`comparacion_toneladas_vs_valor_resumen.csv`, `metadata_valor.json` y
+`LEEME_valor.md` en `data/results/opt/`.
+
 ---
 *Autor original de las secciones 1–9: Samuel Gutiérrez Jaramillo (12-16 nov 2026).*
 *Sección 10 (formulación implementada): integración con arendonc2.*
