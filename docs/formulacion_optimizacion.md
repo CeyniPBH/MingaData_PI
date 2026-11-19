@@ -175,7 +175,8 @@ capacidades.
   resuelta con brecha solicitada 0: en los resultados guardados ambos modos
   reportaron estado **OPTIMAL** y **brecha efectiva 0**; objetivo libre 167.211.081
   vs zonas 168.052.318 t·min, **diferencia 0,50 %** (no es artefacto de tolerancia).
-  Detalle en `data/results/arendonc2/comparacion_configuraciones.csv`.
+  Detalle en `data/results/arendonc2/comparacion_configuraciones.csv` y, para el
+  informe final, en `data/results/opt/comparacion_libre_vs_zonas.csv`.
 
 ### Supuestos y limitaciones vigentes
 - Mezclas nacional/exportación: escenarios de **sensibilidad**, sin respaldo empírico.
@@ -183,5 +184,51 @@ capacidades.
 - Geometrías de zonas: GADM (pendiente de aceptación como sustituto del MGN del DANE).
 
 ---
+
+## 11. Resultados guardados para el informe final
+
+El script `src/optimizacion/generar_resultados.py` guarda en `data/results/opt/`
+los resultados que antes solo se veían en el tablero o en consola:
+
+```powershell
+python src/optimizacion/generar_resultados.py
+# Opcional: los 5 años de escenarios.csv
+python src/optimizacion/generar_resultados.py --anios 2024 2025 2026 2027 2028
+```
+
+| Archivo | Contenido |
+|---|---|
+| `barrido_lambda_base.csv` | 11 valores de lambda (0.0–1.0) del escenario base, con central, satélites y costos. |
+| `frontera_pareto_base.csv` | Soluciones no dominadas del barrido. |
+| `estabilidad_escenarios.csv` | 27 escenarios por año para 2024 y 2028, con central, satélites, costos y cambio respecto al base del año. |
+| `comparacion_libre_vs_zonas.csv` | Mismo escenario en modo libre y modo zonas, con deltas. |
+| `comparacion_libre_vs_zonas_resumen.csv` | Comparación directa en una fila. |
+| `metadata.json` | Parámetros, solver, commit y huellas SHA256. |
+
+**Definición de costos (t·min):** `costo_recoleccion` = A1 (municipio→satélite),
+`costo_satelite_central` = A2 (satélite→central), `costo_distribucion` = B
+(central→destinos), `A = A1 + A2`, `costo_total = λA + (1−λ)B` (objetivo del
+solver) y `costo_total_suma = A1 + A2 + B` (suma física sin ponderar). No se
+confunden a propósito.
+
+**Resultados de la corrida guardada (2026-11-19):**
+- Frontera de Pareto con 2 soluciones no dominadas: λ=0.4, central Bugalagrande
+  (A=71.191.244; B=263.230.918; objetivo=167.211.081) y λ=0.1, central Sevilla
+  (A=74.049.808; B=261.684.255; objetivo=242.920.810).
+- Estabilidad: 54 escenarios (27 por año). La central cambia respecto al base en
+  18/27 escenarios de 2024 y 18/27 de 2028. Centrales observadas: Bugalagrande
+  (18), Riofrío (15), Yotoco (12), Sevilla (6), Andalucía (3).
+- Comparación libre vs zonas: misma central (Bugalagrande), pero el modo zonas
+  usa un satélite por zona y encarece el objetivo 0,50 % (841.237 t·min); ambas
+  soluciones son OPTIMAL con brecha 0.
+
+**Notas de interpretación:** la cobertura de consumo es 73,82 %; los productos
+pendientes quedan fuera del volumen. Cuando hay empates exactos, el solver puede
+devolver otro conjunto de satélites con el mismo costo; la central y los costos
+son la referencia. Los archivos se regeneran con el script y se verifican con
+`python src/optimizacion/test_resultados_opt.py`.
+
+---
 *Autor original de las secciones 1–9: Samuel Gutiérrez Jaramillo (12-16 nov 2026).*
 *Sección 10 (formulación implementada): integración con arendonc2.*
+*Sección 11 (resultados guardados): generador de resultados para el informe.*

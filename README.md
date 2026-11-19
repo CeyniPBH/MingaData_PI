@@ -36,6 +36,7 @@ python -m pytest tests\ML_C -q
 - `data/results/ML_Ce/oferta_escenarios.csv`: oferta por producto, municipio y año (2024–2028), en escenarios bajo, base y alto.
 - `data/results/ML_Ce/oferta_departamento.csv`: totales departamentales.
 - `data/results/ML_Ce/oferta_escenarios_detalle.csv`: oferta más modelo y horizonte.
+- `data/results/opt/`: Pareto, estabilidad por escenario y comparación libre vs zonas para el informe (ver `data/results/opt/LEEME.md`).
 - `docs/ML_C/`: metodología, diccionario de datos, fuentes y limitaciones.
 
 Al leer CSV, conserva `cod_dane` como texto para no perder ceros iniciales:
@@ -89,11 +90,37 @@ python src/optimizacion/modelo_esqueleto.py
 
 La formulación matemática está documentada en `docs/formulacion_optimizacion.md`.
 
+### Resultados de optimización para el informe
+
+El modelo real se ejecuta con:
+
+```powershell
+# Genera Pareto, estabilidad 2024/2028 y comparación libre vs zonas
+python src/optimizacion/generar_resultados.py
+
+# Opcional: los 5 años de escenarios.csv (135 escenarios)
+python src/optimizacion/generar_resultados.py --anios 2024 2025 2026 2027 2028
+```
+
+Los CSV quedan en `data/results/opt/`:
+
+- `frontera_pareto_base.csv` y `barrido_lambda_base.csv`: central, satélites y costos por lambda.
+- `estabilidad_escenarios.csv`: 27 escenarios por año (2024 y 2028 por defecto), con central, satélites y costos.
+- `comparacion_libre_vs_zonas.csv` y `comparacion_libre_vs_zonas_resumen.csv`: mismo escenario con y sin las zonas de Alejandro.
+- `metadata.json`: parámetros, solver, commit y huellas SHA256.
+
+Definiciones: `costo_total = λ·A + (1−λ)·B` es el objetivo del solver;
+`costo_total_suma = A1 + A2 + B` es la suma física de los tres tramos. El detalle
+de columnas está en `data/results/opt/LEEME.md`.
+
 ## Pruebas automatizadas
 
 ```powershell
 # Verificar Tarea 1 (optimización)
 python src/optimizacion/test_tarea1.py
+
+# Verificar los CSV de optimización para el informe
+python src/optimizacion/test_resultados_opt.py
 
 # Verificar Tarea 3 (tablero)
 python src/dashboard/test_tarea3.py

@@ -1,0 +1,96 @@
+{
+  "generado": "2026-11-19T08:50:47-05:00",
+  "git_commit": "a6701e67818214553346b3253426b9b42ec712b7",
+  "python": "3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]",
+  "solver": "SCIP 10.0.0 [LP solver: SoPlex 8.0.0]",
+  "parametros": {
+    "escenario_base": "2024_Obase_Cbase_M80_20",
+    "anios_estabilidad": [
+      2024,
+      2028
+    ],
+    "k": 5,
+    "lambda": 0.5,
+    "lambdas_pareto": [
+      0.0,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0
+    ],
+    "gap_relativo": 0.0,
+    "tiempo_limite_s": 120,
+    "partes_generadas": [
+      "pareto",
+      "estabilidad",
+      "comparacion"
+    ]
+  },
+  "nota_columnas": {
+    "costo_total": "lambda*A + (1-lambda)*B (objetivo que minimiza el solver)",
+    "costo_total_suma": "A1 + A2 + B (suma fisica de los tres tramos)",
+    "A": "A1 + A2 (recoleccion + satelite->central)",
+    "B": "central->destinos (igual a costo_distribucion)",
+    "cambia_central_vs_base": "comparacion contra el escenario base del mismo anio",
+    "cambia_satelites_vs_base": "comparacion de conjuntos de satelites, sin importar el orden"
+  },
+  "entradas": {
+    "data/results/escenarios.csv": {
+      "bytes": 85975,
+      "sha256": "6460f0d5f596fa679d1095c28c9d09658d3f8fd8f89049e55409dc0e14673cd5"
+    },
+    "data/results/excedentes.csv": {
+      "bytes": 5267447,
+      "sha256": "b86997f54b56fd53c9647ff11585540633281f199564771e4595ebc4e2b633c2"
+    },
+    "data/results/zonas.csv": {
+      "bytes": 919,
+      "sha256": "7fa00b4b986b02cf2ec57b93c72b65d25d76e0dc8a7658422e2cfd049d4a478e"
+    },
+    "data/clean/matriz_tiempos.csv": {
+      "bytes": 71219,
+      "sha256": "30a9319a3f104e9865cf0e055a31dcf63170561add76e3a7df36d740ed891648"
+    },
+    "data/clean/municipios_coordenadas.csv": {
+      "bytes": 1532,
+      "sha256": "61186dbf242183be3cc5a14edbd35bc8c96f0577195d101bf066e2970418d418"
+    },
+    "data/clean/destinos_coordenadas.csv": {
+      "bytes": 322,
+      "sha256": "b7824cc5ee4f5cddbd6b041c0b1d0776ef283e6670d6b7d5fa558780c88a3662"
+    }
+  },
+  "salidas": {
+    "barrido_lambda_base.csv": {
+      "filas": 11,
+      "bytes": 3364,
+      "sha256": "31aca968d10dba061f5f564f62ac3c11022a6e9e17eafc11abbb144939f6f867"
+    },
+    "comparacion_libre_vs_zonas.csv": {
+      "filas": 2,
+      "bytes": 1226,
+      "sha256": "fb91c3ea3e993e41da1dce79944b3ad407da6b2e298278fdbad29cd738825377"
+    },
+    "comparacion_libre_vs_zonas_resumen.csv": {
+      "filas": 1,
+      "bytes": 653,
+      "sha256": "71eb9191b0db1967e6812be6421e217ecc06d8d3dc67e272f6db5bcad7027e5e"
+    },
+    "estabilidad_escenarios.csv": {
+      "filas": 54,
+      "bytes": 19019,
+      "sha256": "9b113289c2a7d441afc9ec31a723df109e3ad245c8bc5d42c024563b75aa7b58"
+    },
+    "frontera_pareto_base.csv": {
+      "filas": 2,
+      "bytes": 798,
+      "sha256": "8ac5d1a4df1f7ce5a2d77c330cf7f60f338b202299707cc192c95529cb64684d"
+    }
+  }
+}
