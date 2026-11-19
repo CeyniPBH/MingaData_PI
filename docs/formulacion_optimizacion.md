@@ -157,6 +157,23 @@ La versión base **no** impone capacidad mínima ni máxima por acopio, por falt
 valores respaldados. Es un supuesto declarado aquí y en el tablero; no se inventan
 capacidades.
 
+### Integralidad, solver y calidad de la solución
+- $x, y$ son binarias; $z, w$ se relajan a $[0,1]$ (la asignación es una p-mediana
+  con relajación LP integral). Tras resolver se **verifica** que $x, y, z, w$ sean
+  binarias (tolerancia `tol_int = 1e-6`), que cada municipio tenga un satélite
+  abierto, que cada satélite abierto enlace con la única central, y que flujos y
+  costos sean coherentes. Si algo es fraccionario o incoherente se lanza error (no
+  se redondea en silencio).
+- Solver: SCIP (CBC de respaldo). Se reporta un **diagnóstico** por solución:
+  solver, estado, objetivo, mejor cota, **brecha efectiva**
+  $= |obj - \text{mejor\_cota}| / (|obj| + 10^{-9})$, tiempo, brecha solicitada y si
+  el solver la aceptó. El `gap_relativo` por defecto es **0** (óptimo certificado).
+- Comparación libre vs zonas (2024, oferta base, consumo base, 80/20, λ=0.5, k=5),
+  resuelta con brecha solicitada 0 y brecha efectiva 0 en ambos modos: objetivo
+  libre 167.211.081 vs zonas 168.052.318 t·min, **diferencia 0,50 %** certificada
+  (no es artefacto de tolerancia). Detalle en
+  `data/results/arendonc2/comparacion_configuraciones.csv`.
+
 ### Supuestos y limitaciones vigentes
 - Mezclas nacional/exportación: escenarios de **sensibilidad**, sin respaldo empírico.
 - Cobertura parcial de consumo: productos pendientes excluidos del volumen.

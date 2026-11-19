@@ -71,6 +71,32 @@ DESTINOS_EXPORTACION = ("DEST_BUENAVENTURA", "DEST_AEROPUERTO_PALMIRA")
 # Tolerancia numérica para deduplicar/dominancia en el barrido de lambda (t·min relativos).
 TOL_PARETO_REL = 1e-6
 
+# Tolerancia de integralidad por defecto: un valor de variable binaria debe estar a
+# <= TOL_INT de 0 o de 1. Si no, se considera fraccionario (no se redondea en silencio).
+TOL_INT_DEFECTO = 1e-6
+
+
+def _configurar_gap(solver, gap_relativo):
+    """
+    Configura la brecha relativa objetivo en SCIP o CBC con la sintaxis de cada uno.
+    Devuelve (aceptado: bool, detalle: str). NO oculta fallos: informa si no se aplicó.
+    """
+    if not gap_relativo or gap_relativo <= 0:
+        return True, "gap solicitado = 0 (óptimo certificado)"
+    nombre = solver.SolverVersion().lower()
+    intentos = []
+    if "scip" in nombre:
+        intentos = ["limits/gap = {}".format(gap_relativo)]
+    elif "cbc" in nombre or "coin" in nombre:
+        intentos = ["ratioGap {}".format(gap_relativo), "allowableGap {}".format(gap_relativo)]
+    else:
+        intentos = ["limits/gap = {}".format(gap_relativo)]
+    for cadena in intentos:
+        ok = solver.SetSolverSpecificParametersAsString(cadena)
+        if ok:
+            return True, "aplicado: '{}'".format(cadena)
+    return False, "no aceptado por el solver ({}): intentos {}".format(nombre, intentos)
+
 # Estados del solver (nombres legibles)
 _ESTADOS = {
     pywraplp.Solver.OPTIMAL: "OPTIMAL",
@@ -224,7 +250,7 @@ def construir_pesos_destinos(destinos, pct_nac, pct_exp,
 
 def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
                        modo="libre", pesos_internos_nac=None, pesos_internos_exp=None,
-                       tiempo_limite_s=60, gap_relativo=0.01):
+                       tiempo_limite_s=120, gap_relativo=0.0, tol_int=1e-6):
     """
     Resuelve la ubicación de central y k satélites con flujo explícito.
 
@@ -234,8 +260,20 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
                   municipio se asigna a un satélite de SU misma zona. El solver elige
                   la ubicación dentro de cada zona (los centros de zonas.csv no se fuerzan).
 
-    Retorna dict con estado, central, satélites, asignaciones, flujos y costos (A, B,
-    tres tramos y objetivo). El tramo satélite->central SIEMPRE está en el objetivo.
+    Variables x, y BINARIAS; z, w relajadas a [0,1] (p-mediana con relajación LP
+    integral); f continua. Antes de construir las asignaciones se verifica
+    integralidad de x, y, z, w (tol_int) y la estructura (un satélite por municipio y
+    abierto; cada satélite abierto enlaza con la única central; coherencia
+    flujo/costos). Si hay fracciones o incoherencias se lanza ValueError (no se
+    redondea en silencio); garantiza una asignación integral válida con objetivo
+    verificado contra el solver.
+
+    gap_relativo=0.0 -> óptimo certificado. tiempo_limite_s acota el tiempo del solver.
+
+    Retorna dict con estado, central, satélites, asignaciones, flujos, costos (A, B,
+    tres tramos y objetivo) y 'diagnostico' (solver, estado, objetivo, mejor_cota,
+    gap_efectivo con su fórmula, tiempo_s, gap_solicitado y si fue aceptado). El tramo
+    satélite->central SIEMPRE está en el objetivo.
     """
     # SCIP resuelve este MIP lineal mucho más rápido que CBC; CBC como respaldo.
     solver = pywraplp.Solver.CreateSolver("SCIP") or pywraplp.Solver.CreateSolver("CBC")
@@ -280,12 +318,15 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
     S = cod_mun_all
 
     # --- variables ---
+    # x (central) e y (satélite) son BINARIAS: son las decisiones combinatorias.
+    # z (asignación municipio->satélite) y w (enlace satélite->central) se relajan a
+    # [0,1]: fijadas x,y, el subproblema es una p-mediana cuya relajación LP es
+    # integral (cada municipio va al satélite abierto más barato; cada satélite a la
+    # única central abierta). Esto acelera y estabiliza la resolución. NO se confía
+    # ciegamente: tras resolver se VERIFICA integralidad (tol_int) y, si algún z o w
+    # resultara fraccionario, se lanza error (no se redondea en silencio).
     x = {c: solver.BoolVar("x_{}".format(c)) for c in C}
     y = {s: solver.BoolVar("y_{}".format(s)) for s in S}
-    # z y w se modelan continuos en [0,1]: con y, x fijas el subproblema de asignación
-    # es una p-mediana cuya relajación LP es integral (cada municipio va al satélite
-    # abierto más barato; cada satélite a la única central abierta). Esto acelera el
-    # MIP sin cambiar el óptimo. Se verifica integralidad al extraer la solución.
     z = {(m, s): solver.NumVar(0.0, 1.0, "z_{}_{}".format(m, s)) for m in cod_mun_all for s in S}
     w = {(s, c): solver.NumVar(0.0, 1.0, "w_{}_{}".format(s, c)) for s in S for c in C}
     f = {(s, c): solver.NumVar(0.0, solver.infinity(), "f_{}_{}".format(s, c)) for s in S for c in C}
@@ -345,27 +386,105 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
 
     if tiempo_limite_s and tiempo_limite_s > 0:
         solver.SetTimeLimit(int(tiempo_limite_s * 1000))  # ms
-    # Brecha relativa aceptable (1%): acelera mucho sin alterar materialmente la
-    # ubicación elegida. Se documenta como tolerancia del solver.
-    if gap_relativo and gap_relativo > 0:
-        try:
-            solver.SetSolverSpecificParametersAsString(
-                "limits/gap = {}".format(gap_relativo)
-            )
-        except Exception:
-            pass
-    status = solver.Solve()
-    estado = _ESTADOS.get(status, "DESCONOCIDO")
-    if status not in (pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE):
-        return {"status": estado, "modo": modo, "k": k, "lambda": lam}
+    gap_aceptado, gap_detalle = _configurar_gap(solver, gap_relativo)
 
-    # --- extraer solución ---
-    central = next(c for c in C if x[c].solution_value() > 0.5)
-    satelites = [s for s in S if y[s].solution_value() > 0.5]
-    asign_m_s = [(m, s) for m in cod_mun_all for s in S if z[(m, s)].solution_value() > 0.5]
-    asign_s_c = [(s, c) for s in S for c in C if w[(s, c)].solution_value() > 0.5]
+    import time as _time
+    _t0 = _time.time()
+    status = solver.Solve()
+    wall_s = round(_time.time() - _t0, 2)
+    estado = _ESTADOS.get(status, "DESCONOCIDO")
+
+    # diagnóstico del solver (se devuelve siempre, haya o no solución)
+    try:
+        cota = solver.Objective().BestBound()
+    except Exception:
+        cota = None
+    diagnostico = {
+        "solver": solver.SolverVersion(),
+        "status": estado,
+        "tiempo_s": wall_s,
+        "gap_solicitado": gap_relativo,
+        "gap_aceptado": gap_aceptado,
+        "gap_detalle": gap_detalle,
+    }
+
+    if status not in (pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE):
+        d = {"status": estado, "modo": modo, "k": k, "lambda": lam}
+        d.update({"diagnostico": diagnostico})
+        return d
+
+    objetivo_solver = solver.Objective().Value()
+    # Brecha efectiva: |objetivo - mejor_cota| / (|objetivo| + 1e-9).
+    # (MIP de minimización: mejor_cota <= objetivo; la brecha mide cuánto podría bajar.)
+    if cota is not None and np.isfinite(cota):
+        gap_efectivo = abs(objetivo_solver - cota) / (abs(objetivo_solver) + 1e-9)
+    else:
+        gap_efectivo = None
+    diagnostico["objetivo"] = objetivo_solver
+    diagnostico["mejor_cota"] = cota
+    diagnostico["gap_efectivo"] = gap_efectivo
+    diagnostico["gap_efectivo_formula"] = "|obj - mejor_cota| / (|obj| + 1e-9)"
+
+    # ---------------------------------------------------------------------
+    # VERIFICACIÓN DE INTEGRALIDAD Y ESTRUCTURA (antes de construir asignaciones)
+    # No se redondea en silencio: si algo es fraccionario o incoherente, se lanza error.
+    # ---------------------------------------------------------------------
+    def _es_binario(v):
+        val = v.solution_value()
+        return (abs(val) <= tol_int) or (abs(val - 1.0) <= tol_int)
+
+    fraccionarias = []
+    for nombre_var, dic in (("x", x), ("y", y), ("z", z), ("w", w)):
+        for clave, var in dic.items():
+            if not _es_binario(var):
+                fraccionarias.append((nombre_var, clave, round(var.solution_value(), 6)))
+    if fraccionarias:
+        raise ValueError(
+            "Solución con variables binarias fraccionarias (tol_int={}): {} casos "
+            "(ej. {}). No se redondea; use binarias o recuperación válida."
+            .format(tol_int, len(fraccionarias), fraccionarias[:8])
+        )
+
+    def _uno(v):
+        return v.solution_value() > 0.5
+
+    # central única y abierta
+    centrales = [c for c in C if _uno(x[c])]
+    if len(centrales) != 1:
+        raise ValueError("Se esperaba exactamente 1 central abierta, hay {}.".format(len(centrales)))
+    central = centrales[0]
+
+    # satélites abiertos = k
+    satelites = [s for s in S if _uno(y[s])]
+    if len(satelites) != k:
+        raise ValueError("Se esperaban {} satélites abiertos, hay {}.".format(k, len(satelites)))
+
+    # cada municipio: exactamente un satélite, y ese satélite está abierto
+    asign_m_s = []
+    for m in cod_mun_all:
+        sats_m = [s for s in S if _uno(z[(m, s)])]
+        if len(sats_m) != 1:
+            raise ValueError("Municipio {} asignado a {} satélites (esperado 1).".format(m, len(sats_m)))
+        s_m = sats_m[0]
+        if not _uno(y[s_m]):
+            raise ValueError("Municipio {} asignado a satélite cerrado {}.".format(m, s_m))
+        asign_m_s.append((m, s_m))
+
+    # cada satélite abierto enlaza con la única central abierta; satélite cerrado no enlaza
+    asign_s_c = []
+    for s in S:
+        cents_s = [c for c in C if _uno(w[(s, c)])]
+        if _uno(y[s]):
+            if cents_s != [central]:
+                raise ValueError(
+                    "Satélite abierto {} enlaza con {} (esperado [{}]).".format(s, cents_s, central))
+            asign_s_c.append((s, central))
+        else:
+            if cents_s:
+                raise ValueError("Satélite cerrado {} tiene enlace {}.".format(s, cents_s))
+
     flujos = {(s, c): f[(s, c)].solution_value()
-              for s in S for c in C if f[(s, c)].solution_value() > 1e-9}
+              for s in S for c in C if f[(s, c)].solution_value() > tol_int}
 
     # --- costos reportados (recalculados desde la solución) ---
     A1_val = sum(q[m] * tiempos[(m, s)] for (m, s) in asign_m_s)
@@ -373,7 +492,28 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
     A_val = A1_val + A2_val
     B_val = costo_unit_dist[central] * Q
     objetivo_val = lam * A_val + (1 - lam) * B_val
-    objetivo_solver = solver.Objective().Value()
+
+    # coherencia asignaciones<->flujos: lo recibido por cada satélite = lo que envía
+    recibido_por_sat = {}
+    for (m, s) in asign_m_s:
+        recibido_por_sat[s] = recibido_por_sat.get(s, 0.0) + q[m]
+    enviado_por_sat = {}
+    for (s, c), vol in flujos.items():
+        enviado_por_sat[s] = enviado_por_sat.get(s, 0.0) + vol
+    tol_flujo = max(1.0, 1e-6 * (Q + 1.0))
+    for s in satelites:
+        if abs(recibido_por_sat.get(s, 0.0) - enviado_por_sat.get(s, 0.0)) > tol_flujo:
+            raise ValueError(
+                "Incoherencia flujo/asignación en satélite {}: recibido {:.3f} != enviado {:.3f}."
+                .format(s, recibido_por_sat.get(s, 0.0), enviado_por_sat.get(s, 0.0))
+            )
+    # coherencia objetivo recalculado vs solver
+    tol_obj = max(1.0, 1e-5 * (abs(objetivo_solver) + 1.0))
+    if abs(objetivo_val - objetivo_solver) > tol_obj:
+        raise ValueError(
+            "Objetivo recalculado {:.3f} difiere del solver {:.3f} (tol {:.3f})."
+            .format(objetivo_val, objetivo_solver, tol_obj)
+        )
 
     cen_row = municipios[municipios["cod_dane"] == central]
     cen_nombre = cen_row["municipio"].iloc[0] if not cen_row.empty else central
@@ -419,6 +559,7 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
         "cobertura": paquete.cobertura_oferta_pct,
         "cobertura_parcial": paquete.cobertura_parcial,
         "advertencias": paquete.advertencias,
+        "diagnostico": diagnostico,
     }
 
 
@@ -471,7 +612,8 @@ def filtrar_no_dominados(df, tol_rel=TOL_PARETO_REL):
 
 def calcular_frontera_pareto(paquete, municipios, destinos, tiempos,
                              k=5, lambdas=None, modo="libre",
-                             pesos_internos_nac=None, pesos_internos_exp=None):
+                             pesos_internos_nac=None, pesos_internos_exp=None,
+                             tiempo_limite_s=120, gap_relativo=0.0):
     """
     Barre lambda y devuelve las SOLUCIONES NO DOMINADAS encontradas en (A, B),
     coherentes con el objetivo λ·A + (1-λ)·B.
@@ -484,6 +626,7 @@ def calcular_frontera_pareto(paquete, municipios, destinos, tiempos,
             paquete, municipios, destinos, tiempos,
             k=k, lam=lam, modo=modo,
             pesos_internos_nac=pesos_internos_nac, pesos_internos_exp=pesos_internos_exp,
+            tiempo_limite_s=tiempo_limite_s, gap_relativo=gap_relativo,
         )
         if res["status"] in ("OPTIMAL", "FEASIBLE"):
             datos.append({
@@ -515,7 +658,8 @@ def _id_escenario(anio, oferta, consumo, mezcla):
 def calcular_estabilidad(municipios, destinos, tiempos, anio,
                          consumo="base", mezcla="80_20", modo="libre",
                          k=5, lam=0.5, ofertas=("bajo", "base", "alto"),
-                         pesos_internos_nac=None, pesos_internos_exp=None):
+                         pesos_internos_nac=None, pesos_internos_exp=None,
+                         tiempo_limite_s=120, gap_relativo=0.0):
     """
     Compara oferta baja/base/alta para un MISMO año, consumo, mezcla, modo, k y lambda.
     Reporta el estado del solver de cada escenario y los que falten o fallen; no usa
@@ -536,7 +680,8 @@ def calcular_estabilidad(municipios, destinos, tiempos, anio,
             continue
         res = resolver_ubicacion(pkg, municipios, destinos, tiempos, k=k, lam=lam,
                                  modo=modo, pesos_internos_nac=pesos_internos_nac,
-                                 pesos_internos_exp=pesos_internos_exp)
+                                 pesos_internos_exp=pesos_internos_exp,
+                                 tiempo_limite_s=tiempo_limite_s, gap_relativo=gap_relativo)
         if res["status"] in ("OPTIMAL", "FEASIBLE"):
             filas.append({
                 "escenario": idesc, "oferta": pkg.escenario_oferta, "consumo": pkg.escenario_consumo,
@@ -560,7 +705,8 @@ def calcular_estabilidad(municipios, destinos, tiempos, anio,
 # =============================================================================
 
 def comparar_configuraciones(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
-                             pesos_internos_nac=None, pesos_internos_exp=None):
+                             pesos_internos_nac=None, pesos_internos_exp=None,
+                             tiempo_limite_s=120, gap_relativo=0.0):
     """
     Resuelve el MISMO escenario (año, oferta, consumo, mezcla, lambda, k) en modo
     libre y en modo zonas, para comparar con entradas iguales.
@@ -569,7 +715,8 @@ def comparar_configuraciones(paquete, municipios, destinos, tiempos, k=5, lam=0.
     for modo in ("libre", "zonas"):
         res = resolver_ubicacion(paquete, municipios, destinos, tiempos, k=k, lam=lam,
                                  modo=modo, pesos_internos_nac=pesos_internos_nac,
-                                 pesos_internos_exp=pesos_internos_exp)
+                                 pesos_internos_exp=pesos_internos_exp,
+                                 tiempo_limite_s=tiempo_limite_s, gap_relativo=gap_relativo)
         out[modo] = res
     return out
 

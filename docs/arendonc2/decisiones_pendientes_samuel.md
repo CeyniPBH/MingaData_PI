@@ -23,6 +23,17 @@ Autor: Alejandro Rendón Correa (arendonc2).
 > compara libre/zonas con entradas iguales y distingue estados del solver
 > (OPTIMAL/FEASIBLE/INFEASIBLE). Detalle en `docs/formulacion_optimizacion.md`.
 >
+> **Integralidad y calidad de la solución:** `x, y` binarias; `z, w` relajadas a
+> [0,1] pero con **verificación de integralidad** (tol 1e-6) y de estructura antes de
+> construir asignaciones; si hubiera fracciones o incoherencias se lanza error (no se
+> redondea). Se reporta diagnóstico del solver (solver, estado, objetivo, mejor cota,
+> brecha efectiva con su fórmula, tiempo, brecha solicitada y si fue aceptada). El
+> `gap_relativo` por defecto es 0 (óptimo certificado); la comparación libre/zonas se
+> regeneró con brecha 0 y la diferencia 0,50 % es certificada. El tablero añade un
+> botón "Calcular" y cachea resultados serializables (no objetos del solver), con
+> claves que incluyen escenario, año, modo, k, λ, pesos, parámetros del solver y una
+> huella de los datos.
+>
 > **Supuestos que permanecen:** sin capacidades por acopio; mezclas nacional/
 > exportación como sensibilidad; cobertura parcial de consumo. **Pendiente de
 > aceptación del equipo:** uso de GADM en vez del MGN del DANE. Ninguno de estos

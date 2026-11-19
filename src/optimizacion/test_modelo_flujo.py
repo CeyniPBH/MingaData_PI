@@ -27,6 +27,7 @@ import modelo_real as M  # noqa: E402
 from ortools.linear_solver import pywraplp  # noqa: E402
 
 
+
 # ---------------------------------------------------------------------------
 # Caso pequeño controlado: fijamos ubicaciones y asignaciones para comprobar
 # el CÁLCULO de flujo y costo, sin depender de dónde decida ubicarse el solver.
@@ -272,6 +273,95 @@ def test_pesos_destinos_validacion():
     pesos = M.construir_pesos_destinos(dst, 0.8, 0.2)
     assert abs(pesos["DEST_CALI"] - 0.8 / 3) < 1e-9
     assert abs(sum(pesos.values()) - 1.0) < 1e-9
+
+
+def test_asignaciones_integrales_y_estructura(base):
+    """Las asignaciones extraídas son íntegras: 42 municipios (uno cada uno), 5
+    satélites, cada satélite abierto enlaza con la única central."""
+    mun, dst, tiempos, pkg = base
+    res = M.resolver_ubicacion(pkg, mun, dst, tiempos, k=5, lam=0.5, modo="libre")
+    assert res["status"] in ("OPTIMAL", "FEASIBLE")
+    # un satélite por municipio
+    muni_asignados = [m for m, s in res["asignaciones_municipio_satelite"]]
+    assert len(muni_asignados) == 42 and len(set(muni_asignados)) == 42
+    # 5 enlaces satélite->central, todos a la misma central
+    centrales_enlace = {c for s, c in res["asignaciones_satelite_central"]}
+    assert len(res["asignaciones_satelite_central"]) == 5
+    assert centrales_enlace == {res["central"]}
+
+
+def test_diagnostico_completo(base):
+    """El diagnóstico reporta solver, estado, objetivo, mejor cota, brecha, tiempo y
+    tolerancia solicitada/aceptada."""
+    mun, dst, tiempos, pkg = base
+    res = M.resolver_ubicacion(pkg, mun, dst, tiempos, k=5, lam=0.5, modo="libre", gap_relativo=0.0)
+    d = res["diagnostico"]
+    for clave in ("solver", "status", "objetivo", "mejor_cota", "gap_efectivo",
+                  "gap_efectivo_formula", "tiempo_s", "gap_solicitado", "gap_aceptado"):
+        assert clave in d, "falta {} en diagnóstico".format(clave)
+    # con gap solicitado 0 y OPTIMAL, la brecha efectiva es ~0
+    assert d["gap_efectivo"] is not None and d["gap_efectivo"] < 1e-4
+
+
+def test_municipios_excedente_cero(base):
+    """Municipios con excedente conocido 0 se asignan igual (no rompen el modelo)."""
+    mun, dst, tiempos, pkg = base
+    q = {r["cod_dane"]: float(r["excedente_t"]) for _, r in pkg.excedente_municipio.iterrows()}
+    ceros = [c for c, v in q.items() if v == 0.0]
+    assert ceros, "se esperaban municipios con excedente 0 (p. ej. Cali)"
+    res = M.resolver_ubicacion(pkg, mun, dst, tiempos, k=5, lam=0.5, modo="libre")
+    asignados = {m for m, s in res["asignaciones_municipio_satelite"]}
+    for c in ceros:
+        assert c in asignados, "municipio con excedente 0 no asignado: {}".format(c)
+
+
+def test_lambda_extremos(base):
+    """Lambda=0 (sólo B) y lambda=1 (sólo A) resuelven con asignaciones íntegras."""
+    mun, dst, tiempos, pkg = base
+    for lam in (0.0, 1.0):
+        res = M.resolver_ubicacion(pkg, mun, dst, tiempos, k=5, lam=lam, modo="libre")
+        assert res["status"] in ("OPTIMAL", "FEASIBLE"), "lambda={}".format(lam)
+        assert len(res["asignaciones_municipio_satelite"]) == 42
+        # objetivo recalculado coincide con el del solver
+        assert abs(res["costo_total"] - res["objetivo_solver"]) < max(1.0, 1e-5 * abs(res["objetivo_solver"]))
+
+
+def test_empates_tiempos_iguales():
+    """Con tiempos simétricos/empatados, la solución sigue siendo íntegra y factible.
+    Caso pequeño controlado: 4 municipios equidistantes, k=1 satélite."""
+    import pandas as pd
+    from types import SimpleNamespace
+
+    cods = ["76001", "76002", "76003", "76004"]
+    nombres = ["A", "B", "C", "D"]
+    zonas = pd.DataFrame({"cod_dane": cods, "municipio": nombres,
+                          "zona": ["Z1"] * 4, "es_centro_zona": [0, 0, 0, 0]})
+    exc = pd.DataFrame({"cod_dane": cods, "municipio": nombres, "zona": ["Z1"] * 4,
+                        "excedente_t": [10.0, 10.0, 10.0, 10.0]})
+    municipios = pd.DataFrame({"cod_dane": cods, "municipio": nombres,
+                               "lat": [0, 0, 1, 1], "lon": [0, 1, 0, 1]})
+    destinos = pd.DataFrame({"id_destino": ["DEST_CALI", "DEST_BUENAVENTURA"],
+                             "nombre": ["Cali", "Buenaventura"], "lat": [0, 0], "lon": [0, 0]})
+    # tiempos todos iguales (empate perfecto) salvo diagonal 0
+    tiempos = {}
+    for a in cods:
+        for b in cods:
+            tiempos[(a, b)] = 0.0 if a == b else 10.0
+        for d in destinos["id_destino"]:
+            tiempos[(a, d)] = 10.0
+    pkg = SimpleNamespace(
+        id_escenario="t", anio=2024, escenario_oferta="base", escenario_consumo="base",
+        pct_nacional=0.8, pct_exportacion=0.2, excedente_municipio=exc,
+        volumen_por_zona=pd.DataFrame({"zona": ["Z1"], "volumen_nacional": [32.0],
+                                       "volumen_exportacion": [8.0], "excedente_t": [40.0]}),
+        zonas=zonas, cobertura_oferta_pct=100.0, cobertura_parcial=False,
+        alcance="test", advertencias=[])
+    res = M.resolver_ubicacion(pkg, municipios, destinos, tiempos, k=1, lam=0.5, modo="libre")
+    assert res["status"] in ("OPTIMAL", "FEASIBLE")
+    assert len(res["asignaciones_municipio_satelite"]) == 4
+    assert len(res["satelites"]) == 1
+    # todo el volumen (40 t) llega a la central por el único satélite
+    assert abs(sum(res["flujos_satelite_central"].values()) - 40.0) < 1e-6
 
 
 def test_estado_infeasible_no_rompe():

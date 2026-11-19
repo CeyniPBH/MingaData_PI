@@ -86,6 +86,84 @@ def cargar_todos_los_datos():
 
 oferta, oferta_dep, coherencia, municipios, destinos, matriz_tiempos, produccion, lista_productos = cargar_todos_los_datos()
 
+
+# =============================================================================
+# CACHÉ DE OPTIMIZACIÓN (pantalla 3)
+# Se cachean SÓLO resultados serializables (dicts/DataFrames), nunca objetos del
+# solver. Las claves incluyen escenario, año, modo, k, lambda, pesos de destinos,
+# parámetros del solver y una huella de los datos de entrada, para invalidar la
+# caché si cambian los datos o la configuración.
+# =============================================================================
+def _huella_datos():
+    """Huella de los archivos de datos que alimentan la optimización (mtime+tamaño).
+    Si cualquiera cambia, la clave de caché cambia y se recalcula."""
+    import hashlib
+    base = Path(__file__).resolve().parents[2]
+    archivos = [
+        base / "data" / "results" / "escenarios.csv",
+        base / "data" / "results" / "excedentes.csv",
+        base / "data" / "results" / "zonas.csv",
+        base / "data" / "clean" / "matriz_tiempos.csv",
+        base / "data" / "clean" / "municipios_coordenadas.csv",
+        base / "data" / "clean" / "destinos_coordenadas.csv",
+    ]
+    h = hashlib.sha256()
+    for a in archivos:
+        try:
+            st_ = a.stat()
+            h.update("{}:{}:{}".format(a.name, int(st_.st_mtime), st_.st_size).encode())
+        except FileNotFoundError:
+            h.update("{}:missing".format(a.name).encode())
+    return h.hexdigest()[:16]
+
+
+@st.cache_data(show_spinner=False)
+def opt_resolver_cache(id_escenario, anio, modo, k, lam,
+                       pesos_nac, pesos_exp, tiempo_limite_s, gap_relativo, huella):
+    """Resuelve una configuración y devuelve el dict (serializable) del resultado.
+    `huella` entra en la clave para invalidar si cambian los datos."""
+    municipios_, destinos_, matriz_ = cargar_datos_reales()
+    tiempos_ = construir_matriz_tiempos_dict(matriz_, municipios_, destinos_)
+    pkg = preparar_para_solver(id_escenario, anio)
+    return resolver_ubicacion(
+        pkg, municipios_, destinos_, tiempos_, k=k, lam=lam, modo=modo,
+        pesos_internos_nac=pesos_nac, pesos_internos_exp=pesos_exp,
+        tiempo_limite_s=tiempo_limite_s, gap_relativo=gap_relativo,
+    )
+
+
+@st.cache_data(show_spinner=False)
+def opt_pareto_cache(id_escenario, anio, modo, k, tiempo_limite_s, gap_relativo, huella):
+    """Barrido de lambda (bajo demanda). Devuelve un DataFrame (serializable)."""
+    municipios_, destinos_, matriz_ = cargar_datos_reales()
+    tiempos_ = construir_matriz_tiempos_dict(matriz_, municipios_, destinos_)
+    pkg = preparar_para_solver(id_escenario, anio)
+    return calcular_frontera_pareto(
+        pkg, municipios_, destinos_, tiempos_, k=k,
+        lambdas=[i / 10 for i in range(11)], modo=modo,
+    )
+
+
+@st.cache_data(show_spinner=False)
+def opt_comparacion_cache(id_escenario, anio, k, lam, tiempo_limite_s, gap_relativo, huella):
+    """Comparación libre vs zonas (bajo demanda). Devuelve dict de dicts serializables."""
+    municipios_, destinos_, matriz_ = cargar_datos_reales()
+    tiempos_ = construir_matriz_tiempos_dict(matriz_, municipios_, destinos_)
+    pkg = preparar_para_solver(id_escenario, anio)
+    return comparar_configuraciones(pkg, municipios_, destinos_, tiempos_, k=k, lam=lam)
+
+
+@st.cache_data(show_spinner=False)
+def opt_estabilidad_cache(anio, consumo, mezcla, modo, k, lam, tiempo_limite_s, gap_relativo, huella):
+    """Estabilidad por nivel de oferta (bajo demanda). Devuelve DataFrame serializable
+    más la lista de faltantes (en columnas), evitando usar .attrs no serializable."""
+    municipios_, destinos_, matriz_ = cargar_datos_reales()
+    tiempos_ = construir_matriz_tiempos_dict(matriz_, municipios_, destinos_)
+    df = calcular_estabilidad(municipios_, destinos_, tiempos_, anio=anio,
+                              consumo=consumo, mezcla=mezcla, modo=modo, k=k, lam=lam)
+    faltantes = df.attrs.get("faltantes", [])
+    return df.reset_index(drop=True), faltantes
+
 # =============================================================================
 # SIDEBAR - NAVEGACION
 # =============================================================================
@@ -491,13 +569,13 @@ def pantalla_ubicacion():
 
     municipios, destinos, matriz_tiempos = cargar_datos_reales()
     try:
-        tiempos = construir_matriz_tiempos_dict(matriz_tiempos, municipios, destinos)
+        construir_matriz_tiempos_dict(matriz_tiempos, municipios, destinos)
     except ValueError as e:
         st.error("Matriz de tiempos inválida: {}".format(e))
         return
 
-    # --- controles de la pantalla ---
-    st.markdown("### Parámetros del escenario")
+    # --- controles del escenario ---
+    st.markdown("### Parámetros")
     c1, c2, c3 = st.columns(3)
     with c1:
         ano_sel = st.selectbox("Año:", anos_disponibles, index=0, key="opt_anio")
@@ -514,13 +592,23 @@ def pantalla_ubicacion():
         lam = st.slider("λ (peso de A = recolección+satélite-central):", 0.0, 1.0, 0.5, 0.1,
                         key="opt_lambda")
 
-    k_satelites = 5  # fijo: 5 satélites (y 5 zonas en modo zonas)
+    with st.expander("Parámetros del solver (avanzado)"):
+        cs1, cs2 = st.columns(2)
+        gap_relativo = cs1.number_input("Brecha relativa objetivo (0 = óptimo certificado):",
+                                        min_value=0.0, max_value=0.2, value=0.0, step=0.005,
+                                        format="%.3f", key="opt_gap")
+        tiempo_limite_s = cs2.number_input("Límite de tiempo por solve (s):",
+                                           min_value=10, max_value=600, value=120, step=10,
+                                           key="opt_tlim")
+        st.caption("El límite de tiempo NO se reduce por defecto para aparentar velocidad. "
+                   "Con brecha > 0, la solución puede ser factible y no certificada óptima.")
+
+    k_satelites = 5
     id_escenario = "{}_O{}_C{}_M{}".format(ano_sel, oferta_sel, consumo_sel, mezcla_sel)
+    st.caption("Capacidades: la versión base **no** impone capacidad mínima ni máxima por "
+               "acopio (no hay valores respaldados). Se usan 5 satélites.")
 
-    st.caption("Capacidades: la versión base **no** impone capacidad mínima ni máxima "
-               "por acopio (no hay valores respaldados).")
-
-    # --- cargar paquete del adaptador ---
+    # paquete (barato, para mostrar cobertura y volumen sin resolver el MIP)
     try:
         paquete = preparar_para_solver(id_escenario, ano_sel)
     except Exception as e:
@@ -528,7 +616,6 @@ def pantalla_ubicacion():
         st.info("Corre: python src/arendonc2/ejecutar_todo.py")
         return
 
-    # volumen conocido, cobertura parcial, nº satélites
     vol_conocido = float(paquete.excedente_municipio["excedente_t"].sum())
     mcol1, mcol2, mcol3 = st.columns(3)
     mcol1.metric("Volumen conocido (t)", "{:,.0f}".format(vol_conocido))
@@ -542,23 +629,57 @@ def pantalla_ubicacion():
             .format(paquete.cobertura_oferta_pct)
         )
 
+    # --- botón explícito de cálculo ---
+    st.markdown("### Cálculo")
+    st.caption("La optimización se ejecuta sólo al pulsar el botón. Los resultados se "
+               "cachean por escenario, año, modo, k, λ, pesos y parámetros del solver, "
+               "y se invalidan si cambian los datos.")
+    calcular = st.button("▶️ Calcular optimización", type="primary", key="opt_run")
+
+    firma = (id_escenario, ano_sel, modo_sel, k_satelites, lam, gap_relativo, tiempo_limite_s)
+    if calcular:
+        st.session_state["opt_firma"] = firma
+    if st.session_state.get("opt_firma") != firma:
+        st.info("Ajusta los parámetros y pulsa **Calcular optimización** para resolver.")
+        return
+
+    huella = _huella_datos()
     mun_a_zona = dict(zip(paquete.zonas["cod_dane"], paquete.zonas["zona"]))
 
-    # --- resolver el modo seleccionado ---
+    # --- resolver (cacheado, sólo resultado serializable) ---
     try:
-        res = resolver_ubicacion(paquete, municipios, destinos, tiempos,
-                                 k=k_satelites, lam=lam, modo=modo_sel)
+        with st.spinner("Resolviendo (modo {})…".format(modo_sel)):
+            res = opt_resolver_cache(id_escenario, ano_sel, modo_sel, k_satelites, lam,
+                                     None, None, int(tiempo_limite_s), float(gap_relativo), huella)
     except ValueError as e:
-        st.error("Error en la configuración: {}".format(e))
+        st.error("Error en la configuración/solución: {}".format(e))
         return
 
     if res["status"] not in ("OPTIMAL", "FEASIBLE"):
-        st.error("El solver no encontró solución (estado: {}). Revisa el escenario o la "
-                 "configuración.".format(res["status"]))
+        st.error("El solver no encontró solución (estado: {}).".format(res["status"]))
+        diag = res.get("diagnostico", {})
+        if diag:
+            st.json(diag)
         return
     if res["status"] == "FEASIBLE":
-        st.info("Solución **factible** (no probada óptima dentro del límite de tiempo). "
+        st.info("Solución **factible** (no certificada óptima dentro del límite/brecha). "
                 "No se presenta como óptima.")
+
+    # --- diagnóstico del solver ---
+    diag = res["diagnostico"]
+    with st.expander("Diagnóstico del solver", expanded=False):
+        st.write({
+            "solver": diag["solver"],
+            "estado": diag["status"],
+            "objetivo (t·min)": round(diag.get("objetivo", float("nan")), 2),
+            "mejor_cota (t·min)": round(diag["mejor_cota"], 2) if diag.get("mejor_cota") is not None else None,
+            "brecha_efectiva": diag.get("gap_efectivo"),
+            "brecha_formula": diag.get("gap_efectivo_formula"),
+            "tiempo_s": diag.get("tiempo_s"),
+            "gap_solicitado": diag.get("gap_solicitado"),
+            "gap_aceptado_por_solver": diag.get("gap_aceptado"),
+            "detalle_gap": diag.get("gap_detalle"),
+        })
 
     central_cod = res["central"]
     central_nombre = res["central_nombre"]
@@ -567,7 +688,6 @@ def pantalla_ubicacion():
     central_lon = municipios[municipios["cod_dane"] == central_cod]["lon"].iloc[0]
     satelites_info = res["satelites"]
 
-    # --- mapa + resumen ---
     st.markdown("### Mapa de ubicación (modo {}, estado {})".format(modo_sel, res["status"]))
     col1, col2 = st.columns([2, 1])
     with col1:
@@ -580,14 +700,11 @@ def pantalla_ubicacion():
             cod, nom = row["cod_dane"], row["municipio"]
             ofe = oferta_mun.get(cod, 0.0)
             if cod == central_cod:
-                color, radius = "red", 12
-                tipo = "CENTRAL"
+                color, radius, tipo = "red", 12, "CENTRAL"
             elif cod in sat_cods:
-                color, radius = "orange", 9
-                tipo = "SATÉLITE"
+                color, radius, tipo = "orange", 9, "SATÉLITE"
             else:
-                color, radius = "blue", 5
-                tipo = ""
+                color, radius, tipo = "blue", 5, ""
             popup = "<b>{} {}</b> ({})<br>Zona: {}<br>Excedente: {:,.0f} t".format(
                 tipo, nom, cod, mun_a_zona.get(cod, "?"), ofe)
             folium.CircleMarker(location=[row["lat"], row["lon"]], radius=radius,
@@ -615,8 +732,7 @@ def pantalla_ubicacion():
         st.markdown("**Satélites:**")
         for i, s in enumerate(satelites_info):
             st.write("{}. {} (zona {}{})".format(
-                i + 1, s["nombre"], s["zona"],
-                ", centro ref." if s["es_centro"] else ""))
+                i + 1, s["nombre"], s["zona"], ", centro ref." if s["es_centro"] else ""))
         st.markdown("---")
         st.markdown("### Costos (t·min)")
         st.metric("A1 recolección (muni→sat)", "{:,.0f}".format(res["costo_recoleccion"]))
@@ -634,25 +750,27 @@ def pantalla_ubicacion():
 
     st.markdown("---")
 
-    # --- comparación libre vs zonas (mismas entradas) ---
+    # --- comparación libre vs zonas (bajo demanda, cacheada) ---
     st.markdown("### Comparación de configuraciones (mismas entradas)")
     st.markdown("Mismo año, oferta, consumo, mezcla, λ y k=5; libre vs un satélite por zona.")
-    comp = comparar_configuraciones(paquete, municipios, destinos, tiempos, k=5, lam=lam)
+    comp = opt_comparacion_cache(id_escenario, ano_sel, k_satelites, lam,
+                                 int(tiempo_limite_s), float(gap_relativo), huella)
     filas_comp = []
     for modo, r in comp.items():
         if r["status"] in ("OPTIMAL", "FEASIBLE"):
+            d = r.get("diagnostico", {})
             filas_comp.append({
                 "modo": modo, "estado": r["status"],
                 "central": "{} ({})".format(r["central_nombre"], r["central_zona"]),
-                "A1 recolección": r["costo_recoleccion"],
-                "A2 sat→central": r["costo_satelite_central"],
-                "B central→dest": r["costo_central_destinos"],
-                "A": r["A"], "B": r["B"], "objetivo": r["costo_total"],
+                "A1 recolección": r["costo_recoleccion"], "A2 sat→central": r["costo_satelite_central"],
+                "B central→dest": r["costo_central_destinos"], "A": r["A"], "B": r["B"],
+                "objetivo": r["costo_total"],
+                "brecha": d.get("gap_efectivo"), "tiempo_s": d.get("tiempo_s"),
             })
         else:
             filas_comp.append({"modo": modo, "estado": r["status"], "central": "-",
-                               "A1 recolección": None, "A2 sat→central": None,
-                               "B central→dest": None, "A": None, "B": None, "objetivo": None})
+                               "A1 recolección": None, "A2 sat→central": None, "B central→dest": None,
+                               "A": None, "B": None, "objetivo": None, "brecha": None, "tiempo_s": None})
     df_comp = pd.DataFrame(filas_comp)
     st.dataframe(
         df_comp.style.format({c: "{:,.0f}" for c in
@@ -660,14 +778,20 @@ def pantalla_ubicacion():
                              na_rep="—"),
         use_container_width=True,
     )
+    resueltos_comp = [r for r in comp.values() if r["status"] in ("OPTIMAL", "FEASIBLE")]
+    if len(resueltos_comp) == 2:
+        oa, ob = resueltos_comp[0]["costo_total"], resueltos_comp[1]["costo_total"]
+        base_cmp = min(abs(oa), abs(ob)) or 1.0
+        st.caption("Diferencia de objetivo entre configuraciones: {:.2f}% "
+                   "(brecha efectiva de cada solución en la tabla).".format(100 * abs(oa - ob) / base_cmp))
 
-    # --- soluciones no dominadas (Pareto en A, B) ---
+    # --- Pareto (bajo demanda, cacheado) ---
     st.markdown("### Soluciones no dominadas encontradas (barrido de λ)")
     st.markdown("Ejes **A** (recolección + satélite→central) y **B** (central→destinos), "
-                "coherentes con el objetivo. Puntos dominados y duplicados eliminados. "
-                "No se afirma que el barrido recupere toda la frontera.")
-    df_pareto = calcular_frontera_pareto(paquete, municipios, destinos, tiempos,
-                                         k=5, lambdas=[i / 10 for i in range(11)], modo=modo_sel)
+                "coherentes con el objetivo; dominados y duplicados eliminados. No se "
+                "afirma que el barrido recupere toda la frontera.")
+    df_pareto = opt_pareto_cache(id_escenario, ano_sel, modo_sel, k_satelites,
+                                 int(tiempo_limite_s), float(gap_relativo), huella)
     if df_pareto.empty:
         st.info("No se obtuvieron soluciones para el barrido de λ.")
     else:
@@ -684,28 +808,26 @@ def pantalla_ubicacion():
                           template="plotly_white", height=400)
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- estabilidad (año seleccionado, mismo consumo/mezcla/modo/k/lambda) ---
+    # --- estabilidad (bajo demanda, cacheada, año seleccionado) ---
     st.markdown("### Estabilidad por nivel de oferta (año {})".format(ano_sel))
     st.markdown("Compara oferta baja/base/alta para el **año seleccionado**, con el mismo "
                 "consumo, mezcla, configuración, k y λ.")
-    df_estab = calcular_estabilidad(municipios, destinos, tiempos, anio=ano_sel,
-                                    consumo=consumo_sel, mezcla=mezcla_sel, modo=modo_sel,
-                                    k=5, lam=lam)
+    df_estab, faltantes = opt_estabilidad_cache(ano_sel, consumo_sel, mezcla_sel, modo_sel,
+                                                k_satelites, lam, int(tiempo_limite_s),
+                                                float(gap_relativo), huella)
     st.dataframe(
         df_estab[["escenario", "oferta", "central", "status", "A", "B", "costo_total", "cobertura"]]
         .style.format({"A": "{:,.0f}", "B": "{:,.0f}", "costo_total": "{:,.0f}",
                        "cobertura": "{:.2f}%"}, na_rep="—"),
         use_container_width=True,
     )
-    faltantes = df_estab.attrs.get("faltantes", [])
     sin_sol = df_estab[~df_estab["status"].isin(["OPTIMAL", "FEASIBLE"])]
     if faltantes or not sin_sol.empty:
         st.warning("Escenarios sin solución o no disponibles: {}".format(
             ", ".join(sorted(set(sin_sol["escenario"]).union(f["escenario"] for f in faltantes)))))
     resueltos = df_estab[df_estab["status"].isin(["OPTIMAL", "FEASIBLE"])]
     if not resueltos.empty:
-        centrales_unicas = resueltos["central"].nunique()
-        if centrales_unicas == 1:
+        if resueltos["central"].nunique() == 1:
             st.success("Ubicación **estable**: la misma central en todos los niveles de oferta resueltos.")
         else:
             st.warning("Ubicación **variable**: la central cambia según el nivel de oferta.")
