@@ -6,9 +6,15 @@ Las lecturas prefieren Parquet (artefacto derivado en data/clean o data/results)
 y caen a CSV cuando el Parquet no existe. Asi el tablero funciona igual en un
 clon recien descargado y aprovecha Parquet cuando se ejecuto
 `python src/pipeline/exportar_parquet.py`.
+
+Si la variable de entorno MINGA_DATA_BUCKET esta definida, se intenta leer
+primero desde un bucket S3 (ruta s3://{bucket}/{prefix}/{ruta_relativa}).
+Esto permite desplegar el tablero en Streamlit Cloud sin subir CSV/Parquet al
+repositorio. Si no hay bucket o falla la lectura, se usa el disco local.
 """
 
 from pathlib import Path
+import os
 
 import pandas as pd
 import streamlit as st
@@ -18,10 +24,63 @@ DATA_CLEAN = ROOT / "data" / "clean"
 DATA_RES = ROOT / "data" / "results" / "ML_Ce"
 DATA_RES_ROOT = ROOT / "data" / "results"
 
+# --- Configuración de nube (opcional) ---
+BUCKET = os.getenv("MINGA_DATA_BUCKET", "").strip()
+PREFIX = os.getenv("MINGA_DATA_PREFIX", "").strip()
+REGION = os.getenv("MINGA_DATA_REGION", "us-east-1").strip()
+
+
+def _s3_path(ruta_relativa: str) -> str | None:
+    """Devuelve una URI s3:// si hay bucket configurado, o None."""
+    if not BUCKET:
+        return None
+    pref = f"{PREFIX.strip('/')}/" if PREFIX else ""
+    return f"s3://{BUCKET}/{pref}{ruta_relativa}"
+
+
+def _s3_fs():
+    """Devuelve un filesystem S3 si s3fs esta instalado y hay bucket, o None."""
+    if not BUCKET:
+        return None
+    try:
+        import s3fs
+
+        return s3fs.S3FileSystem()
+    except Exception:
+        return None
+
+
+def _ruta_relativa(base: Path, nombre_parquet: str, particionado: bool) -> str:
+    """Ruta relativa desde ROOT para usar como clave en S3."""
+    if particionado:
+        return str(base.relative_to(ROOT) / nombre_parquet)
+    return str(base.relative_to(ROOT) / f"{nombre_parquet}.parquet")
+
 
 def _leer(nombre_parquet, base, nombre_csv=None, particionado=False, dtype=None, **kwargs):
-    """Lee Parquet si existe; si no, CSV. Devuelve un DataFrame vacio si no hay fuente."""
+    """Lee Parquet si existe (S3 o local); si no, CSV local.
+    Devuelve un DataFrame vacio si no hay fuente."""
     nombre_csv = nombre_csv or nombre_parquet
+
+    # --- Intento 1: Parquet en S3 (nube) ---
+    if BUCKET:
+        fs = _s3_fs()
+        if fs is not None:
+            try:
+                uri = _s3_path(_ruta_relativa(base, nombre_parquet, particionado))
+                if fs.exists(uri):
+                    df = pd.read_parquet(uri, filesystem=fs)
+                    if "anio" in df.columns:
+                        df["anio"] = pd.to_numeric(df["anio"]).astype(int)
+                    if dtype:
+                        for col, tipo in dtype.items():
+                            if col in df.columns:
+                                df[col] = df[col].astype(tipo)
+                    return df
+            except Exception:
+                pass  # cae a local
+
+    # --- Intento 2: Parquet local ---
     if particionado:
         carpeta = base / nombre_parquet
         if carpeta.exists():
@@ -41,6 +100,8 @@ def _leer(nombre_parquet, base, nombre_csv=None, particionado=False, dtype=None,
                 if col in df.columns:
                     df[col] = df[col].astype(tipo)
         return df
+
+    # --- Intento 3: CSV local ---
     csv = base / f"{nombre_csv}.csv"
     if csv.exists():
         return pd.read_csv(csv, encoding="utf-8-sig", dtype=dtype, **kwargs)

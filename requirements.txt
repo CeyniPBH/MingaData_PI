@@ -25,3 +25,7 @@ plotly>=5.18
 folium>=0.15
 streamlit>=1.67      # st.iframe para el tablero central
 streamlit-folium>=0.13
+
+# --- Nube (opcional, solo para despliegue) ---
+boto3>=1.28        # cliente AWS S3
+s3fs>=2023.1       # leer/escribir parquet en s3://

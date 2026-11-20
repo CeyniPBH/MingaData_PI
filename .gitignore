@@ -1,19 +1,37 @@
-# Datos crudos pesados (SIPSA + FRONTERA ICA, ~750 MB). Se bajan con: python src/ML_C/00_descargar_datos.py
-data/raw/SIPSA/
-data/raw/*.xlsx
-*.rar
-*.zip
-
-# Insumos crudos descargables de arendonc2 (se regeneran con sus scripts):
-#   - GADM (zonas): python src/arendonc2/descargar_geometrias.py
-#   - población DANE: python src/arendonc2/poblacion.py
-data/raw/geo/
-data/raw/poblacion/
-
-# Python / Jupyter
-__pycache__/
-.ipynb_checkpoints/
-.pytest_cache/
+# --- Entorno virtual ---
 .venv/
 venv/
 .env
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.build/
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+
+# --- Datos crudos pesados (no se suben al repo) ---
+data/raw/SIPSA/
+data/raw/geo/
+data/raw/poblacion/
+*.zip
+
+# --- Datos derivados (se regeneran con el pipeline) ---
+data/logs/
+data/metadata/
+data/clean/*.parquet
+data/clean/produccion/
+data/results/*.parquet
+data/results/ML_Ce/*.parquet
+data/results/excedentes/
+data/results/opt/*.parquet
+data/results/zonas.parquet
+data/results/escenarios.parquet
+
+# --- Notebooks ---
+.ipynb_checkpoints/

@@ -34,6 +34,11 @@ ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "data" / "logs"
 PY = sys.executable
 
+# Configuración de bucket opcional (nube)
+BUCKET_ENV = os.getenv("MINGA_DATA_BUCKET", "").strip()
+PREFIX_ENV = os.getenv("MINGA_DATA_PREFIX", "").strip()
+REGION_ENV = os.getenv("MINGA_DATA_REGION", "us-east-1").strip()
+
 
 @dataclass
 class Etapa:
@@ -121,6 +126,43 @@ def _ejecutar(etapa: Etapa, log) -> tuple[int, float]:
     return codigo, segundos
 
 
+def _subir_a_s3(ruta_local: Path, bucket: str, prefijo: str, region: str) -> bool:
+    """Sube un archivo a S3. Devuelve True si tuvo éxito."""
+    try:
+        import boto3
+        from botocore.exceptions import NoCredentialsError, ClientError
+    except Exception:
+        print("  AVISO: boto3 no instalado; no se sube a S3.")
+        return False
+    try:
+        s3 = boto3.client("s3", region_name=region)
+        clave = f"{prefijo.strip('/')}/{ruta_local.relative_to(ROOT)}" if prefijo else str(ruta_local.relative_to(ROOT))
+        s3.upload_file(str(ruta_local), bucket, clave)
+        return True
+    except (NoCredentialsError, ClientError) as e:
+        print(f"  AVISO: no se pudo subir {ruta_local.name} a S3: {e}")
+        return False
+    except Exception as e:
+        print(f"  AVISO: error subiendo {ruta_local.name} a S3: {e}")
+        return False
+
+
+def _subir_artefactos_a_s3(bucket: str, prefijo: str, region: str) -> None:
+    """Sube Parquet, catálogo y logs al bucket tras una corrida exitosa."""
+    rutas: list[Path] = []
+    for base in [ROOT / "data" / "clean", ROOT / "data" / "results", ROOT / "data" / "metadata"]:
+        for p in base.rglob("*"):
+            if p.is_file() and (p.suffix == ".parquet" or p.name == "catalogo.yaml"):
+                rutas.append(p)
+    for log in LOGS.glob("pipeline_*.log"):
+        rutas.append(log)
+
+    print("\n--- Subiendo artefactos a S3 ---")
+    for ruta in sorted(rutas):
+        ok = _subir_a_s3(ruta, bucket, prefijo, region)
+        print(f"  {'OK ' if ok else 'FAL'} {ruta.relative_to(ROOT)}")
+
+
 def main(argv: list[str] | None = None) -> int:
     etapas_posibles = ["validar", "ml", "arendonc2", "diagnostico", "metrica",
                        "tuning", "opt", "parquet", "pruebas"]
@@ -135,6 +177,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--continuar", action="store_true",
                     help="Continúa tras una etapa fallida")
     ap.add_argument("--dry-run", action="store_true", help="Solo muestra las etapas")
+    ap.add_argument("--bucket", default=BUCKET_ENV,
+                    help="Bucket S3 para subir artefactos (opcional; también MINGA_DATA_BUCKET)")
+    ap.add_argument("--region", default=REGION_ENV,
+                    help="Región AWS (opcional; también MINGA_DATA_REGION)")
+    ap.add_argument("--prefix", default=PREFIX_ENV,
+                    help="Prefijo dentro del bucket (opcional; también MINGA_DATA_PREFIX)")
     args = ap.parse_args(argv)
 
     etapas, avisos = _etapas(args)
@@ -183,6 +231,11 @@ def main(argv: list[str] | None = None) -> int:
     if fallas:
         print(f"\n{len(fallas)} etapa(s) fallaron.", file=sys.stderr)
         return 1
+
+    # Subir artefactos al bucket S3 si se indicó
+    if args.bucket:
+        _subir_artefactos_a_s3(args.bucket, args.prefix, args.region)
+
     print("\nPipeline completado.")
     return 0
 
