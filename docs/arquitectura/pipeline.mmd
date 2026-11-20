@@ -1,0 +1,118 @@
+flowchart LR
+  subgraph FUENTES["Fuentes externas"]
+    A1["Gobernación del Valle<br/>permanentes y transitorios"]
+    A2["DANE SIPSA<br/>precios mayoristas"]
+    A3["ICA FRONTERA<br/>inspecciones fitosanitarias"]
+    A4["DANE DIVIPOLA<br/>códigos y coordenadas"]
+    A5["FAOSTAT<br/>consumo per cápita"]
+    A6["NOAA CPC<br/>ONI"]
+    A7["OpenStreetMap / matriz<br/>de tiempos"]
+    A8["EVA<br/>referencia bibliográfica"]
+  end
+
+  subgraph RAW["Zona raw · data/raw (inmutable)"]
+    R1["CSV, XLSX y ZIP originales"]
+  end
+
+  subgraph INGESTA["Ingesta y validación"]
+    V1["00_descargar_datos.py"]
+    V2["00b_validar_ingesta.py"]
+  end
+
+  subgraph TRUSTED["Zona trusted · data/clean"]
+    C1["produccion_valle_clean"]
+    C2["lista_productos"]
+    C3["matriz_tiempos"]
+    C4["valor_producto y precios"]
+    C5["consumo, ONI y población"]
+    C6["comercio_ica_frontera"]
+  end
+
+  subgraph ML["Procesamiento ML · src/ML_C"]
+    M1["01_limpieza"]
+    M2["02_diagnostico"]
+    M3["03_geo_tiempos"]
+    M4["04_fuentes_externas"]
+    M5["05_baselines"]
+    M6["06_lgbm"]
+    M7["07_escenarios"]
+    M8["08_validar_entregas"]
+    M9["09_diagnostico_modelo"]
+    M10["10_metrica_negocio"]
+    M11["06b_tuning (opcional)"]
+  end
+
+  subgraph REFINED["Zona refined · data/results"]
+    O1["oferta_escenarios"]
+    O2["predicciones_comparacion"]
+    O3["diagnóstico y métrica<br/>de negocio"]
+    O4["zonas, excedentes<br/>y escenarios"]
+  end
+
+  subgraph OPT["Optimización · src/optimizacion"]
+    P1["OR-Tools<br/>Pareto y estabilidad"]
+    P2["Libre vs zonas"]
+    P3["Sensibilidad por valor"]
+  end
+
+  subgraph SERVING["Consumo"]
+    S1["Tablero Streamlit"]
+    S2["Parquet + catálogo"]
+  end
+
+  subgraph ORQ["Orquestación y calidad"]
+    Q1["run_all.py"]
+    Q2["pytest"]
+    Q3["exportar_parquet.py"]
+  end
+
+  A1 --> R1
+  A2 --> R1
+  A3 --> R1
+  A4 --> R1
+  A5 --> R1
+  A6 --> R1
+  A8 --> R1
+  R1 --> V1
+  V1 --> V2
+  V2 --> C1
+  V2 --> C2
+  V2 --> C3
+  V2 --> C4
+  V2 --> C5
+  V2 --> C6
+  C1 --> M1
+  C1 --> M2
+  C3 --> M3
+  C4 --> M4
+  C5 --> M4
+  C6 --> M4
+  M1 --> M5
+  M1 --> M6
+  M5 --> M7
+  M6 --> M7
+  M7 --> M8
+  M8 --> O1
+  M8 --> O2
+  M9 --> O3
+  M10 --> O3
+  M11 -. "experimento, no modelo final" .-> M7
+  O1 --> O4
+  O4 --> P1
+  O4 --> P2
+  O4 --> P3
+  P1 --> S2
+  P2 --> S2
+  P3 --> S2
+  O1 --> S2
+  O2 --> S2
+  O3 --> S2
+  S2 --> S1
+  A7 --> C3
+  Q1 --> V2
+  Q1 --> ML
+  Q1 --> OPT
+  Q1 --> Q3
+  Q3 --> S2
+  Q1 --> Q2
+  Q2 --> S1

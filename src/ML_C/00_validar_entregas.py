@@ -57,7 +57,7 @@ def main():
     print("== archivos externos (opcionales hasta que se descarguen)")
     contratos = {"valor_producto.csv": ["producto", "cod_dane", "anio", "produccion_t", "precio_cop_kg", "valor_cop"],
                  "oni.csv": ["anio", "oni"],
-                 "poblacion_municipal.csv": ["cod_dane", "anio", "poblacion"],
+                 "poblacion_municipal.csv": ["cod_dane", "anio", "poblacion_total"],
                  "consumo_percapita.csv": ["item_faostat", "anio", "kg_per_capita_anio"]}
     for nombre, cols in contratos.items():
         f = CLEAN / nombre

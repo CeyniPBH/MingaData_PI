@@ -1,0 +1,220 @@
+Pipeline MingaData | 2026-11-20 17:38:55
+Python: C:\Users\Samuel\Documents\UNIVERSIDAD EAFIT\LINEA_DE_ENFASIS\Proyecto Integrador\MingaData_PI\.venv\Scripts\python.exe
+AVISO: arendonc2 se omite: ya existen zonas.csv, excedentes.csv y escenarios.csv y faltan insumos crudos descargables. Usa --con-arendonc2 para forzarlo.
+
+===== VALIDAR | Validación de las fuentes crudas =====
+C:\Users\Samuel\Documents\UNIVERSIDAD EAFIT\LINEA_DE_ENFASIS\Proyecto Integrador\MingaData_PI\.venv\Scripts\python.exe src/ML_C/00b_validar_ingesta.py
+
+==============================================================================
+VALIDACIÓN DE INGESTA - MINGADATA
+==============================================================================
+[OK     ] Gobernación (permanentes)        filas=   15,282  1 archivo(s); 42 municipios; 2000-2023
+          AVISO: Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+[OK     ] Gobernación (transitorios)       filas=   17,267  1 archivo(s); 42 municipios; 2000-2023
+          AVISO: Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+          AVISO: Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+[OK     ] EVA (referencia)                 filas=        1  Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa
+[OK     ] SIPSA precios / ICA              filas=    8,000  40 archivos de precios y 12 de FRONTERA
+[OK     ] DIVIPOLA                         filas=    1,122  42 municipios del Valle
+[OK     ] OSM / matriz de tiempos          filas=    1,974  1,974 pares; métodos ['aproximado']
+          AVISO: La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+[OK     ] FAOSTAT                          filas=      273  69 ítems; 2020-2023
+[OK     ] NOAA ONI                         filas=      345  1998-2026; 12 meses por año (último año parcial)
+          AVISO: 2026 está incompleto (9 meses); es el año en curso
+[OK     ] Comercio (Comtrade/ICA)          filas=   15,526  Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones
+          AVISO: Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+------------------------------------------------------------------------------
+OK: 9 | FALLAS: 0 | OMITIDAS: 0
+Resumen JSON: data\logs\ingesta_ultima.json
+Log: data\logs\ingesta_20261120.log
+----- validar: OK en 0.9s -----
+
+===== ML | Pronóstico: limpieza, baselines, LightGBM y escenarios =====
+C:\Users\Samuel\Documents\UNIVERSIDAD EAFIT\LINEA_DE_ENFASIS\Proyecto Integrador\MingaData_PI\.venv\Scripts\python.exe src/ML_C/ejecutar_todo.py
+
+===== 00_descargar_datos.py =====
+Los datos ya están en C:\Users\Samuel\Documents\UNIVERSIDAD EAFIT\LINEA_DE_ENFASIS\Proyecto Integrador\MingaData_PI\data\raw\SIPSA; nada que hacer (usa --forzar para repetir).
+
+===== 00b_validar_ingesta.py =====
+
+==============================================================================
+VALIDACIÓN DE INGESTA - MINGADATA
+==============================================================================
+[OK     ] Gobernación (permanentes)        filas=   15,282  1 archivo(s); 42 municipios; 2000-2023
+          AVISO: Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+[OK     ] Gobernación (transitorios)       filas=   17,267  1 archivo(s); 42 municipios; 2000-2023
+          AVISO: Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+          AVISO: Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+[OK     ] EVA (referencia)                 filas=        1  Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa
+[OK     ] SIPSA precios / ICA              filas=    8,000  40 archivos de precios y 12 de FRONTERA
+[OK     ] DIVIPOLA                         filas=    1,122  42 municipios del Valle
+[OK     ] OSM / matriz de tiempos          filas=    1,974  1,974 pares; métodos ['aproximado']
+          AVISO: La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+[OK     ] FAOSTAT                          filas=      273  69 ítems; 2020-2023
+[OK     ] NOAA ONI                         filas=      345  1998-2026; 12 meses por año (último año parcial)
+          AVISO: 2026 está incompleto (9 meses); es el año en curso
+[OK     ] Comercio (Comtrade/ICA)          filas=   15,526  Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones
+          AVISO: Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+------------------------------------------------------------------------------
+OK: 9 | FALLAS: 0 | OMITIDAS: 0
+Resumen JSON: data\logs\ingesta_ultima.json
+Log: data\logs\ingesta_20261120.log
+
+===== 01_limpieza.py =====
+filas crudas 15282 | duplicados exactos 18 | filas limpias 15019
+cultivos originales 61 -> armonizados 57
+estado: {'detallado': 22, 'simplificado': 22, 'excluido': 13} | municipios: 42 | años 2000 2023
+
+===== 02_diagnostico.py =====
+series activas 724 | transiciones 12501 | repetidas 2613 (20.9 %) | saltos>100% 949 (7.6 %) | saltos 3sd 327
+{'alta': 19, 'baja': 18, 'media': 7}
+         producto       estado  n_municipios  anios_mediana  pct_repetidos  pct_saltos_100 confianza
+        Guanábana    detallado            23           23.0           39.5             6.7     media
+            Mango    detallado            18           17.0           37.6             6.2     media
+           Borojó    detallado             1           24.0           34.8             4.3      baja
+          Guayaba    detallado            30           23.5           33.3             6.8     media
+              Vid    detallado            16           24.0           27.8             7.8      alta
+         Aguacate    detallado            39           24.0           24.2             9.7      alta
+           Sábila    detallado             9            9.0           24.1            12.1      baja
+         Cítricos    detallado            37           24.0           23.4             6.7      alta
+    Cebolla Larga    detallado            14           15.0           22.9             6.7      alta
+             Mora    detallado            23           24.0           22.6             7.5      alta
+           Banano    detallado            38           24.0           22.0             5.1      alta
+    Caña panelera    detallado            32           24.0           21.7             5.5      alta
+              Ají    detallado            20           11.5           17.8            11.0      baja
+          Plátano    detallado            41           24.0           16.7             4.4      alta
+             Lulo    detallado            29           24.0           16.2            12.5      alta
+         Maracuyá    detallado            37           18.0           15.8            11.4      alta
+             Yuca    detallado            34           23.0           15.0             9.5      alta
+             Piña    detallado            22           17.5           14.9             9.7      alta
+        Arracacha    detallado            18           18.5           12.6            14.2      alta
+           Papaya    detallado            23           19.0           12.2            16.7     media
+   Caña de azúcar    detallado            30           24.0           12.0             1.7      alta
+             Café    detallado            39           24.0            3.7             3.5      alta
+           Stevia simplificado             1           10.0           66.7             0.0      baja
+            Brevo simplificado             1           21.0           60.0            10.0      baja
+            Arazá simplificado             1           10.0           55.6             0.0      baja
+           Gulupa simplificado             2            2.5           50.0             0.0      baja
+               Té simplificado             1           24.0           47.8             0.0      baja
+       Aromáticas simplificado             8            3.0           42.9             0.0      baja
+       Chontaduro simplificado             3           24.0           41.7             8.3     media
+        Macadamia simplificado             4           11.0           40.0             4.0      baja
+          Durazno simplificado             2            7.5           36.4             0.0      baja
+           Zapote simplificado             4           15.5           35.6             4.4     media
+             Coco simplificado             1           24.0           34.8             4.3      baja
+  Tomate de Árbol simplificado            16           23.0           30.6             7.2     media
+Flores y follajes simplificado             9            5.0           29.6             7.4      baja
+            Fresa simplificado             9            7.0           29.6            18.5      baja
+           Pitaya simplificado            16           16.0           29.6             5.6      alta
+            Cacao simplificado            36           16.0           26.7             9.9      alta
+           Curuba simplificado             4           23.5           26.0             5.5      alta
+       Granadilla simplificado            20           19.5           25.0            10.4      alta
+      Sacha Inchi simplificado             9            6.0           20.9            16.3      baja
+         Bananito simplificado             2           20.5           15.4             2.6      baja
+        Papachina simplificado             1           24.0           13.6             4.5      baja
+           Uchuva simplificado             1            2.0            0.0             0.0      baja
+
+===== 03_geo_tiempos.py =====
+matriz: 1974 filas (esperadas 1974) | huecos: 0
+prod promedio: (745, 4) | municipios con producción: 42
+
+===== 04_fuentes_externas.py =====
+  SIPSA: 39 archivos, 294,557 registros, 348 productos, años 2021-2026
+  Valor: 37 productos con precio; activos sin precio (11): Arazá, Aromáticas, Cacao, Chontaduro, Flores y follajes, Macadamia, Papachina, Sacha Inchi, Stevia, Sábila, Té
+  Ranking por valor: 4 productos cambiarían de grupo
+  ONI: fuente ONI_NOAA_CPC (transcripción), años 1998-2025
+  FAOSTAT: 69 ítems, años 2020-2023
+  Población: PENDIENTE (falta archivo DANE en data/raw/, ver README)
+  FRONTERA: 12 archivos -> 15,526 filas agregadas, años 2021-2026
+
+===== 05_baselines.py =====
+C:\Users\Samuel\Documents\UNIVERSIDAD EAFIT\LINEA_DE_ENFASIS\Proyecto Integrador\MingaData_PI\.venv\Lib\site-packages\statsmodels\tsa\holtwinters\model.py:1065: ConvergenceWarning: Optimization failed to converge. Check mle_retvals.
+  res = self._optimize_parameters(res, use_brute, method, minimize_kwargs)
+predicciones: 10567 filas, 43s
+producto modelo  n_obs  n_series  pct_obs_escala0     MASE     WAPE  mejora_MASE_vs_naive  mejora_WAPE_vs_naive
+   TOTAL  naive  10567       723              2.1 3.725640 0.101406              0.000000              0.000000
+   TOTAL  mean5  10567       723              2.1 4.074442 0.150473             -0.093622             -0.483859
+   TOTAL  drift   8407       572              1.3 4.048515 0.106192             -0.033442             -0.051352
+   TOTAL    ets   8407       572              1.3 4.212367 0.130841             -0.075267             -0.295389
+
+===== 06_lgbm.py =====
+ONI: usado
+producto modelo  n_obs  n_series  pct_obs_escala0     MASE     WAPE  mejora_MASE_vs_naive  mejora_WAPE_vs_naive
+   TOTAL  naive   8323       571              0.3 3.917508 0.100982              0.000000              0.000000
+   TOTAL  drift   8323       571              0.3 4.048515 0.106169             -0.033442             -0.051368
+   TOTAL    ets   8323       571              0.3 4.212367 0.130820             -0.075267             -0.295476
+   TOTAL  mean5   8323       571              0.3 4.291190 0.149925             -0.095388             -0.484671
+   TOTAL   lgbm   8323       571              0.3 3.918977 0.103747             -0.000375             -0.027376
+ variable  importancia_relativa
+ cod_dane              0.347644
+ producto              0.210344
+ log_last              0.101714
+  max_rel              0.082248
+        T              0.051155
+horizonte              0.043421
+       m5              0.032643
+       d1              0.030969
+
+===== 07_escenarios.py =====
+filas escenarios: 3620 | series: 724 | años 2024 2028
+max diferencia municipios vs departamento: 0.0
+bajo<=base<=alto: True | nulos: 0
+       grupo horizonte     n  cobertura  cobertura_nominal
+       todos     todos 10567      0.760                0.8
+       todos         1  3548      0.764                0.8
+       todos         2  2825      0.762                0.8
+       todos         3  2105      0.760                0.8
+       todos         4  1393      0.738                0.8
+       todos         5   696      0.773                0.8
+   detallado         1  2819      0.768                0.8
+   detallado         2  2247      0.771                0.8
+   detallado         3  1676      0.765                0.8
+   detallado         4  1110      0.741                0.8
+   detallado         5   555      0.760                0.8
+simplificado         1   729      0.746                0.8
+simplificado         2   578      0.728                0.8
+simplificado         3   429      0.739                0.8
+simplificado         4   283      0.728                0.8
+simplificado         5   141      0.823                0.8
+      producto  año  oferta_bajo  oferta_base  oferta_alto
+          Café 2024      20230.0      36333.0      44828.0
+          Café 2028       6174.0      35947.0      35947.0
+Caña de azúcar 2024   22409336.0   25172438.0   30765416.0
+Caña de azúcar 2028   15301913.0   25569921.0   38889785.0
+       Plátano 2024     254639.0     344256.0     531162.0
+       Plátano 2028     234255.0     352607.0     961351.0
+oferta_escenarios_valor.csv: 89% de las filas con precio
+
+===== 08_validar_entregas.py =====
+== produccion_valle_clean / lista_productos
+  OK  42 municipios con código DANE de 5 dígitos
+  OK  sin duplicados (año, municipio, producto)
+  OK  años 2000-2023
+  OK  conteos 22 detallados / 22 simplificados / 13 excluidos
+== coordenadas y matriz de tiempos
+  OK  42 coordenadas dentro de Colombia
+  OK  matriz completa sin huecos (1974 filas)
+  OK  todos los municipios aparecen como origen
+  OK  todos los destinos están en la matriz
+      metodo de la matriz: ['aproximado']
+== oferta_escenarios
+  OK  columnas exactas del contrato
+  OK  sin nulos
+  OK  bajo <= base <= alto
+  OK  horizonte 2024-2028
+  OK  5 años por serie (724 series)
+  OK  municipios suman el total departamental
+== archivos externos
+  OK  valor_producto.csv con columnas ['producto', 'cod_dane', 'anio', 'produccion_t', 'precio_cop_kg', 'valor_cop']
+  OK  precio_producto_anual.csv con columnas ['producto', 'anio', 'precio_cop_kg', 'tipo_precio']
+  OK  oni.csv con columnas ['anio', 'oni']
+  OK  consumo_percapita.csv con columnas ['item_faostat', 'anio', 'kg_per_capita_anio']
+  OK  comercio_ica_frontera.csv con columnas ['anio', 'tipo_comercio', 'producto_ica', 'puerto', 'toneladas']
+  FALLA poblacion_municipal.csv con columnas ['cod_dane', 'anio', 'poblacion']
+
+AVISOS:
+  - La matriz de tiempos sigue siendo APROXIMADA (reemplazar con OSM/OSRM).
+
+RESULTADO: 1 fallas
+Falló 08_validar_entregas.py; revisa el mensaje de arriba.
+----- ml: FALLA (código 1) en 73.1s -----

@@ -1,0 +1,1154 @@
+version: 1
+fecha: '2026-11-20'
+descripcion: Catálogo de tablas del data lake ligero de MingaData_PI
+zonas:
+  raw: 'data/raw: fuentes originales inmutables'
+  trusted: 'data/clean: tablas tipadas, armonizadas y validadas'
+  refined: 'data/results: pronósticos, zonas, excedentes y optimización'
+tablas:
+- dataset: produccion_valle_clean
+  zona: trusted
+  ruta: data/clean/produccion
+  formato: parquet
+  particion: anio
+  filas: 15019
+  columnas:
+  - anio
+  - cod_dane
+  - municipio
+  - producto
+  - ha_sembradas
+  - ha_cosechadas
+  - produccion_t
+  - familia
+  - rendimiento_t_ha
+  dtypes:
+    anio: int64
+    cod_dane: str
+    municipio: str
+    producto: str
+    ha_sembradas: float64
+    ha_cosechadas: float64
+    produccion_t: float64
+    familia: str
+    rendimiento_t_ha: float64
+  fuente: Gobernación del Valle / EVA, consolidados permanentes y transitorios
+  fecha_generacion: '2026-11-20'
+- dataset: lista_productos
+  zona: trusted
+  ruta: data/clean/lista_productos.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 57
+  columnas:
+  - producto
+  - familia
+  - anio_ini
+  - anio_fin
+  - n_municipios
+  - n_filas
+  - produccion_t_2019_2023
+  - n_municipios_2019_2023
+  - estado
+  - ranking_toneladas
+  dtypes:
+    producto: str
+    familia: str
+    anio_ini: int64
+    anio_fin: int64
+    n_municipios: int64
+    n_filas: int64
+    produccion_t_2019_2023: float64
+    n_municipios_2019_2023: int64
+    estado: str
+    ranking_toneladas: int64
+  fuente: Derivado de produccion_valle_clean
+  fecha_generacion: '2026-11-20'
+- dataset: municipios_coordenadas
+  zona: trusted
+  ruta: data/clean/municipios_coordenadas.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 42
+  columnas:
+  - cod_dane
+  - municipio
+  - lat
+  - lon
+  dtypes:
+    cod_dane: str
+    municipio: str
+    lat: float64
+    lon: float64
+  fuente: DANE DIVIPOLA + Gobernación del Valle
+  fecha_generacion: '2026-11-20'
+- dataset: destinos_coordenadas
+  zona: trusted
+  ruta: data/clean/destinos_coordenadas.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 5
+  columnas:
+  - id_destino
+  - nombre
+  - lat
+  - lon
+  dtypes:
+    id_destino: str
+    nombre: str
+    lat: float64
+    lon: float64
+  fuente: Mercados y puertos definidos en el proyecto
+  fecha_generacion: '2026-11-20'
+- dataset: matriz_tiempos
+  zona: trusted
+  ruta: data/clean/matriz_tiempos.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 1974
+  columnas:
+  - origen
+  - destino
+  - minutos
+  - distancia_km
+  - metodo
+  dtypes:
+    origen: str
+    destino: str
+    minutos: float64
+    distancia_km: float64
+    metodo: str
+  fuente: OpenStreetMap/OSRM (o aproximación documentada)
+  fecha_generacion: '2026-11-20'
+- dataset: precio_producto_anual
+  zona: trusted
+  ruta: data/clean/precio_producto_anual.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 222
+  columnas:
+  - producto
+  - anio
+  - precio_cop_kg
+  - ambito
+  - tipo_precio
+  - factor
+  - productos_sipsa
+  - n_meses
+  dtypes:
+    producto: str
+    anio: int64
+    precio_cop_kg: float64
+    ambito: str
+    tipo_precio: str
+    factor: float64
+    productos_sipsa: str
+    n_meses: int64
+  fuente: DANE SIPSA
+  fecha_generacion: '2026-11-20'
+- dataset: valor_producto
+  zona: trusted
+  ruta: data/clean/valor_producto.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 15019
+  columnas:
+  - producto
+  - cod_dane
+  - municipio
+  - anio
+  - produccion_t
+  - precio_cop_kg
+  - valor_cop
+  - precio_corriente_cop_kg
+  - valor_corriente_cop
+  - tipo_precio
+  - ambito
+  dtypes:
+    producto: str
+    cod_dane: str
+    municipio: str
+    anio: int64
+    produccion_t: float64
+    precio_cop_kg: float64
+    valor_cop: float64
+    precio_corriente_cop_kg: float64
+    valor_corriente_cop: float64
+    tipo_precio: str
+    ambito: str
+  fuente: Producción × precio SIPSA
+  fecha_generacion: '2026-11-20'
+- dataset: poblacion_municipal
+  zona: trusted
+  ruta: data/clean/poblacion_municipal.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 210
+  columnas:
+  - cod_dane
+  - municipio
+  - anio
+  - poblacion_total
+  - fuente
+  dtypes:
+    cod_dane: str
+    municipio: str
+    anio: int64
+    poblacion_total: int64
+    fuente: str
+  fuente: DANE Proyecciones municipales 2020-2035
+  fecha_generacion: '2026-11-20'
+- dataset: consumo_percapita
+  zona: trusted
+  ruta: data/clean/consumo_percapita.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 273
+  columnas:
+  - pais
+  - item_faostat
+  - codigo_item
+  - anio
+  - kg_per_capita_anio
+  - flag
+  dtypes:
+    pais: str
+    item_faostat: str
+    codigo_item: str
+    anio: int64
+    kg_per_capita_anio: float64
+    flag: str
+  fuente: FAOSTAT Food Balances
+  fecha_generacion: '2026-11-20'
+- dataset: comercio_ica_frontera
+  zona: trusted
+  ruta: data/clean/comercio_ica_frontera.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 15526
+  columnas:
+  - anio
+  - tipo_comercio
+  - tipo_producto
+  - producto_ica
+  - puerto
+  - toneladas
+  - unidades
+  - n_registros
+  - estado_dato
+  dtypes:
+    anio: int64
+    tipo_comercio: str
+    tipo_producto: str
+    producto_ica: str
+    puerto: str
+    toneladas: float64
+    unidades: float64
+    n_registros: int64
+    estado_dato: str
+  fuente: ICA FRONTERA
+  fecha_generacion: '2026-11-20'
+- dataset: produccion_promedio_municipio
+  zona: trusted
+  ruta: data/clean/produccion_promedio_municipio.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 745
+  columnas:
+  - cod_dane
+  - municipio
+  - producto
+  - prod_prom_t_2019_2023
+  - valor_prom_cop_2019_2023
+  dtypes:
+    cod_dane: str
+    municipio: str
+    producto: str
+    prod_prom_t_2019_2023: float64
+    valor_prom_cop_2019_2023: float64
+  fuente: Derivado de producción y precios
+  fecha_generacion: '2026-11-20'
+- dataset: precios_sipsa_anual
+  zona: trusted
+  ruta: data/clean/precios_sipsa_anual.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 3010
+  columnas:
+  - producto_sipsa
+  - anio
+  - precio_cop_kg
+  - n_meses
+  - ambito
+  - grupo
+  dtypes:
+    producto_sipsa: str
+    anio: int64
+    precio_cop_kg: float64
+    n_meses: int64
+    ambito: str
+    grupo: str
+  fuente: DANE SIPSA
+  fecha_generacion: '2026-11-20'
+- dataset: oferta_escenarios
+  zona: refined
+  ruta: data/results/ML_Ce/oferta_escenarios.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 3620
+  columnas:
+  - producto
+  - cod_dane
+  - año
+  - oferta_bajo
+  - oferta_base
+  - oferta_alto
+  dtypes:
+    producto: str
+    cod_dane: str
+    año: int64
+    oferta_bajo: float64
+    oferta_base: float64
+    oferta_alto: float64
+  fuente: Modelo de pronóstico ML_C (07_escenarios.py)
+  fecha_generacion: '2026-11-20'
+- dataset: oferta_departamento
+  zona: refined
+  ruta: data/results/ML_Ce/oferta_departamento.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 220
+  columnas:
+  - producto
+  - año
+  - oferta_bajo
+  - oferta_base
+  - oferta_alto
+  dtypes:
+    producto: str
+    año: int64
+    oferta_bajo: float64
+    oferta_base: float64
+    oferta_alto: float64
+  fuente: Agregación municipal de oferta_escenarios
+  fecha_generacion: '2026-11-20'
+- dataset: predicciones_comparacion
+  zona: refined
+  ruta: data/results/ML_Ce/predicciones_comparacion.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 8323
+  columnas:
+  - producto
+  - cod_dane
+  - estado
+  - origen_anio
+  - horizonte
+  - anio_objetivo
+  - real
+  - escala_mase
+  - naive
+  - mean5
+  - drift
+  - ets
+  - lgbm
+  dtypes:
+    producto: str
+    cod_dane: str
+    estado: str
+    origen_anio: int64
+    horizonte: int64
+    anio_objetivo: int64
+    real: float64
+    escala_mase: float64
+    naive: float64
+    mean5: float64
+    drift: float64
+    ets: float64
+    lgbm: float64
+  fuente: Walk-forward de baselines + LightGBM (06_lgbm.py)
+  fecha_generacion: '2026-11-20'
+- dataset: metricas_comparacion
+  zona: refined
+  ruta: data/results/ML_Ce/metricas_comparacion.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 115
+  columnas:
+  - producto
+  - modelo
+  - n_obs
+  - n_series
+  - pct_obs_escala0
+  - MASE
+  - WAPE
+  - mejora_MASE_vs_naive
+  - mejora_WAPE_vs_naive
+  dtypes:
+    producto: str
+    modelo: str
+    n_obs: int64
+    n_series: int64
+    pct_obs_escala0: float64
+    MASE: float64
+    WAPE: float64
+    mejora_MASE_vs_naive: float64
+    mejora_WAPE_vs_naive: float64
+  fuente: Evaluación walk-forward (05_baselines.py)
+  fecha_generacion: '2026-11-20'
+- dataset: importancia_variables
+  zona: refined
+  ruta: data/results/ML_Ce/importancia_variables.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 14
+  columnas:
+  - variable
+  - importancia_relativa
+  dtypes:
+    variable: str
+    importancia_relativa: float64
+  fuente: LightGBM global (06_lgbm.py)
+  fecha_generacion: '2026-11-20'
+- dataset: cobertura_intervalos
+  zona: refined
+  ruta: data/results/ML_Ce/cobertura_intervalos.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 16
+  columnas:
+  - grupo
+  - horizonte
+  - n
+  - cobertura
+  - cobertura_nominal
+  dtypes:
+    grupo: str
+    horizonte: str
+    n: int64
+    cobertura: float64
+    cobertura_nominal: float64
+  fuente: Calibración de intervalos (07_escenarios.py)
+  fecha_generacion: '2026-11-20'
+- dataset: coherencia_jerarquica
+  zona: refined
+  ruta: data/results/ML_Ce/coherencia_jerarquica.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 220
+  columnas:
+  - producto
+  - año
+  - oferta_base_municipios
+  - oferta_base_departamento
+  - dif
+  dtypes:
+    producto: str
+    año: int64
+    oferta_base_municipios: float64
+    oferta_base_departamento: float64
+    dif: float64
+  fuente: Validación municipios vs departamento (07_escenarios.py)
+  fecha_generacion: '2026-11-20'
+- dataset: tuning_resultados
+  zona: refined
+  ruta: data/results/ML_Ce/tuning_resultados.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 14
+  columnas:
+  - candidato
+  - cambio
+  - params_json
+  - n_obs
+  - MASE_lgbm
+  - WAPE_lgbm
+  - MASE_ensemble
+  - WAPE_ensemble
+  - segundos
+  - delta_MASE_vs_actual
+  - delta_WAPE_vs_actual
+  dtypes:
+    candidato: int64
+    cambio: str
+    params_json: str
+    n_obs: int64
+    MASE_lgbm: float64
+    WAPE_lgbm: float64
+    MASE_ensemble: float64
+    WAPE_ensemble: float64
+    segundos: float64
+    delta_MASE_vs_actual: float64
+    delta_WAPE_vs_actual: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: tuning_holdout_resumen
+  zona: refined
+  ruta: data/results/ML_Ce/tuning_holdout_resumen.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 2
+  columnas:
+  - configuracion
+  - MASE_lgbm
+  - WAPE_lgbm
+  - MASE_ensemble
+  - WAPE_ensemble
+  dtypes:
+    configuracion: str
+    MASE_lgbm: float64
+    WAPE_lgbm: float64
+    MASE_ensemble: float64
+    WAPE_ensemble: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: diagnostico_horizonte
+  zona: refined
+  ruta: data/results/ML_Ce/diagnostico_horizonte.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 5
+  columnas:
+  - horizonte
+  - n_obs
+  - n_series
+  - MASE
+  - MASE_naive
+  - WAPE
+  - WAPE_naive
+  - mejora_MASE_vs_naive
+  - mejora_abs_vs_naive
+  - sesgo_t
+  - error_abs_medio_t
+  - error_abs_total_t
+  - real_total_t
+  dtypes:
+    horizonte: int64
+    n_obs: int64
+    n_series: int64
+    MASE: float64
+    MASE_naive: float64
+    WAPE: float64
+    WAPE_naive: float64
+    mejora_MASE_vs_naive: float64
+    mejora_abs_vs_naive: float64
+    sesgo_t: float64
+    error_abs_medio_t: float64
+    error_abs_total_t: float64
+    real_total_t: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: diagnostico_producto
+  zona: refined
+  ruta: data/results/ML_Ce/diagnostico_producto.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 22
+  columnas:
+  - producto
+  - n_obs
+  - n_series
+  - MASE
+  - MASE_naive
+  - WAPE
+  - WAPE_naive
+  - mejora_MASE_vs_naive
+  - mejora_abs_vs_naive
+  - sesgo_t
+  - error_abs_medio_t
+  - error_abs_total_t
+  - real_total_t
+  dtypes:
+    producto: str
+    n_obs: int64
+    n_series: int64
+    MASE: float64
+    MASE_naive: float64
+    WAPE: float64
+    WAPE_naive: float64
+    mejora_MASE_vs_naive: float64
+    mejora_abs_vs_naive: float64
+    sesgo_t: float64
+    error_abs_medio_t: float64
+    error_abs_total_t: float64
+    real_total_t: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: diagnostico_municipio
+  zona: refined
+  ruta: data/results/ML_Ce/diagnostico_municipio.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 3
+  columnas:
+  - tamano_municipio
+  - n_obs
+  - n_series
+  - MASE
+  - MASE_naive
+  - WAPE
+  - WAPE_naive
+  - mejora_MASE_vs_naive
+  - mejora_abs_vs_naive
+  - sesgo_t
+  - error_abs_medio_t
+  - error_abs_total_t
+  - real_total_t
+  dtypes:
+    tamano_municipio: str
+    n_obs: int64
+    n_series: int64
+    MASE: float64
+    MASE_naive: float64
+    WAPE: float64
+    WAPE_naive: float64
+    mejora_MASE_vs_naive: float64
+    mejora_abs_vs_naive: float64
+    sesgo_t: float64
+    error_abs_medio_t: float64
+    error_abs_total_t: float64
+    real_total_t: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: diagnostico_confianza
+  zona: refined
+  ruta: data/results/ML_Ce/diagnostico_confianza.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 3
+  columnas:
+  - confianza
+  - n_obs
+  - n_series
+  - MASE
+  - MASE_naive
+  - WAPE
+  - WAPE_naive
+  - mejora_MASE_vs_naive
+  - mejora_abs_vs_naive
+  - sesgo_t
+  - error_abs_medio_t
+  - error_abs_total_t
+  - real_total_t
+  dtypes:
+    confianza: str
+    n_obs: int64
+    n_series: int64
+    MASE: float64
+    MASE_naive: float64
+    WAPE: float64
+    WAPE_naive: float64
+    mejora_MASE_vs_naive: float64
+    mejora_abs_vs_naive: float64
+    sesgo_t: float64
+    error_abs_medio_t: float64
+    error_abs_total_t: float64
+    real_total_t: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: residuales_resumen
+  zona: refined
+  ruta: data/results/ML_Ce/residuales_resumen.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 1
+  columnas:
+  - ambito
+  - n_obs
+  - n_series
+  - MASE
+  - MASE_naive
+  - WAPE
+  - WAPE_naive
+  - mejora_MASE_vs_naive
+  - mejora_abs_vs_naive
+  - sesgo_t
+  - error_abs_medio_t
+  - error_abs_total_t
+  - real_total_t
+  - residual_medio_t
+  - residual_mediano_t
+  - residual_std_t
+  - p5_t
+  - p95_t
+  - pct_sobreestima
+  - pct_subestima
+  dtypes:
+    ambito: str
+    n_obs: int64
+    n_series: int64
+    MASE: float64
+    MASE_naive: float64
+    WAPE: float64
+    WAPE_naive: float64
+    mejora_MASE_vs_naive: float64
+    mejora_abs_vs_naive: float64
+    sesgo_t: float64
+    error_abs_medio_t: float64
+    error_abs_total_t: float64
+    real_total_t: float64
+    residual_medio_t: float64
+    residual_mediano_t: float64
+    residual_std_t: float64
+    p5_t: float64
+    p95_t: float64
+    pct_sobreestima: float64
+    pct_subestima: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: curva_aprendizaje
+  zona: refined
+  ruta: data/results/ML_Ce/curva_aprendizaje.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 6
+  columnas:
+  - n_estimaciones
+  - rmse_train_log
+  - rmse_validacion_log
+  - n_train
+  - n_validacion
+  dtypes:
+    n_estimaciones: int64
+    rmse_train_log: float64
+    rmse_validacion_log: float64
+    n_train: int64
+    n_validacion: int64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: metrica_negocio_resumen
+  zona: refined
+  ruta: data/results/ML_Ce/metrica_negocio_resumen.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 13
+  columnas:
+  - ambito
+  - alternativa
+  - n_obs
+  - error_abs_t
+  - tmin
+  - tmin_millones
+  - cop_base
+  - cop_bajo
+  - cop_alto
+  - delta_vs_sin_modelo_pct
+  dtypes:
+    ambito: str
+    alternativa: str
+    n_obs: int64
+    error_abs_t: float64
+    tmin: float64
+    tmin_millones: float64
+    cop_base: float64
+    cop_bajo: float64
+    cop_alto: float64
+    delta_vs_sin_modelo_pct: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: metrica_negocio_producto
+  zona: refined
+  ruta: data/results/ML_Ce/metrica_negocio_producto.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 22
+  columnas:
+  - producto
+  - n_obs
+  - real_t
+  - tmin_sin_modelo
+  - tmin_ingenuo
+  - tmin_modelo
+  - tmin_gated
+  - usa_modelo
+  - delta_modelo_vs_ingenuo_pct
+  dtypes:
+    producto: str
+    n_obs: int64
+    real_t: float64
+    tmin_sin_modelo: float64
+    tmin_ingenuo: float64
+    tmin_modelo: float64
+    tmin_gated: float64
+    usa_modelo: bool
+    delta_modelo_vs_ingenuo_pct: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: metrica_negocio_horizonte
+  zona: refined
+  ruta: data/results/ML_Ce/metrica_negocio_horizonte.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 5
+  columnas:
+  - horizonte
+  - n_obs
+  - tmin_sin_modelo
+  - tmin_ingenuo
+  - tmin_modelo
+  dtypes:
+    horizonte: int64
+    n_obs: int64
+    tmin_sin_modelo: float64
+    tmin_ingenuo: float64
+    tmin_modelo: float64
+  fuente: Ver docs/ML_C/fuentes_caracterizacion.md
+  fecha_generacion: '2026-11-20'
+- dataset: excedentes
+  zona: refined
+  ruta: data/results/excedentes
+  formato: parquet
+  particion: anio
+  filas: 31230
+  columnas:
+  - producto
+  - cod_dane
+  - municipio
+  - zona
+  - anio
+  - escenario_oferta
+  - escenario_consumo
+  - factor_consumo
+  - oferta_t
+  - kg_per_capita
+  - poblacion_total
+  - consumo_local_t
+  - excedente_t
+  - consumo_pendiente
+  - motivo_pendiente
+  - umbral_sobreoferta_t
+  - sobreoferta
+  dtypes:
+    producto: str
+    cod_dane: str
+    municipio: str
+    zona: str
+    anio: int64
+    escenario_oferta: str
+    escenario_consumo: str
+    factor_consumo: float64
+    oferta_t: float64
+    kg_per_capita: float64
+    poblacion_total: int64
+    consumo_local_t: float64
+    excedente_t: float64
+    consumo_pendiente: int64
+    motivo_pendiente: str
+    umbral_sobreoferta_t: float64
+    sobreoferta: float64
+  fuente: Oferta menos consumo local (src/arendonc2/excedentes.py)
+  fecha_generacion: '2026-11-20'
+- dataset: escenarios
+  zona: refined
+  ruta: data/results/escenarios.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 675
+  columnas:
+  - id_escenario
+  - oferta
+  - consumo
+  - pct_nacional
+  - pct_exportacion
+  - zona
+  - volumen_nacional
+  - volumen_exportacion
+  - anio
+  - alcance
+  - cobertura_oferta_pct
+  dtypes:
+    id_escenario: str
+    oferta: str
+    consumo: str
+    pct_nacional: float64
+    pct_exportacion: float64
+    zona: str
+    volumen_nacional: float64
+    volumen_exportacion: float64
+    anio: int64
+    alcance: str
+    cobertura_oferta_pct: float64
+  fuente: Escenarios de optimización (src/arendonc2/escenarios.py)
+  fecha_generacion: '2026-11-20'
+- dataset: zonas
+  zona: refined
+  ruta: data/results/zonas.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 42
+  columnas:
+  - cod_dane
+  - municipio
+  - zona
+  - es_centro_zona
+  dtypes:
+    cod_dane: str
+    municipio: str
+    zona: str
+    es_centro_zona: int64
+  fuente: Agrupamiento espacial de municipios (src/arendonc2/zonas_acopio.py)
+  fecha_generacion: '2026-11-20'
+- dataset: frontera_pareto_base
+  zona: refined
+  ruta: data/results/opt/frontera_pareto_base.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 2
+  columnas:
+  - lambda
+  - central
+  - central_cod
+  - central_zona
+  - satelites
+  - satelites_cods
+  - satelites_zonas
+  - n_satelites
+  - costo_recoleccion
+  - costo_satelite_central
+  - costo_distribucion
+  - costo_total
+  - costo_total_suma
+  - A
+  - B
+  - cobertura
+  - status
+  - gap_efectivo
+  - tiempo_s
+  dtypes:
+    lambda: float64
+    central: str
+    central_cod: str
+    central_zona: str
+    satelites: str
+    satelites_cods: str
+    satelites_zonas: str
+    n_satelites: int64
+    costo_recoleccion: float64
+    costo_satelite_central: float64
+    costo_distribucion: float64
+    costo_total: float64
+    costo_total_suma: float64
+    A: float64
+    B: float64
+    cobertura: float64
+    status: str
+    gap_efectivo: float64
+    tiempo_s: float64
+  fuente: OR-Tools, barrido de lambda (src/optimizacion/)
+  fecha_generacion: '2026-11-20'
+- dataset: estabilidad_escenarios
+  zona: refined
+  ruta: data/results/opt/estabilidad_escenarios.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 54
+  columnas:
+  - anio
+  - id_escenario
+  - oferta
+  - consumo
+  - mezcla
+  - pct_nacional
+  - pct_exportacion
+  - central
+  - central_cod
+  - central_zona
+  - satelites
+  - satelites_cods
+  - satelites_zonas
+  - n_satelites
+  - costo_recoleccion
+  - costo_satelite_central
+  - costo_distribucion
+  - costo_total
+  - costo_total_suma
+  - A
+  - B
+  - cobertura
+  - status
+  - gap_efectivo
+  - tiempo_s
+  - es_base
+  - cambia_central_vs_base
+  - cambia_satelites_vs_base
+  dtypes:
+    anio: int64
+    id_escenario: str
+    oferta: str
+    consumo: str
+    mezcla: str
+    pct_nacional: float64
+    pct_exportacion: float64
+    central: str
+    central_cod: str
+    central_zona: str
+    satelites: str
+    satelites_cods: str
+    satelites_zonas: str
+    n_satelites: int64
+    costo_recoleccion: float64
+    costo_satelite_central: float64
+    costo_distribucion: float64
+    costo_total: float64
+    costo_total_suma: float64
+    A: float64
+    B: float64
+    cobertura: float64
+    status: str
+    gap_efectivo: float64
+    tiempo_s: float64
+    es_base: bool
+    cambia_central_vs_base: bool
+    cambia_satelites_vs_base: bool
+  fuente: OR-Tools, escenarios de oferta/consumo/mezcla
+  fecha_generacion: '2026-11-20'
+- dataset: comparacion_libre_vs_zonas
+  zona: refined
+  ruta: data/results/opt/comparacion_libre_vs_zonas.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 2
+  columnas:
+  - id_escenario
+  - anio
+  - lambda
+  - k
+  - modo
+  - central
+  - central_cod
+  - central_zona
+  - satelites
+  - satelites_cods
+  - satelites_zonas
+  - n_satelites
+  - costo_recoleccion
+  - costo_satelite_central
+  - costo_distribucion
+  - costo_total
+  - costo_total_suma
+  - A
+  - B
+  - cobertura
+  - status
+  - gap_efectivo
+  - tiempo_s
+  - delta_objetivo_vs_libre
+  - delta_objetivo_pct_vs_libre
+  - delta_costo_recoleccion_vs_libre
+  - delta_costo_distribucion_vs_libre
+  - delta_costo_total_suma_vs_libre
+  - misma_central_que_libre
+  - mismos_satelites_que_libre
+  dtypes:
+    id_escenario: str
+    anio: int64
+    lambda: float64
+    k: int64
+    modo: str
+    central: str
+    central_cod: str
+    central_zona: str
+    satelites: str
+    satelites_cods: str
+    satelites_zonas: str
+    n_satelites: int64
+    costo_recoleccion: float64
+    costo_satelite_central: float64
+    costo_distribucion: float64
+    costo_total: float64
+    costo_total_suma: float64
+    A: float64
+    B: float64
+    cobertura: float64
+    status: str
+    gap_efectivo: float64
+    tiempo_s: float64
+    delta_objetivo_vs_libre: float64
+    delta_objetivo_pct_vs_libre: float64
+    delta_costo_recoleccion_vs_libre: float64
+    delta_costo_distribucion_vs_libre: float64
+    delta_costo_total_suma_vs_libre: float64
+    misma_central_que_libre: bool
+    mismos_satelites_que_libre: bool
+  fuente: OR-Tools, comparación territorial
+  fecha_generacion: '2026-11-20'
+- dataset: comparacion_toneladas_vs_valor
+  zona: refined
+  ruta: data/results/opt/comparacion_toneladas_vs_valor.parquet
+  formato: parquet
+  particion: ninguna
+  filas: 54
+  columnas:
+  - anio
+  - id_escenario
+  - central_ton
+  - central_cod_ton
+  - central_zona_ton
+  - central_valor
+  - central_cod_valor
+  - central_zona_valor
+  - misma_central
+  - satelites_ton
+  - satelites_valor
+  - mismos_satelites
+  - n_satelites
+  - obj_ton_red_ton
+  - obj_ton_red_valor
+  - obj_valor_red_ton
+  - obj_valor_red_valor
+  - delta_ton_pct
+  - delta_valor_pct
+  - A_ton_red_ton
+  - B_ton_red_ton
+  - A_valor_red_ton
+  - B_valor_red_ton
+  - A_ton_red_valor
+  - B_ton_red_valor
+  - A_valor_red_valor
+  - B_valor_red_valor
+  - volumen_total_t
+  - valor_total_cop
+  - precio_ref_cop_kg
+  - cobertura_valor_pct
+  - status_ton
+  - status_valor
+  - tiempo_s_valor
+  - gap_efectivo_valor
+  dtypes:
+    anio: int64
+    id_escenario: str
+    central_ton: str
+    central_cod_ton: str
+    central_zona_ton: str
+    central_valor: str
+    central_cod_valor: str
+    central_zona_valor: str
+    misma_central: bool
+    satelites_ton: str
+    satelites_valor: str
+    mismos_satelites: bool
+    n_satelites: int64
+    obj_ton_red_ton: float64
+    obj_ton_red_valor: float64
+    obj_valor_red_ton: float64
+    obj_valor_red_valor: float64
+    delta_ton_pct: float64
+    delta_valor_pct: float64
+    A_ton_red_ton: float64
+    B_ton_red_ton: float64
+    A_valor_red_ton: float64
+    B_valor_red_ton: float64
+    A_ton_red_valor: float64
+    B_ton_red_valor: float64
+    A_valor_red_valor: float64
+    B_valor_red_valor: float64
+    volumen_total_t: float64
+    valor_total_cop: float64
+    precio_ref_cop_kg: float64
+    cobertura_valor_pct: float64
+    status_ton: str
+    status_valor: str
+    tiempo_s_valor: float64
+    gap_efectivo_valor: float64
+  fuente: OR-Tools, sensibilidad por valor SIPSA
+  fecha_generacion: '2026-11-20'

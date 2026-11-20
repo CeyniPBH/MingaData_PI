@@ -33,11 +33,15 @@ python -m pytest tests\ML_C -q
 ## Archivos para continuar el trabajo
 
 - `data/clean/`: tablas compartidas, coordenadas y matriz de tiempos.
+- `data/clean/` y `data/results/` también se publican como Parquet derivados (regenerables con `python src/pipeline/exportar_parquet.py`); el catálogo está en `data/metadata/catalogo.yaml` (37 tablas). Las lecturas prefieren Parquet con fallback a CSV.
 - `data/results/ML_Ce/oferta_escenarios.csv`: oferta por producto, municipio y año (2024–2028), en escenarios bajo, base y alto.
 - `data/results/ML_Ce/oferta_departamento.csv`: totales departamentales.
 - `data/results/ML_Ce/oferta_escenarios_detalle.csv`: oferta más modelo y horizonte.
 - `data/results/opt/`: Pareto, estabilidad por escenario y comparación libre vs zonas para el informe (ver `data/results/opt/LEEME.md`).
-- `docs/ML_C/`: metodología, diccionario de datos, fuentes y limitaciones.
+- `docs/ML_C/`: metodología, diccionario de datos, fuentes, formulación, EDA, tuning, diagnóstico, métrica de negocio y caso aplicado.
+- `docs/arquitectura/`: arquitectura de referencia, diagrama del pipeline, almacenamiento por zonas, justificación del procesamiento y rendimiento.
+- `docs/dashboard/`: narrativa visual, auditoría de mensajes y mejoras de usabilidad.
+- `docs/evaluacion/matriz_rubrica_evidencias.md`: matriz de criterios de rúbrica y evidencias.
 
 Al leer CSV, conserva `cod_dane` como texto para no perder ceros iniciales:
 
@@ -52,16 +56,34 @@ oferta = pd.read_csv(
 
 ## Estado y pendientes
 
-Los módulos de pronóstico, zonas de acopio, excedentes, escenarios, optimización y tablero están implementados. Quedan como pendientes el informe final y el despliegue en la nube.
+Los módulos de pronóstico, zonas de acopio, excedentes, escenarios, optimización, tablero, arquitectura, documentación y pruebas están implementados. Queda como pendiente el informe final (sustentación), que está fuera del alcance de este entregable por instrucción.
 
-- La matriz de tiempos actual es aproximada.
+- La matriz de tiempos actual es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado.
 - La población municipal DANE está procesada en `data/clean/poblacion_municipal.csv`.
+- Los parámetros del pronóstico están en `config/ML_C/parametros.yaml`. Más detalles de columnas y resultados: `docs/ML_C/diccionario_datos.md`.
 
-Los parámetros del pronóstico están en `config/ML_C/parametros.yaml`. Más detalles de columnas y resultados: `docs/ML_C/diccionario_datos.md`.
+## Pipeline y orquestación
+
+El pipeline completo se ejecuta con:
+
+```powershell
+# Ejecuta validación, pronóstico (ML), diagnóstico, métrica de negocio,
+# exportación a Parquet + catálogo y pruebas (pytest). Omite tuning y optimización.
+python src\pipeline\run_all.py --rapido
+
+# Fuerza también tuning y optimización arendonc2
+python src\pipeline\run_all.py --con-tuning --con-arendonc2
+
+# Ejecutar solo el módulo ML (orden original)
+python src\ML_C\ejecutar_todo.py
+```
+
+`run_all.py` acepta `--skip <etapa>`, `--rapido`, `--con-tuning`, `--con-arendonc2`, `--continuar` y `--dry-run`; deja log en `data/logs/pipeline_YYYYMMDD_HHMMSS.log`.
+
 
 ## Ejecutar el tablero interactivo (Streamlit)
 
-El tablero tiene cinco opciones: Oferta, Zonas, Zonas de acopio (2b), Ubicación y Tablero central.
+El tablero tiene seis opciones: `0. Resumen` (pantalla de aterrizaje, por defecto), `1. Oferta`, `2. Zonas`, `2b. Zonas de acopio`, `3. Ubicación` y `4. Tablero central`.
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
@@ -72,13 +94,17 @@ Luego abre http://localhost:8501 en tu navegador.
 
 ### Pantallas del tablero
 
-1. **Oferta**: selecciona producto y municipio para ver la serie histórica (2000-2023) y el pronóstico con intervalo bajo/base/alto (2024-2028).
+0. **Resumen**: landing con KPIs globales (productos, municipios, horizonte, años de historial, exposición con y sin modelo en t·min y COP), callout de alcance, tarjetas de navegación con drill-down y descarga del resumen en CSV. Es la pantalla que se abre por defecto.
+1. **Oferta**: selecciona producto y municipio para ver la serie histórica (2000-2023) y el pronóstico con intervalo bajo/base/alto (2024-2028). Drill-down producto → municipios.
 2. **Zonas**: mapa con los 42 municipios coloreados por oferta pronosticada, por producto y año.
-2b. **Zonas de acopio**: polígonos de zona, centros de referencia, volúmenes nacional/exportación y advertencia de cobertura parcial.
-3. **Ubicación**: mapa con la central y acopios satélite, frontera de Pareto (costo de recolección vs distribución) y tabla de estabilidad por escenario.
+2b. **Zonas de acopio**: polígonos de zona, centros de referencia, volúmenes nacional/exportación y advertencia de cobertura parcial. Drill-down zona → municipios y descargas filtradas.
+3. **Ubicación**: mapa con la central y acopios satélite, frontera de Pareto (costo de recolección vs distribución) y tabla de estabilidad por escenario. Optimización bajo demanda al pulsar "Calcular optimización".
 4. **Tablero central**: vista de cobertura con datos históricos (promedio 2021-2023). Responde cuánta área y producción alcanza cada sede; no reemplaza la pantalla 3, que minimiza el costo logístico (t·min) con el pronóstico 2024-2028. El indicador "recuperable" es una referencia del análisis original y no se recalcula desde el CSV.
 
-La vista 4 se abre por defecto para presentar primero la cobertura. Las pantallas 1, 2, 2b y 3 conservan el flujo de pronóstico, zonas y costo logístico.
+Cada pantalla tiene título declarativo, subtítulo, unidades explícitas (t, t·min, COP, %) y callouts informativos. Las cadenas requeridas por `test_tarea3.py` (`Pantalla 1 - Oferta`, `Pantalla 2 - Zonas`, `Pantalla 3 - Ubicacion`) se conservan intactas.
+
+La vista 0 se abre por defecto para presentar primero el resumen ejecutivo. Las pantallas 1, 2, 2b, 3 y 4 conservan el flujo de pronóstico, zonas, costo logístico y cobertura.
+
 
 ## Módulo de optimización (OR-Tools)
 

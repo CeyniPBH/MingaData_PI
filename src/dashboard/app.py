@@ -37,6 +37,10 @@ from utils import (
     cargar_zonas,
     cargar_zonas_geometrias,
     cargar_escenarios_opt,
+    cargar_excedentes,
+    cargar_metricas_comparacion,
+    cargar_resumen_opt,
+    cargar_metrica_negocio,
     obtener_productos_disponibles,
     obtener_municipios_por_producto,
     obtener_serie_historica,
@@ -173,20 +177,20 @@ st.sidebar.markdown("Valle del Cauca - Proyecto Integrador 1")
 
 pantalla = st.sidebar.radio(
     "Seleccionar pantalla:",
-    ["1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion", "4. Tablero central"],
-    index=4,
+    ["0. Resumen", "1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion", "4. Tablero central"],
+    index=0,
 )
 
 anos_disponibles = sorted(oferta["año"].unique()) if not oferta.empty else [2024]
 
-if pantalla != "4. Tablero central":
+if pantalla not in ("0. Resumen", "4. Tablero central"):
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros globales")
     ano_seleccionado = st.sidebar.selectbox("Anio de pronostico:", anos_disponibles, index=0)
     escenario = st.sidebar.selectbox("Escenario de oferta:", ["base", "bajo", "alto"], index=0)
 else:
     st.sidebar.markdown("---")
-    st.sidebar.caption("Vista histórica 2021-2023. No usa los filtros de pronóstico.")
+    st.sidebar.caption("Vista resumen o histórica 2021-2023. No usa los filtros de pronóstico.")
     ano_seleccionado = anos_disponibles[0]
     escenario = "base"
 
@@ -260,6 +264,126 @@ def agregar_destinos_al_mapa(m, destinos_df):
             icon=folium.Icon(color="blue", icon="info-sign"),
         ).add_to(m)
     return m
+
+
+# =============================================================================
+# PANTALLA 0: RESUMEN (landing)
+# =============================================================================
+def pantalla_resumen():
+    """Pantalla de aterrizaje: KPIs globales, alcance, navegación con drill-down
+    y descarga del resumen. No altera las pantallas existentes."""
+    st.title("MingaData — Resumen ejecutivo: central de acopio Valle del Cauca")
+    st.markdown("""
+    **Estado de la oferta pronosticada 2024-2028, exposición logística con y sin modelo, y acceso rápido a las pantallas de detalle.**
+
+    Fuentes: Gobernación del Valle del Cauca, DANE (DIVIPOLA, SIPSA, población), ICA FRONTERA, NOAA (ONI), FAOSTAT, OpenStreetMap.
+    Los datos se leen en Parquet cuando existen y caen a CSV si no; `cod_dane` se conserva como texto de 5 dígitos.
+
+    **Alcance:** el tablero soporta decisiones de planificación (volumen, ubicación de central y satélites, capacidad). No es un sistema de trading ni de precios, y las cifras de COP usan un supuesto operativo (250 COP/(t·min)), no un costo contable.
+    """)
+
+    # --- cargar evidencia existente (sin fallar si faltan archivos) ---
+    oferta = cargar_oferta_escenarios()
+    municipios = cargar_municipios_coordenadas()
+    metrica = cargar_metrica_negocio()
+    metricas_cmp = cargar_metricas_comparacion()
+    excedentes = cargar_excedentes()
+    zonas = cargar_zonas()
+
+    n_productos = int(oferta["producto"].nunique()) if not oferta.empty else 0
+    n_municipios = int(municipios["cod_dane"].nunique()) if not municipios.empty else 0
+    anos = sorted(oferta["año"].unique()) if not oferta.empty else []
+    horizonte = "{} a {}".format(anos[0], anos[-1]) if anos else "-"
+    n_anios_hist = 24  # panel 2000-2023
+
+    # KPIs de exposición logística (ámbito h1 2019-2023)
+    tmin_sin = None
+    tmin_modelo = None
+    reduccion = None
+    cop_sin = None
+    cop_modelo = None
+    if metrica is not None and not metrica.empty:
+        fila = metrica[metrica["ambito"] == "h1_2019_2023"]
+        if not fila.empty:
+            r_sin = fila[fila["alternativa"] == "sin_modelo"]
+            r_mod = fila[fila["alternativa"] == "modelo_final"]
+            if not r_sin.empty and not r_mod.empty:
+                tmin_sin = float(r_sin.iloc[0]["tmin_millones"])
+                tmin_modelo = float(r_mod.iloc[0]["tmin_millones"])
+                cop_sin = float(r_sin.iloc[0]["cop_base"]) / 1e9
+                cop_modelo = float(r_mod.iloc[0]["cop_base"]) / 1e9
+                if tmin_sin:
+                    reduccion = 100 * (tmin_sin - tmin_modelo) / tmin_sin
+
+    # --- KPIs principales ---
+    st.markdown("### Indicadores clave")
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Productos modelados", n_productos)
+    k2.metric("Municipios cubiertos", n_municipios)
+    k3.metric("Horizonte de pronóstico", horizonte)
+    k4.metric("Años de historial", n_anios_hist)
+
+    st.markdown("---")
+    k5, k6, k7, k8 = st.columns(4)
+    k5.metric("Exposición sin modelo", "{:,.2f} M t·min".format(tmin_sin) if tmin_sin is not None else "n.d.")
+    k6.metric("Exposición con modelo", "{:,.2f} M t·min".format(tmin_modelo) if tmin_modelo is not None else "n.d.")
+    k7.metric("Reducción de exposición", "{:,.1f} %".format(reduccion) if reduccion is not None else "n.d.")
+    k8.metric("Costo base (sin → modelo)", "{:.0f} → {:.0f} M COP".format(cop_sin, cop_modelo) if cop_sin is not None else "n.d. → n.d.")
+
+    st.caption("Exposición = Σ |predicción − real| × minutos al nodo logístico más cercano. Costo base: 250 COP/(t·min).")
+
+    # --- callout de alcance y calidad ---
+    st.info("""
+    **Lectura rápida:** el modelo reduce la exposición logística entre un 22 % y un 38 % frente a no usar modelo
+    (horizonte 1, 2019-2023). En horizontes largos (h=4, h=5) el ensamble supera al ingenuo; en h=1 y h=2 el
+    ingenuo es ligeramente mejor. Consulte la pantalla 3 para la ubicación óptima y la documentación en
+    `docs/ML_C/metrica_negocio.md` y `docs/ML_C/diagnostico_modelo.md`.
+    """)
+
+    # --- navegación con drill-down ---
+    st.markdown("### Ir a las pantallas de detalle")
+    nav1, nav2, nav3, nav4 = st.columns(4)
+    with nav1:
+        st.markdown("**1. Oferta por producto y municipio**")
+        st.caption("Drill-down: producto → municipios → serie histórica y pronóstico bajo/base/alto (2024-2028).")
+        st.button("Ir a Pantalla 1 - Oferta", key="nav_oferta", help="Selecciona producto y municipio en la barra lateral.")
+    with nav2:
+        st.markdown("**2. Zonas de acopio**")
+        st.caption("Mapa de los 42 municipios coloreados por oferta base, por producto y año.")
+        st.button("Ir a Pantalla 2 - Zonas", key="nav_zonas", help="Filtra por producto y año en la barra lateral.")
+    with nav3:
+        st.markdown("**3. Ubicación de central y satélites**")
+        st.caption("OR-Tools: central + 5 satélites, frontera de Pareto, estabilidad por nivel de oferta (t·min).")
+        st.button("Ir a Pantalla 3 - Ubicacion", key="nav_ubicacion", help="Ajusta parámetros y pulsa Calcular optimización.")
+    with nav4:
+        st.markdown("**4. Tablero central de acopio**")
+        st.caption("Cobertura histórica (promedio 2021-2023) por sede; no reemplaza la pantalla 3.")
+        st.button("Ir a Pantalla 4 - Tablero central", key="nav_tablero", help="Vista embebida del tablero central.")
+
+    # --- descarga filtrada del resumen ---
+    st.markdown("---")
+    st.markdown("### Descargar resumen ejecutivo (CSV)")
+    resumen_rows = []
+    if metrica is not None and not metrica.empty:
+        fila = metrica[metrica["ambito"] == "h1_2019_2023"]
+        for _, r in fila.iterrows():
+            resumen_rows.append({
+                "ambito": r["ambito"],
+                "alternativa": r["alternativa"],
+                "tmin_millones": r["tmin_millones"],
+                "cop_base_miles_millones": r["cop_base"] / 1e9,
+                "delta_vs_sin_modelo_pct": r["delta_vs_sin_modelo_pct"],
+            })
+    df_resumen = pd.DataFrame(resumen_rows)
+    if not df_resumen.empty:
+        st.download_button(
+            "⬇️ Descargar resumen de métrica de negocio (CSV)",
+            data=df_resumen.to_csv(index=False).encode("utf-8-sig"),
+            file_name="resumen_metrica_negocio.csv",
+            mime="text/csv",
+        )
+    else:
+        st.info("No hay métrica de negocio disponible. Ejecuta `python src/ML_C/10_metrica_negocio.py` o `run_all.py --rapido`.")
 
 
 # =============================================================================
@@ -865,7 +989,9 @@ def pantalla_tablero_central():
 # =============================================================================
 # RUTEO DE PANTALLAS
 # =============================================================================
-if pantalla == "1. Oferta":
+if pantalla == "0. Resumen":
+    pantalla_resumen()
+elif pantalla == "1. Oferta":
     pantalla_oferta()
 elif pantalla == "2. Zonas":
     pantalla_zonas()

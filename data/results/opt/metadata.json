@@ -1,6 +1,6 @@
 {
-  "generado": "2026-11-19T08:50:47-05:00",
-  "git_commit": "a6701e67818214553346b3253426b9b42ec712b7",
+  "generado": "2026-11-20T18:37:26-05:00",
+  "git_commit": "d8bb9a41d7810a911c09a8af6fe51b0eceee4385",
   "python": "3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]",
   "solver": "SCIP 10.0.0 [LP solver: SoPlex 8.0.0]",
   "parametros": {
@@ -69,28 +69,38 @@
   "salidas": {
     "barrido_lambda_base.csv": {
       "filas": 11,
-      "bytes": 3364,
-      "sha256": "31aca968d10dba061f5f564f62ac3c11022a6e9e17eafc11abbb144939f6f867"
+      "bytes": 3355,
+      "sha256": "b8802b5d35c248c8d460759adf4e3658879c1db3b4e94bf48eb42b1a6c55a1b6"
     },
     "comparacion_libre_vs_zonas.csv": {
       "filas": 2,
       "bytes": 1226,
-      "sha256": "fb91c3ea3e993e41da1dce79944b3ad407da6b2e298278fdbad29cd738825377"
+      "sha256": "bff4d118ae1eb6849f5a4ff82e782fdfa700afad395addeef55ad0165c559e81"
     },
     "comparacion_libre_vs_zonas_resumen.csv": {
       "filas": 1,
       "bytes": 653,
       "sha256": "71eb9191b0db1967e6812be6421e217ecc06d8d3dc67e272f6db5bcad7027e5e"
     },
+    "comparacion_toneladas_vs_valor.csv": {
+      "filas": 54,
+      "bytes": 28772,
+      "sha256": "b68d0f5be8ed81e3c21cf3e83d18ca09e06b25dc8989a59697a8e2886ac41ae2"
+    },
+    "comparacion_toneladas_vs_valor_resumen.csv": {
+      "filas": 3,
+      "bytes": 1430,
+      "sha256": "549e4d1ccc685646b53068e653ca70dfd551895589dacccd7d9c3bee1cdbede7"
+    },
     "estabilidad_escenarios.csv": {
       "filas": 54,
-      "bytes": 19019,
-      "sha256": "9b113289c2a7d441afc9ec31a723df109e3ad245c8bc5d42c024563b75aa7b58"
+      "bytes": 19015,
+      "sha256": "ce0263e67dec3d42814f18e55d5354c470c89ee847321446d30f0d5e57f48d28"
     },
     "frontera_pareto_base.csv": {
       "filas": 2,
-      "bytes": 798,
-      "sha256": "8ac5d1a4df1f7ce5a2d77c330cf7f60f338b202299707cc192c95529cb64684d"
+      "bytes": 795,
+      "sha256": "c67c1c9bacc2d636f1f1bf67ad7db8d9cc68c51b1ff4444a40d902acf7c74e13"
     }
   }
 }

@@ -58,13 +58,16 @@ def main():
                  "oni.csv": ["anio", "oni"],
                  "consumo_percapita.csv": ["item_faostat", "anio", "kg_per_capita_anio"],
                  "comercio_ica_frontera.csv": ["anio", "tipo_comercio", "producto_ica", "puerto", "toneladas"],
-                 "poblacion_municipal.csv": ["cod_dane", "anio", "poblacion"]}
+                 "poblacion_municipal.csv": ["cod_dane", "anio", "poblacion_total"]}
     for nombre, cols in contratos.items():
         f = CLEAN / nombre
         if not f.exists():
             print(f"  PENDIENTE {nombre}"); avisos.append(f"Falta data/clean/{nombre}"); continue
         x = pd.read_csv(f)
-        ok(all(c in x.columns for c in cols) and len(x) > 0, f"{nombre} con columnas {cols}")
+        # La población puede venir como 'poblacion_total' (arendonc2) o 'poblacion' (04).
+        alias = {"poblacion_total": ["poblacion_total", "poblacion"]}
+        columnas_ok = all(any(c in x.columns for c in alias.get(c, [c])) for c in cols)
+        ok(columnas_ok and len(x) > 0, f"{nombre} con columnas {cols}")
     pm = leer(CLEAN / "produccion_promedio_municipio.csv")
     if pm is not None and "valor_prom_cop_2019_2023" not in pm.columns:
         avisos.append("produccion_promedio_municipio.csv aún no tiene valor (correr 04_fuentes_externas.py)")

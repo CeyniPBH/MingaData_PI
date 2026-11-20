@@ -1,40 +1,40 @@
 ﻿producto,tipo_mapeo,item_o_categoria,cuota,prod_2019_2023,nota
 Aguacate,reparto_categoria,"Fruits, other",0.4549957578290791,360399.61,"Fruta fresca. FAOSTAT no reporta aguacate per cápita por separado; comparte Fruits, other (reparto por producción)."
-Papaya,reparto_categoria,"Fruits, other",0.10698710370950212,84743.89,Fruta fresca.
+Papaya,reparto_categoria,"Fruits, other",0.10698710370950214,84743.89000000001,Fruta fresca.
 Lulo,reparto_categoria,"Fruits, other",0.10675421481307204,84559.42,Fruta fresca.
 Guayaba,reparto_categoria,"Fruits, other",0.0868714846679141,68810.42,Fruta fresca.
-Maracuyá,reparto_categoria,"Fruits, other",0.07390135196505104,58536.85,Fruta fresca.
+Maracuyá,reparto_categoria,"Fruits, other",0.07390135196505103,58536.84999999999,Fruta fresca.
 Borojó,reparto_categoria,"Fruits, other",0.03352883022383038,26558.0,Fruta fresca.
 Guanábana,reparto_categoria,"Fruits, other",0.03179950360464593,25188.21,Fruta fresca.
-Mora,reparto_categoria,"Fruits, other",0.027880488594264088,22083.98,Fruta fresca.
+Mora,reparto_categoria,"Fruits, other",0.027880488594264095,22083.980000000003,Fruta fresca.
 Mango,reparto_categoria,"Fruits, other",0.02038671045336463,16148.2,Fruta fresca.
 Chontaduro,reparto_categoria,"Fruits, other",0.019342390536158795,15321.0,Fruto fresco.
-Granadilla,reparto_categoria,"Fruits, other",0.017022717644628337,13483.6,Fruta fresca.
+Granadilla,reparto_categoria,"Fruits, other",0.01702271764462834,13483.600000000002,Fruta fresca.
 Tomate de Árbol,reparto_categoria,"Fruits, other",0.009617249680480021,7617.77,Fruta fresca.
-Pitaya,reparto_categoria,"Fruits, other",0.005424694055420967,4296.87,Fruta fresca.
+Pitaya,reparto_categoria,"Fruits, other",0.005424694055420969,4296.870000000001,Fruta fresca.
 Fresa,reparto_categoria,"Fruits, other",0.0032377199870257897,2564.58,Fruta fresca.
 Curuba,reparto_categoria,"Fruits, other",0.0011548370419062657,914.74,Fruta fresca.
-Zapote,reparto_categoria,"Fruits, other",0.0006776717180340264,536.78,Fruta fresca.
+Zapote,reparto_categoria,"Fruits, other",0.0006776717180340265,536.7800000000001,Fruta fresca.
 Durazno,reparto_categoria,"Fruits, other",0.00022850810567487384,181.0,Fruta fresca.
 Gulupa,reparto_categoria,"Fruits, other",0.00015780946524507862,125.0,Fruta fresca.
 Brevo,reparto_categoria,"Fruits, other",1.7674660107448805e-05,14.0,Fruta fresca.
 Arazá,reparto_categoria,"Fruits, other",1.174102421423385e-05,9.3,Fruta fresca.
 Uchuva,reparto_categoria,"Fruits, other",1.5402203807919672e-06,1.22,Fruta fresca.
-Banano,reparto_categoria,Bananas,0.9748633428088723,385653.55,Banano fresco. Banano y Bananito comparten Bananas; reparto por producción para no duplicar.
-Bananito,reparto_categoria,Bananas,0.0251366571911277,9944.0,Variedad de banano fresca; comparte Bananas con Banano.
-Plátano,suma_items,Plantains,1.0,1454850.61,Plátano fresco = Plantains (fresco).
+Banano,reparto_categoria,Bananas,0.9748633428088723,385653.55000000005,Banano fresco. Banano y Bananito comparten Bananas; reparto por producción para no duplicar.
+Bananito,reparto_categoria,Bananas,0.025136657191127697,9944.0,Variedad de banano fresca; comparte Bananas con Banano.
+Plátano,suma_items,Plantains,1.0,1454850.6099999999,Plátano fresco = Plantains (fresco).
 Piña,suma_items,Pineapples and products,1.0,714544.54,Piña fresca = Pineapples (predominantemente fresco).
-Cítricos,suma_items,"Oranges, Mandarines",1.0,754284.85,"Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
-Cítricos,suma_items,"Lemons, Limes and products",1.0,754284.85,"Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
-Cítricos,suma_items,Grapefruit and products,1.0,754284.85,"Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
-Cítricos,suma_items,"Citrus, Other",1.0,754284.85,"Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
+Cítricos,suma_items,"Oranges, Mandarines",1.0,754284.8500000001,"Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
+Cítricos,suma_items,"Lemons, Limes and products",1.0,754284.8500000001,"Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
+Cítricos,suma_items,Grapefruit and products,1.0,754284.8500000001,"Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
+Cítricos,suma_items,"Citrus, Other",1.0,754284.8500000001,"Cítricos frescos: suma de naranjas/mandarinas, limones/limas, toronjas y otros cítricos (fresco vs fresco)."
 Vid,suma_items,Grapes and products (excl wine),1.0,99119.25,Uva de mesa fresca = Grapes excl wine.
 Yuca,suma_items,Cassava and products,1.0,41677.17,Yuca fresca = Cassava (raíz fresca).
 Papachina,reparto_categoria,"Roots, Other",0.15988962587838734,3975.0,"Raíz tropical fresca; comparte Roots, Other con Arracacha."
 Arracacha,reparto_categoria,"Roots, Other",0.8401103741216127,20885.9,"Raíz andina fresca; comparte Roots, Other con Papachina."
 Café,pendiente,,,236830.51,"Producción en café PERGAMINO (t finca); FAOSTAT 'Coffee and products' mide café verde/tostado consumible. Requiere factor pergamino->verde/tostado no respaldado en el repo (docs/ML_C usan 0.63 pergamino->molido sólo para precio, no para masa de consumo). Unidades incompatibles -> pendiente."
 Caña panelera,pendiente,,,1474379.5,"Producción medida como CAÑA (tallo, t); FAOSTAT 'Sugar non-centrifugal' mide PANELA consumible. Rendimiento caña->panela ~10% (docs/ML_C usan 0.10 sólo para precio). Sin factor de masa respaldado, comparar 295k t de caña con consumo de panela es un error de unidades de ~10x -> pendiente."
-Cacao,pendiente,,,4742.27,"Producción en GRANO de cacao; FAOSTAT 'Cocoa Beans and products' incluye derivados (chocolate, etc.) e importaciones: el consumo nacional (0.81 kg/pc) supera la producción local del Valle. No hay equivalencia de unidad/origen defendible -> pendiente."
+Cacao,pendiente,,,4742.2699999999995,"Producción en GRANO de cacao; FAOSTAT 'Cocoa Beans and products' incluye derivados (chocolate, etc.) e importaciones: el consumo nacional (0.81 kg/pc) supera la producción local del Valle. No hay equivalencia de unidad/origen defendible -> pendiente."
 Coco,pendiente,,,8285.0,Producción de coco fresco; FAOSTAT 'Coconuts - Incl Copra' mezcla fruto fresco y copra (seca). Sin factor fresco->copra respaldado -> pendiente.
 Macadamia,pendiente,,,574.24,Producción probablemente en NUEZ CON CÁSCARA; FAOSTAT 'Nuts and products' es almendra/pulpa consumible. Factor cáscara->almendra no respaldado -> pendiente.
 Sacha Inchi,pendiente,,,660.48,"Oleaginosa (semilla para aceite), no fruto seco de mesa; FAOSTAT 'Nuts and products' no corresponde a su forma de consumo. Sin equivalencia defendible -> pendiente."

@@ -13,11 +13,30 @@ ORIGENES = list(CFG["pronostico"]["origenes_walk_forward"])  # walk-forward: ent
 HORIZONTE_MAX = int(CFG["pronostico"]["horizonte_max"])
 
 
+def leer_produccion():
+    """Lee la producción limpia: prefiere el Parquet particionado y cae a CSV."""
+    parquet = CLEAN / "produccion"
+    if parquet.exists():
+        d = pd.read_parquet(parquet)
+        d["anio"] = pd.to_numeric(d["anio"]).astype(int)
+        d["cod_dane"] = d["cod_dane"].astype(str).str.zfill(5)
+        return d
+    return pd.read_csv(CLEAN / "produccion_valle_clean.csv", dtype={"cod_dane": str})
+
+
+def leer_lista_productos():
+    """Lee la lista de productos: prefiere Parquet y cae a CSV."""
+    parquet = CLEAN / "lista_productos.parquet"
+    if parquet.exists():
+        return pd.read_parquet(parquet)
+    return pd.read_csv(CLEAN / "lista_productos.csv")
+
+
 def cargar_panel():
     """Devuelve (series, lista). series: dict[(producto, cod_dane)] -> pd.Series indexada por año (anio_ini..2023).
     SUPUESTO: una serie existe desde su primer año con dato hasta 2023 y un año sin registro cuenta como 0 t."""
-    d = pd.read_csv(CLEAN / "produccion_valle_clean.csv", dtype={"cod_dane": str})
-    lp = pd.read_csv(CLEAN / "lista_productos.csv")
+    d = leer_produccion()
+    lp = leer_lista_productos()
     d = d[d["producto"].isin(lp.loc[lp.estado != "excluido", "producto"])]
     act = d[d.anio.between(2019, ANIO_FIN) & (d.produccion_t > 0)][["producto", "cod_dane"]].drop_duplicates()
     d = d.merge(act)

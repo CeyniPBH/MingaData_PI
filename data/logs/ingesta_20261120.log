@@ -1,0 +1,121 @@
+2026-11-20 17:28:04,740 | INFO | Inicio de validación de ingesta
+2026-11-20 17:28:04,873 | INFO | FALLA | Gobernación (permanentes) | filas=- | Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: duplicados en ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] | avisos=
+2026-11-20 17:28:04,873 | INFO | FALLA | Gobernación (transitorios) | filas=- | Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: duplicados en ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] | avisos=
+2026-11-20 17:28:04,873 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 17:28:04,874 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 17:28:04,874 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 17:28:04,874 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 17:28:04,874 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 17:28:04,874 | INFO | FALLA | NOAA ONI | filas=- | Hay años sin 12 meses: [2026] | avisos=
+2026-11-20 17:28:04,874 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 17:28:04,876 | ERROR | Validación con 3 fallas
+2026-11-20 17:28:35,492 | INFO | Inicio de validación de ingesta
+2026-11-20 17:28:35,615 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 17:28:35,615 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 17:28:35,616 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 17:28:35,616 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 17:28:35,616 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 17:28:35,616 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 17:28:35,616 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 17:28:35,616 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 17:28:35,616 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 17:28:35,617 | INFO | Validación completada sin fallas
+2026-11-20 17:38:56,237 | INFO | Inicio de validación de ingesta
+2026-11-20 17:38:56,367 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 17:38:56,367 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 17:38:56,367 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 17:38:56,367 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 17:38:56,367 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 17:38:56,367 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 17:38:56,367 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 17:38:56,367 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 17:38:56,367 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 17:38:56,368 | INFO | Validación completada sin fallas
+2026-11-20 17:38:57,884 | INFO | Inicio de validación de ingesta
+2026-11-20 17:38:58,010 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 17:38:58,011 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 17:38:58,011 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 17:38:58,011 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 17:38:58,011 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 17:38:58,011 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 17:38:58,011 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 17:38:58,011 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 17:38:58,011 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 17:38:58,012 | INFO | Validación completada sin fallas
+2026-11-20 17:40:58,929 | INFO | Inicio de validación de ingesta
+2026-11-20 17:40:59,052 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 17:40:59,052 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 17:40:59,052 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 17:40:59,052 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 17:40:59,052 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 17:40:59,052 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 17:40:59,052 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 17:40:59,052 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 17:40:59,052 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 17:40:59,054 | INFO | Validación completada sin fallas
+2026-11-20 17:41:00,334 | INFO | Inicio de validación de ingesta
+2026-11-20 17:41:00,464 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 17:41:00,464 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 17:41:00,464 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 17:41:00,464 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 17:41:00,464 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 17:41:00,464 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 17:41:00,464 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 17:41:00,464 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 17:41:00,465 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 17:41:00,466 | INFO | Validación completada sin fallas
+2026-11-20 17:54:33,533 | INFO | Inicio de validación de ingesta
+2026-11-20 17:54:33,650 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 17:54:33,650 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 17:54:33,650 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 17:54:33,650 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 17:54:33,650 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 17:54:33,650 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 17:54:33,650 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 17:54:33,650 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 17:54:33,651 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 17:54:33,652 | INFO | Validación completada sin fallas
+2026-11-20 17:54:35,134 | INFO | Inicio de validación de ingesta
+2026-11-20 17:54:35,257 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 17:54:35,257 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 17:54:35,257 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 17:54:35,257 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 17:54:35,257 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 17:54:35,257 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 17:54:35,257 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 17:54:35,257 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 17:54:35,257 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 17:54:35,258 | INFO | Validación completada sin fallas
+2026-11-20 18:20:09,653 | INFO | Inicio de validación de ingesta
+2026-11-20 18:20:09,757 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 18:20:09,757 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 18:20:09,757 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 18:20:09,758 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 18:20:09,759 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 18:20:09,759 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 18:20:09,759 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 18:20:09,759 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 18:20:09,759 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 18:20:09,760 | INFO | Validación completada sin fallas
+2026-11-20 18:22:56,356 | INFO | Inicio de validación de ingesta
+2026-11-20 18:22:56,466 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 18:22:56,466 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 18:22:56,466 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 18:22:56,466 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 18:22:56,466 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 18:22:56,466 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 18:22:56,466 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 18:22:56,466 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 18:22:56,466 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 18:22:56,467 | INFO | Validación completada sin fallas
+2026-11-20 18:22:57,560 | INFO | Inicio de validación de ingesta
+2026-11-20 18:22:57,657 | INFO | OK | Gobernación (permanentes) | filas=15,282 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)
+2026-11-20 18:22:57,657 | INFO | OK | Gobernación (transitorios) | filas=17,267 | 1 archivo(s); 42 municipios; 2000-2023 | avisos=Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar); Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente
+2026-11-20 18:22:57,657 | INFO | OK | EVA (referencia) | filas=1 | Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa | avisos=
+2026-11-20 18:22:57,657 | INFO | OK | SIPSA precios / ICA | filas=8,000 | 40 archivos de precios y 12 de FRONTERA | avisos=
+2026-11-20 18:22:57,657 | INFO | OK | DIVIPOLA | filas=1,122 | 42 municipios del Valle | avisos=
+2026-11-20 18:22:57,657 | INFO | OK | OSM / matriz de tiempos | filas=1,974 | 1,974 pares; métodos ['aproximado'] | avisos=La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado
+2026-11-20 18:22:57,657 | INFO | OK | FAOSTAT | filas=273 | 69 ítems; 2020-2023 | avisos=
+2026-11-20 18:22:57,657 | INFO | OK | NOAA ONI | filas=345 | 1998-2026; 12 meses por año (último año parcial) | avisos=2026 está incompleto (9 meses); es el año en curso
+2026-11-20 18:22:57,657 | INFO | OK | Comercio (Comtrade/ICA) | filas=15,526 | Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones | avisos=Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA
+2026-11-20 18:22:57,658 | INFO | Validación completada sin fallas

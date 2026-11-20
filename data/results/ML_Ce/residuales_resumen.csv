@@ -1,0 +1,2 @@
+﻿ambito,n_obs,n_series,MASE,MASE_naive,WAPE,WAPE_naive,mejora_MASE_vs_naive,mejora_abs_vs_naive,sesgo_t,error_abs_medio_t,error_abs_total_t,real_total_t,residual_medio_t,residual_mediano_t,residual_std_t,p5_t,p95_t,pct_sobreestima,pct_subestima
+global,8323,571,3.9067,3.9175,0.1013,0.101,0.0028,-0.0035,-662.8381,4665.4056,38830170.8549,383180797.77,-662.8381,3.8676,29975.4627,-3189.8744,2942.4706,0.5473,0.4508

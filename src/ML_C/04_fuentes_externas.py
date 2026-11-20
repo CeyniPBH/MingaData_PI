@@ -143,8 +143,8 @@ def poblacion_dane():
     c_an = next(c for c in x.columns if low[c] in ("año", "ano", "anio", "year"))
     c_pob = next(c for c in x.columns if "total" in low[c] or "pobl" in low[c])
     out = pd.DataFrame({"cod_dane": x[c_cod].str.replace(r"\D", "", regex=True).str.zfill(5), "anio": pd.to_numeric(x[c_an]),
-                        "poblacion": pd.to_numeric(x[c_pob].str.replace(r"[.,\s]", "", regex=True))})
-    out = out[out.cod_dane.str.startswith("76")].groupby(["cod_dane", "anio"], as_index=False)["poblacion"].sum()
+                        "poblacion_total": pd.to_numeric(x[c_pob].str.replace(r"[.,\s]", "", regex=True))})
+    out = out[out.cod_dane.str.startswith("76")].groupby(["cod_dane", "anio"], as_index=False)["poblacion_total"].sum()
     print(f"  Población: {out.cod_dane.nunique()} municipios, años {out.anio.min()}-{out.anio.max()}")
     return out
 

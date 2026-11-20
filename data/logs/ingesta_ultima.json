@@ -1,0 +1,94 @@
+{
+  "fecha": "2026-11-20T18:22:57",
+  "estricto": false,
+  "total": 9,
+  "ok": 9,
+  "fallas": 0,
+  "omitidas": 0,
+  "resultados": [
+    {
+      "fuente": "Gobernación (permanentes)",
+      "estado": "OK",
+      "detalle": "1 archivo(s); 42 municipios; 2000-2023",
+      "filas": 15282,
+      "archivos": 1,
+      "avisos": [
+        "Consolidado_agrícola_por_municipios_de_los_cultivos_permanentes_del_Valle_del_Cauca_20260925.csv: 18 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)"
+      ]
+    },
+    {
+      "fuente": "Gobernación (transitorios)",
+      "estado": "OK",
+      "detalle": "1 archivo(s); 42 municipios; 2000-2023",
+      "filas": 17267,
+      "archivos": 1,
+      "avisos": [
+        "Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 244 filas duplicadas exactas (01_limpieza.py las elimina antes de armonizar)",
+        "Consolidado_agrícola_por_municipios_de_los_cultivos_transitorios_del_Valle_del_Cauca_20261113.csv: 219 duplicados de llave ['anio', 'cod_dane', 'Cultivo', 'Ciclo'] con valores distintos; revisar si se usa esta fuente"
+      ]
+    },
+    {
+      "fuente": "EVA (referencia)",
+      "estado": "OK",
+      "detalle": "Archivo de referencia bibliográfica (no contiene microdatos); los consolidados de Gobernación son la fuente operativa",
+      "filas": 1,
+      "archivos": 1,
+      "avisos": []
+    },
+    {
+      "fuente": "SIPSA precios / ICA",
+      "estado": "OK",
+      "detalle": "40 archivos de precios y 12 de FRONTERA",
+      "filas": 8000,
+      "archivos": 52,
+      "avisos": []
+    },
+    {
+      "fuente": "DIVIPOLA",
+      "estado": "OK",
+      "detalle": "42 municipios del Valle",
+      "filas": 1122,
+      "archivos": 1,
+      "avisos": []
+    },
+    {
+      "fuente": "OSM / matriz de tiempos",
+      "estado": "OK",
+      "detalle": "1,974 pares; métodos ['aproximado']",
+      "filas": 1974,
+      "archivos": 1,
+      "avisos": [
+        "La matriz es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado"
+      ]
+    },
+    {
+      "fuente": "FAOSTAT",
+      "estado": "OK",
+      "detalle": "69 ítems; 2020-2023",
+      "filas": 273,
+      "archivos": 1,
+      "avisos": []
+    },
+    {
+      "fuente": "NOAA ONI",
+      "estado": "OK",
+      "detalle": "1998-2026; 12 meses por año (último año parcial)",
+      "filas": 345,
+      "archivos": 2,
+      "avisos": [
+        "2026 está incompleto (9 meses); es el año en curso"
+      ]
+    },
+    {
+      "fuente": "Comercio (Comtrade/ICA)",
+      "estado": "OK",
+      "detalle": "Comtrade no incorporado; ICA FRONTERA cubre exportaciones/importaciones",
+      "filas": 15526,
+      "archivos": 1,
+      "avisos": [
+        "Comtrade se evaluó pero no se usó: el comercio exterior se tomó de ICA FRONTERA"
+      ]
+    }
+  ],
+  "log": "C:\\Users\\Samuel\\Documents\\UNIVERSIDAD EAFIT\\LINEA_DE_ENFASIS\\Proyecto Integrador\\MingaData_PI\\data\\logs\\ingesta_20261120.log"
+}

@@ -1,0 +1,24 @@
+unidad_impacto: t·min (toneladas × minutos)
+costo_camion_cop_hora: 120000
+capacidad_camion_t: 8.0
+costo_tmin_cop_base: 250.0
+costo_tmin_cop_bajo: 100.0
+costo_tmin_cop_alto: 600.0
+red_logistica: central + 5 satélites del escenario base libre de OR-Tools
+gate_mejora_minima: 0.05
+gate_volumen_minimo_t: 5000
+gate_validacion: 2022
+gate_evaluacion: 2023
+nota: El impacto es una exposición bruta de planificación, no un costo contable. No
+  incluye precio del producto, deterioro ni capacidad real de flota.
+red_logistica_codigos:
+- '76036'
+- '76113'
+- '76122'
+- '76318'
+- '76670'
+productos_gate:
+- Lulo
+- Maracuyá
+- Papaya
+- Vid
