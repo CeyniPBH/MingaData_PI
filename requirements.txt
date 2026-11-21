@@ -26,6 +26,11 @@ folium>=0.15
 streamlit>=1.67      # st.iframe para el tablero central
 streamlit-folium>=0.13
 
-# --- Nube (opcional, solo para despliegue) ---
+# --- Nube y despliegue (opcional, para alcanzar Excelente en SI7006-6) ---
 boto3>=1.28        # cliente AWS S3
 s3fs>=2023.1       # leer/escribir parquet en s3://
+fastapi>=0.104     # API REST para servir predicciones
+uvicorn>=0.24      # servidor para la API
+mlflow>=2.9        # tracking y versionado de modelos
+duckdb>=1.0        # motor SQL analítico (resultados y métricas)
+python-multipart>=0.0.6  # formularios en API

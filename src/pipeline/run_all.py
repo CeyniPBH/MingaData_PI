@@ -38,6 +38,15 @@ PY = sys.executable
 BUCKET_ENV = os.getenv("MINGA_DATA_BUCKET", "").strip()
 PREFIX_ENV = os.getenv("MINGA_DATA_PREFIX", "").strip()
 REGION_ENV = os.getenv("MINGA_DATA_REGION", "us-east-1").strip()
+MODELO_S3_URL_ENV = os.getenv("MINGA_MODELO_S3_URL", "").strip()
+
+# Importar utilidades de despliegue (opcionales)
+try:
+    from deploy.persistencia import guardar_modelo_local, registrar_en_mlflow, MODELOS_LOCAL  # noqa: F401
+    from deploy.database import DuckDBDatabase, DB_PATH  # noqa: F401
+    _DEPLOY_DISPONIBLE = True
+except Exception:
+    _DEPLOY_DISPONIBLE = False
 
 
 @dataclass
@@ -66,6 +75,8 @@ def _etapas(args) -> tuple[list[Etapa], list[str]]:
               "Diagnóstico por horizonte, producto, municipio y confianza"),
         Etapa("metrica", [PY, "src/ML_C/10_metrica_negocio.py"],
               "Impacto logístico en t·min y COP"),
+        Etapa("persistencia", [PY, "src/pipeline/guardar_persistencia.py"],
+              "Persistir modelo en S3/MLflow y resultados en DuckDB"),
         Etapa("opt", [PY, "src/optimizacion/generar_resultados.py"],
               "Pareto, estabilidad y comparación libre vs zonas"),
         Etapa("parquet", [PY, "src/pipeline/exportar_parquet.py"],
@@ -183,6 +194,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="Región AWS (opcional; también MINGA_DATA_REGION)")
     ap.add_argument("--prefix", default=PREFIX_ENV,
                     help="Prefijo dentro del bucket (opcional; también MINGA_DATA_PREFIX)")
+    ap.add_argument("--modelo-s3-url", default=MODELO_S3_URL_ENV,
+                    help="URL S3 del modelo para la API (opcional; también MINGA_MODELO_S3_URL)")
+    ap.add_argument("--con-mlflow", action="store_true",
+                    help="Registrar modelo en MLflow (tracking local o servidor)")
     args = ap.parse_args(argv)
 
     etapas, avisos = _etapas(args)
@@ -236,8 +251,36 @@ def main(argv: list[str] | None = None) -> int:
     if args.bucket:
         _subir_artefactos_a_s3(args.bucket, args.prefix, args.region)
 
+    # Registrar en MLflow si se pidió y hay un modelo local reciente
+    if args.con_mlflow and _DEPLOY_DISPONIBLE:
+        try:
+            from deploy.persistencia import MODELOS_LOCAL
+            modelos_recientes = sorted(
+                MODELOS_LOCAL.glob("*.joblib"),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            if modelos_recientes:
+                registrar_en_mlflow(
+                    modelo=None,  # se registrará sin objeto si no hay acceso directo
+                    nombre_modelo="minga_lightgbm",
+                    metricas={},
+                    parametros={"pipeline": "run_all", "commit": _git_commit()},
+                    etiquetas={"etapa": "persistencia"},
+                )
+                print(f"  MLflow: registro iniciado (ver tracking local).")
+        except Exception as e:
+            print(f"  AVISO: MLflow no se pudo registrar: {e}")
+
     print("\nPipeline completado.")
     return 0
+
+
+def _git_commit() -> str:
+    try:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip()[:12]
+    except Exception:
+        return "desconocido"
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ Ejecutar: streamlit run src/dashboard/app.py
 """
 
 import sys
+import os
 from pathlib import Path
 
 # Agregar src/ al path para importar modulos de optimizacion
@@ -62,9 +63,24 @@ from optimizacion.modelo_real import (
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "arendonc2"))
 from adaptador import preparar_para_solver, listar_escenarios
 
-# =============================================================================
-# CONFIGURACION DE LA PAGINA
-# =============================================================================
+# Agregar src/ al path para importar módulos de despliegue y API
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+try:
+    import requests
+    _REQUESTS_DISPONIBLE = True
+except Exception:
+    _REQUESTS_DISPONIBLE = False
+
+try:
+    from deploy.database import DuckDBDatabase
+    from deploy.persistencia import MODELOS_LOCAL
+    _DEPLOY_DISPONIBLE = True
+except Exception:
+    _DEPLOY_DISPONIBLE = False
+
+# URL de la API (variable de entorno o localhost por defecto)
+API_URL = os.getenv("MINGA_API_URL", "http://localhost:8000").rstrip("/")
 st.set_page_config(
     page_title="MingaData - Central de Acopio Valle del Cauca",
     page_icon="🌱",
@@ -331,6 +347,44 @@ def pantalla_resumen():
     k8.metric("Costo base (sin → modelo)", "{:.0f} → {:.0f} M COP".format(cop_sin, cop_modelo) if cop_sin is not None else "n.d. → n.d.")
 
     st.caption("Exposición = Σ |predicción − real| × minutos al nodo logístico más cercano. Costo base: 250 COP/(t·min).")
+
+    # --- Estado del despliegue (API y base de datos) ---
+    st.markdown("---")
+    st.markdown("### Estado del despliegue (nube)")
+    col_api, col_db = st.columns(2)
+    with col_api:
+        st.markdown("**API REST (predicciones)**")
+        if _REQUESTS_DISPONIBLE:
+            try:
+                r = requests.get(f"{API_URL}/health", timeout=3)
+                if r.status_code == 200:
+                    datos = r.json()
+                    st.success("API en línea")
+                    st.caption(f"Modelo cargado: {datos.get('modelo_cargado', False)}")
+                    if not datos.get("modelo_cargado"):
+                        st.warning(datos.get("error", "Modelo no disponible"))
+                else:
+                    st.error(f"API respondió {r.status_code}")
+            except Exception as e:
+                st.warning(f"API no alcanzable en {API_URL}")
+                st.caption(f"Detalle: {type(e).__name__}")
+        else:
+            st.info("requests no instalado; no se puede consultar la API.")
+    with col_db:
+        st.markdown("**Base de datos SQL (DuckDB)**")
+        if _DEPLOY_DISPONIBLE:
+            try:
+                with DuckDBDatabase(DB_PATH, modo_lectura=True) as db:
+                    n_tablas = db.consultar(
+                        "SELECT name FROM sqlite_master WHERE type='table'"
+                    )
+                    st.success("BD accesible")
+                    st.caption(f"Tablas: {len(n_tablas)}")
+            except Exception as e:
+                st.warning("BD no accesible")
+                st.caption(f"Detalle: {type(e).__name__}")
+        else:
+            st.info("Módulos de deploy no instalados.")
 
     # --- callout de alcance y calidad ---
     st.info("""
