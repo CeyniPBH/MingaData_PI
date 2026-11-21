@@ -1,6 +1,6 @@
 {
-  "generado": "2026-11-20T18:37:26-05:00",
-  "git_commit": "d8bb9a41d7810a911c09a8af6fe51b0eceee4385",
+  "generado": "2026-11-20T20:05:26-05:00",
+  "git_commit": "c2d8d2807546e68ed83162b9e7f922a7bfc49785",
   "python": "3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]",
   "solver": "SCIP 10.0.0 [LP solver: SoPlex 8.0.0]",
   "parametros": {
@@ -69,13 +69,13 @@
   "salidas": {
     "barrido_lambda_base.csv": {
       "filas": 11,
-      "bytes": 3355,
-      "sha256": "b8802b5d35c248c8d460759adf4e3658879c1db3b4e94bf48eb42b1a6c55a1b6"
+      "bytes": 3357,
+      "sha256": "dd869b96c4bcc8c23aa628e85be3769bbb4815de46585de1b5206c28df8a6bbc"
     },
     "comparacion_libre_vs_zonas.csv": {
       "filas": 2,
-      "bytes": 1226,
-      "sha256": "bff4d118ae1eb6849f5a4ff82e782fdfa700afad395addeef55ad0165c559e81"
+      "bytes": 1225,
+      "sha256": "2c21b0a017d306740fa1960cd875ea5222c2292bacf65daa3bd6293fe5cdefff"
     },
     "comparacion_libre_vs_zonas_resumen.csv": {
       "filas": 1,
@@ -94,13 +94,13 @@
     },
     "estabilidad_escenarios.csv": {
       "filas": 54,
-      "bytes": 19015,
-      "sha256": "ce0263e67dec3d42814f18e55d5354c470c89ee847321446d30f0d5e57f48d28"
+      "bytes": 19018,
+      "sha256": "05c69f5c975f59a1578748cf9bec6774ad27c40fa5e6bbedadd6419b47882f77"
     },
     "frontera_pareto_base.csv": {
       "filas": 2,
-      "bytes": 795,
-      "sha256": "c67c1c9bacc2d636f1f1bf67ad7db8d9cc68c51b1ff4444a40d902acf7c74e13"
+      "bytes": 796,
+      "sha256": "08096db63e0e7266d1b79c16dfa4ffc6bde5a0c92ba4609ae4abcb1a15991119"
     }
   }
 }

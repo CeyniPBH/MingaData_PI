@@ -1,14 +1,11 @@
 """Etapa de persistencia: guarda el modelo en S3 con versionado y los resultados en DuckDB.
 
-Se ejecuta como paso del pipeline `run_all.py` (etapa "persistencia").
+Se ejecuta como paso del pipeline run_all.py (etapa "persistencia").
 
 Lee el modelo más reciente de data/modelos/ y las tablas de resultados ya
 generadas, y las persiste:
-  - Modelo .joblib → S3 (si hay bucket) + metadata local
-  - Métricas, diagnóstico, métrica de negocio → DuckDB (data/db/mingadata.duckdb)
-
-Uso:
-    python src/pipeline/guardar_persistencia.py [--bucket BUCKET] [--prefix PREFIX] [--region REGION]
+  - Modelo .joblib -> S3 (si hay bucket) + metadata local
+  - Métricas, diagnóstico, métrica de negocio -> DuckDB (data/db/mingadata.duckdb)
 """
 
 from __future__ import annotations
@@ -17,14 +14,17 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import joblib
 import pandas as pd
+import joblib
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "src"))
+
 MODELOS_DIR = ROOT / "data" / "modelos"
 RESULTADOS_ML = ROOT / "data" / "results" / "ML_Ce"
 RESULTADOS_ROOT = ROOT / "data" / "results"
@@ -123,7 +123,6 @@ def subir_modelo_a_s3_manual(
         ContentType="application/json",
     )
 
-    # Índice de versiones
     indice_clave = f"{prefijo.strip('/')}/indice_versiones.json"
     try:
         obj = s3.get_object(Bucket=bucket, Key=indice_clave)
@@ -142,46 +141,137 @@ def subir_modelo_a_s3_manual(
 
 
 def persistir_resultados_en_duckdb(commit: str) -> None:
-    """Copia las tablas de resultados CSV a DuckDB."""
     if not _DEPLOY_DISPONIBLE:
         print("  AVISO: deploy no disponible; no se escriben resultados en DuckDB.")
         return
 
-    db = DuckDBDatabase(DB_PATH)
+    import duckdb
+    db_path = str(DB_PATH)
+    con = duckdb.connect(db_path)
+
     try:
-        # Métricas del modelo
+        # Crear tablas si no existen (esquema explícito)
+        con.execute(f"DROP TABLE IF EXISTS metricas_modelo")
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS metricas_modelo (
+                fecha_utc TIMESTAMP,
+                commit VARCHAR,
+                horizonte INTEGER,
+                producto VARCHAR,
+                cod_dane VARCHAR,
+                mase DOUBLE,
+                wape DOUBLE,
+                sesgo DOUBLE,
+                modelo VARCHAR
+            )
+        """)
+        con.execute(f"DROP TABLE IF EXISTS metrica_negocio")
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS metrica_negocio (
+                fecha_utc TIMESTAMP,
+                commit VARCHAR,
+                ambito VARCHAR,
+                alternativa VARCHAR,
+                tmin_millones DOUBLE,
+                cop_base DOUBLE,
+                delta_vs_sin_modelo_pct DOUBLE
+            )
+        """)
+        con.execute(f"DROP TABLE IF EXISTS excedentes")
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS excedentes (
+                fecha_utc TIMESTAMP,
+                commit VARCHAR,
+                producto VARCHAR,
+                cod_dane VARCHAR,
+                anio INTEGER,
+                excedente_t DOUBLE
+            )
+        """)
+        con.execute(f"DROP TABLE IF EXISTS diagnostico")
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS diagnostico (
+                fecha_utc TIMESTAMP,
+                commit VARCHAR,
+                dimensione VARCHAR,
+                categoria VARCHAR,
+                n_obs INTEGER,
+                mase DOUBLE,
+                wape DOUBLE,
+                sesgo_t DOUBLE
+            )
+        """)
+
+        fecha_utc = datetime.now(timezone.utc).isoformat()
+
+        # --- metricas_modelo ---
         metrica_path = RESULTADOS_ML / "metricas_comparacion.csv"
         if metrica_path.exists():
             df = pd.read_csv(metrica_path)
-            df["commit"] = commit
-            db.insertar_dataframe("metricas_modelo", df, commit=commit)
-            print(f"  OK metricas_modelo: {len(df)} filas")
+            rows = []
+            for _, r in df.iterrows():
+                rows.append((
+                    fecha_utc, commit, None, str(r["producto"]), None,
+                    float(r["MASE"]), float(r["WAPE"]), None, str(r["modelo"])
+                ))
+            con.executemany(
+                "INSERT INTO metricas_modelo VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                rows
+            )
+            print(f"  OK metricas_modelo: {len(rows)} filas")
 
-        # Métrica de negocio
+        # --- metrica_negocio ---
         mn_path = RESULTADOS_ML / "metrica_negocio_resumen.csv"
         if mn_path.exists():
             df = pd.read_csv(mn_path)
-            df["commit"] = commit
-            db.insertar_dataframe("metrica_negocio", df, commit=commit)
-            print(f"  OK metrica_negocio: {len(df)} filas")
+            rows = []
+            for _, r in df.iterrows():
+                rows.append((
+                    fecha_utc, commit, str(r["ambito"]), str(r["alternativa"]),
+                    float(r["tmin_millones"]), float(r["cop_base"]),
+                    float(r["delta_vs_sin_modelo_pct"])
+                ))
+            con.executemany(
+                "INSERT INTO metrica_negocio VALUES (?, ?, ?, ?, ?, ?, ?)",
+                rows
+            )
+            print(f"  OK metrica_negocio: {len(rows)} filas")
 
-        # Excedentes (parquet particionado o csv)
+        # --- excedentes ---
         excedentes_path = RESULTADOS_ROOT / "excedentes.csv"
         if excedentes_path.exists():
             df = pd.read_csv(excedentes_path, dtype={"cod_dane": str})
-            df["commit"] = commit
-            db.insertar_dataframe("excedentes", df, commit=commit)
-            print(f"  OK excedentes: {len(df)} filas")
+            rows = []
+            for _, r in df.iterrows():
+                rows.append((
+                    fecha_utc, commit, str(r["producto"]), str(r["cod_dane"]),
+                    int(r["anio"]),
+                    float(r["excedente_t"]) if "excedente_t" in df.columns else float(r.get("volumen_nacional", 0))
+                ))
+            con.executemany(
+                "INSERT INTO excedentes VALUES (?, ?, ?, ?, ?, ?)",
+                rows
+            )
+            print(f"  OK excedentes: {len(rows)} filas")
 
-        # Diagnóstico por horizonte
+        # --- diagnostico ---
         diag_h = RESULTADOS_ML / "diagnostico_horizonte.csv"
         if diag_h.exists():
             df = pd.read_csv(diag_h)
-            df["commit"] = commit
-            db.insertar_dataframe("diagnostico", df, commit=commit)
-            print(f"  OK diagnostico: {len(df)} filas")
+            rows = []
+            for _, r in df.iterrows():
+                rows.append((
+                    fecha_utc, commit, "horizonte", str(r["horizonte"]),
+                    int(r["n_obs"]), float(r["MASE"]), float(r["WAPE"]), float(r["sesgo_t"])
+                ))
+            con.executemany(
+                "INSERT INTO diagnostico VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                rows
+            )
+            print(f"  OK diagnostico: {len(rows)} filas")
+
     finally:
-        db.cerrar()
+        con.close()
 
 
 def main():
@@ -199,17 +289,14 @@ def main():
     commit = _git_commit()
     print(f"Commit: {commit}")
 
-    # --- 1. Persistir resultados en DuckDB ---
     if _DEPLOY_DISPONIBLE:
         persistir_resultados_en_duckdb(commit)
     else:
         print("  AVISO: módulos de deploy no disponibles; omitiendo DuckDB.")
 
-    # --- 2. Subir modelo a S3 si hay bucket ---
     modelo = encontrar_modelo_reciente()
     if modelo is None:
-        print("  AVISO: no se encontró modelo .joblib en data/modelos/. "
-              "Ejecutar primero 06_lgbm.py o generar un modelo.")
+        print("  AVISO: no se encontró modelo .joblib en data/modelos/.")
     else:
         meta = cargar_metadata_modelo(modelo)
         print(f"  Modelo encontrado: {modelo.name} (sha256: {_sha256(modelo)[:12]})")
@@ -223,14 +310,13 @@ def main():
                         modelo, args.bucket, prefijo=args.prefix,
                         metadata_extra=meta,
                     )
-                    print(f"  OK modelo subido a S3: {res['clave_s3']}")
-                    print(f"        versión: {res['version']}")
+                    print(f"  OK modelo subido a S3: {res["clave_s3"]}")
+                    print(f"        versión: {res["version"]}")
                 except Exception as e:
                     print(f"  ERROR subiendo a S3: {e}")
         else:
             print("  AVISO: no se indicó --bucket; el modelo queda solo en local.")
 
-        # --- 3. MLflow opcional ---
         if args.con_mlflow:
             try:
                 from deploy.persistencia import registrar_en_mlflow
