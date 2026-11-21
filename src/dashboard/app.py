@@ -98,13 +98,6 @@ try:
 except Exception:
     _REQUESTS_DISPONIBLE = False
 
-try:
-    from deploy.database import DuckDBDatabase
-    from deploy.persistencia import MODELOS_LOCAL
-    _DEPLOY_DISPONIBLE = True
-except Exception:
-    _DEPLOY_DISPONIBLE = False
-
 # URL de la API (variable de entorno o localhost por defecto)
 API_URL = os.getenv("MINGA_API_URL", "http://localhost:8000").rstrip("/")
 
@@ -376,13 +369,23 @@ def pantalla_resumen():
         st.markdown("**API REST (predicciones)**")
         if _REQUESTS_DISPONIBLE:
             try:
-                r = requests.get(f"{API_URL}/health", timeout=3)
+                r = requests.get(f"{API_URL}/health", timeout=15)
                 if r.status_code == 200:
                     datos = r.json()
                     st.success("API en línea")
                     st.caption(f"Modelo cargado: {datos.get('modelo_cargado', False)}")
                     if not datos.get("modelo_cargado"):
                         st.warning(datos.get("error", "Modelo no disponible"))
+                    try:
+                        rv = requests.get(f"{API_URL}/version", timeout=15)
+                        if rv.status_code == 200:
+                            v = rv.json()
+                            st.caption(
+                                f"Commit API: {v.get('commit', 'n.d.')} · "
+                                f"modelo: {v.get('modelo_version', 'n.d.')}"
+                            )
+                    except Exception:
+                        pass
                 else:
                     st.error(f"API respondió {r.status_code}")
             except Exception as e:
@@ -392,19 +395,110 @@ def pantalla_resumen():
             st.info("requests no instalado; no se puede consultar la API.")
     with col_db:
         st.markdown("**Base de datos SQL (DuckDB)**")
-        if _DEPLOY_DISPONIBLE:
+        if _REQUESTS_DISPONIBLE:
             try:
-                with DuckDBDatabase(DB_PATH, modo_lectura=True) as db:
-                    n_tablas = db.consultar(
-                        "SELECT name FROM sqlite_master WHERE type='table'"
-                    )
-                    st.success("BD accesible")
-                    st.caption(f"Tablas: {len(n_tablas)}")
+                r = requests.get(f"{API_URL}/metricas", timeout=30)
+                if r.status_code == 200:
+                    datos = r.json()
+                    fuente = datos.get("fuente")
+                    n_metricas = len(datos.get("metricas", []))
+                    if fuente == "duckdb":
+                        st.success("DuckDB en la nube")
+                    elif fuente == "csv":
+                        st.info("Respaldo CSV (DuckDB no disponible)")
+                    else:
+                        st.warning("Métricas no disponibles")
+                    st.caption(f"Fuente: {fuente or 'n.d.'} · métricas: {n_metricas}")
+                    if datos.get("aviso"):
+                        st.caption(datos["aviso"])
+                else:
+                    st.error(f"API respondió {r.status_code}")
             except Exception as e:
-                st.warning("BD no accesible")
+                st.warning("No se pudo consultar /metricas")
                 st.caption(f"Detalle: {type(e).__name__}")
         else:
-            st.info("Módulos de deploy no instalados.")
+            st.info("requests no instalado; no se puede consultar la API.")
+
+    # --- Predicción en vivo desde la API ---
+    st.markdown("#### Probar predicción en vivo")
+    if not _REQUESTS_DISPONIBLE:
+        st.info("requests no instalado; no se puede consultar la API.")
+    elif produccion.empty:
+        st.info("No hay datos históricos para poblar el formulario.")
+    else:
+        productos_api = sorted(produccion["producto"].dropna().unique())
+        if not productos_api:
+            st.info("No hay productos disponibles.")
+        else:
+            prod_default = (
+                "Caña de azúcar"
+                if "Caña de azúcar" in productos_api
+                else productos_api[0]
+            )
+            c1, c2, c3 = st.columns([2, 2, 1])
+            prod_sel = c1.selectbox(
+                "Producto",
+                productos_api,
+                index=productos_api.index(prod_default),
+                key="api_producto",
+            )
+            anio_hist = int(
+                produccion.loc[produccion["producto"] == prod_sel, "anio"].max()
+            )
+            hist = produccion[
+                (produccion["producto"] == prod_sel)
+                & (produccion["anio"] == anio_hist)
+            ]
+            codigos = sorted(hist["cod_dane"].astype(str).unique())
+            nombres = (
+                dict(zip(municipios["cod_dane"].astype(str), municipios["municipio"]))
+                if not municipios.empty
+                else {}
+            )
+            etiquetas = [
+                f"{cod} - {nombres.get(cod, '')}".strip() for cod in codigos
+            ]
+            if not etiquetas:
+                st.info("No hay municipios con datos para este producto.")
+            else:
+                idx_m = next(
+                    (i for i, cod in enumerate(codigos) if cod == "76113"), 0
+                )
+                mun_sel = c2.selectbox(
+                    "Municipio", etiquetas, index=idx_m, key="api_municipio"
+                )
+                anio_sel = c3.selectbox(
+                    "Año", [2024, 2025, 2026, 2027, 2028], index=0, key="api_anio"
+                )
+                if st.button("Predecir oferta", key="api_predecir"):
+                    cod_sel = codigos[etiquetas.index(mun_sel)]
+                    payload = {
+                        "producto": prod_sel,
+                        "cod_dane": cod_sel,
+                        "horizonte": int(anio_sel) - 2023,
+                        "anio_objetivo": int(anio_sel),
+                    }
+                    try:
+                        with st.spinner("Consultando la API..."):
+                            r = requests.post(
+                                f"{API_URL}/predict", json=payload, timeout=120
+                            )
+                        if r.status_code == 200:
+                            d = r.json()
+                            st.metric(
+                                "Oferta estimada",
+                                f"{d.get('prediccion_t', 0):,.0f} t",
+                            )
+                            st.caption(
+                                f"Modelo {d.get('modelo_version', 'n.d.')} · "
+                                f"commit {d.get('commit', 'n.d.')} · "
+                                f"fuente {d.get('fuente', 'n.d.')} · "
+                                f"horizonte {d.get('horizonte', 'n.d.')}"
+                            )
+                        else:
+                            st.error(f"API {r.status_code}: {r.text[:300]}")
+                    except Exception as e:
+                        st.warning(f"No se pudo consultar la API: {type(e).__name__}")
 
     # --- callout de alcance y calidad ---
     st.info("""

@@ -140,27 +140,54 @@ def subir_modelo_a_s3_manual(
     return meta
 
 
-def subir_duckdb_a_s3(bucket: str, prefijo: str = "duckdb") -> bool:
-    """Sube la base de datos DuckDB local a S3 para consumo en la nube."""
+def subir_duckdb_a_s3(bucket: str, prefijo: str = "duckdb") -> dict[str, str] | None:
+    """Sube la base DuckDB local a S3 en una clave versionada y una estable.
+
+    La clave estable (`duckdb/mingadata.duckdb`) es la que consume la API en la
+    nube mediante `MINGA_DUCKDB_S3_URL`; la versionada conserva el historial.
+    """
     if not _BOTO3_DISPONIBLE:
         print("  AVISO: boto3 no instalado; no se sube DuckDB a S3.")
-        return False
+        return None
     if not DB_PATH.exists():
         print("  AVISO: no existe DuckDB local; no se sube a S3.")
-        return False
+        return None
 
     import boto3
 
+    base = prefijo.strip("/") or "duckdb"
     s3 = boto3.client("s3")
     version = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    clave = f"{prefijo.strip('/')}/{version}/mingadata.duckdb"
+    clave_version = f"{base}/{version}/mingadata.duckdb"
+    clave_estable = f"{base}/mingadata.duckdb"
+
     try:
-        s3.upload_file(str(DB_PATH), bucket, clave)
-        print(f"  OK DuckDB subido a S3: s3://{bucket}/{clave}")
-        return True
+        s3.upload_file(str(DB_PATH), bucket, clave_version)
+        s3.upload_file(str(DB_PATH), bucket, clave_estable)
+        meta = {
+            "version": version,
+            "fecha_utc": version,
+            "commit": _git_commit(),
+            "clave_versionada": f"s3://{bucket}/{clave_version}",
+            "clave_estable": f"s3://{bucket}/{clave_estable}",
+            "tamano_bytes": DB_PATH.stat().st_size,
+        }
+        s3.put_object(
+            Bucket=bucket,
+            Key=f"{base}/duckdb_metadata.json",
+            Body=json.dumps(meta, indent=2, ensure_ascii=False).encode("utf-8"),
+            ContentType="application/json",
+        )
+        print(f"  OK DuckDB subido a S3: s3://{bucket}/{clave_estable}")
+        print(f"        versión: {version}")
+        return {
+            "version": version,
+            "clave_versionada": f"s3://{bucket}/{clave_version}",
+            "clave_estable": f"s3://{bucket}/{clave_estable}",
+        }
     except Exception as e:
         print(f"  ERROR subiendo DuckDB a S3: {e}")
-        return False
+        return None
 
 
 def persistir_resultados_en_duckdb(commit: str) -> None:
@@ -340,7 +367,7 @@ def main():
 
                 # También subir la base de datos DuckDB con los resultados
                 try:
-                    subir_duckdb_a_s3(args.bucket, prefijo=args.prefix)
+                    subir_duckdb_a_s3(args.bucket, prefijo="duckdb")
                 except Exception as e:
                     print(f"  ERROR subiendo DuckDB a S3: {e}")
         else:

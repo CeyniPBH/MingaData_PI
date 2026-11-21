@@ -35,3 +35,18 @@ data/results/escenarios.parquet
 
 # --- Notebooks ---
 .ipynb_checkpoints/
+
+# --- Artefactos locales de ejecución ---
+api.err.log
+api.out.log
+*.log
+mlflow.db
+mlruns/
+data/db/
+data/modelos/
+
+# --- Documentos de evaluación excluidos por instrucción ---
+CRITERIOS_EVAL_PROYECTO_INTEGRADOR_1_unificado.md
+PI1_Preliminar_MingaData_2026-2.md
+PI1_Propuesta_de_valor_MingaData_2026-2.md
+tareas_project.csv

@@ -122,6 +122,12 @@ def main():
     check("metricas" in datos, "GET /metricas tiene campo metricas")
     if "fuente" in datos:
         check(datos["fuente"] in ("duckdb", "csv"), "Fuente de métricas válida (duckdb o csv)")
+    db_local = ROOT / "data" / "db" / "mingadata.duckdb"
+    if db_local.exists():
+        check(
+            datos.get("fuente") == "duckdb",
+            "GET /metricas usa DuckDB cuando la BD existe",
+        )
 
     # --- 6. Docs de OpenAPI ---
     print("\n--- 6. Documentación OpenAPI ---")

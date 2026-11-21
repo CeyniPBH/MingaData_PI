@@ -17,7 +17,7 @@ Convenciones:
 | 3 | Origen e ingesta de datos | 15% | Excelente | `docs/ML_C/fuentes_caracterizacion.md`, `data/raw/LEEME.md`, `src/ML_C/00b_validar_ingesta.py`, `data/logs/ingesta_*.log`, `data/logs/ingesta_ultima.json` | 9 fuentes caracterizadas (tipo, formato, volumen, frecuencia, uso), validación de ingesta con 0 fallas, logs de auditoría. |
 | 4 | Almacenamiento | 15% | Excelente | `data/metadata/catalogo.yaml` (37 tablas), `data/clean/` (Parquet+CSV), `data/results/` (Parquet+CSV), `src/pipeline/exportar_parquet.py`, `docs/arquitectura/almacenamiento_zonas.md` | Zonas raw/trusted/refined, Parquet Snappy, partición por año en producción y excedentes, catálogo con rutas, zonas, filas, columnas, dtypes, fuente y fecha. |
 | 5 | Procesamiento distribuido | 20% | **Aceptable (techo)** | `docs/arquitectura/justificacion_procesamiento.md`, `docs/arquitectura/rendimiento.md`, `src/pipeline/run_all.py` | Techo declarado "Aceptable": volumen 0,79 GB crudo / 47.659 filas máx. entrenamiento, batch anual, un nodo, 0 COP de infraestructura. Pandas suficiente; puertas abiertas para migrar. |
-| 6 | Despliegue de modelos y consumo | 20% | Excelente | `src/api/main.py`, `src/api/modelo.py`, `src/api/test_api.py`, `src/deploy/persistencia.py`, `src/pipeline/guardar_persistencia.py`, `requirements-api.txt` | API FastAPI en Render con `/predict` (modelo LightGBM con 14 features, expm1 → toneladas), `/health`, `/modelo/info`, `/metricas` (DuckDB o CSV). Modelo versionado en S3 (`mingadata-pi-2026`) con MLflow. DuckDB subido a S3. Tablero en Streamlit Cloud con secrets apuntando a API y bucket. |
+| 6 | Despliegue de modelos y consumo | 20% | Excelente | `src/api/main.py`, `src/api/modelo.py`, `src/api/test_api.py`, `src/deploy/persistencia.py`, `src/deploy/database.py`, `src/deploy/test_database.py`, `src/pipeline/guardar_persistencia.py`, `requirements-api.txt`, `docs/evaluacion/evidencia_despliegue.md` | API FastAPI en Render (`https://mingadata-api.onrender.com`) con `/predict` (LightGBM, 14 features, expm1 → toneladas), `/health`, `/version`, `/modelo/info`, `/metricas`. Modelo versionado en S3 (`mingadata-pi-2026`) con MLflow. DuckDB en `s3://mingadata-pi-2026/duckdb/mingadata.duckdb`, descargado por la API vía `MINGA_DUCKDB_S3_URL`; respaldo CSV si falla. Tablero Streamlit Cloud consume la API para estado, métricas y predicción en vivo. |
 | 7 | Sustentación | 30% | Fuera de alcance | — | Omitido por instrucción (no se crea guion de sustentación). |
 
 ## SI7009 — Formulación, modelado, diagnóstico y métrica de negocio
@@ -72,12 +72,18 @@ python src\dashboard\test_tarea3.py
 # Validación de entregas ML
 python src\ML_C\08_validar_entregas.py
 
+# Verificación de la API desplegada
+Invoke-RestMethod https://mingadata-api.onrender.com/version
+Invoke-RestMethod https://mingadata-api.onrender.com/health
+Invoke-RestMethod https://mingadata-api.onrender.com/metricas
+
 # Despliegue en Render (opcional, Opción B)
 # Build: pip install -r requirements-api.txt
 # Start: uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
-# Variables de entorno: MINGA_DATA_BUCKET, MINGA_DATA_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, MINGA_MODELO_S3_URL
+# Variables: MINGA_DATA_BUCKET, MINGA_DATA_REGION, AWS_ACCESS_KEY_ID,
+#            AWS_SECRET_ACCESS_KEY, MINGA_MODELO_S3_URL, MINGA_DUCKDB_S3_URL
 
 # Despliegue en Streamlit Cloud (opcional, Opción B)
 # Main file: src/dashboard/app.py
-# Secrets: MINGA_API_URL, MINGA_DATA_BUCKET, MINGA_DATA_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+# Secrets: MINGA_API_URL (las credenciales AWS solo si se leen Parquet desde S3)
 ```

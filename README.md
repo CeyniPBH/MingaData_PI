@@ -108,11 +108,14 @@ Se puede alcanzar el nivel "Excelente" de SI7006-6 desplegando la API y el table
 - `AWS_ACCESS_KEY_ID` = tu clave AWS
 - `AWS_SECRET_ACCESS_KEY` = tu clave secreta AWS
 - `MINGA_MODELO_S3_URL` = `s3://mingadata-pi-2026//20261121_034051/modelo_lgbm_20261121_032739.joblib`
+- `MINGA_DUCKDB_S3_URL` = `s3://mingadata-pi-2026/duckdb/mingadata.duckdb`
 - `PYTHON_VERSION` = `3.12.7` (evita problemas de wheels con la versión por defecto de Render)
 
 Endpoints: `GET /health`, `GET /version`, `GET /modelo/info`, `POST /predict`, `GET /metricas`, `GET /docs`.
 
 `GET /version` devuelve el commit que Render está ejecutando (`RENDER_GIT_COMMIT`) y la versión del modelo; úsalo para confirmar que el despliegue sí tomó el último push.
+
+`GET /metricas` intenta leer DuckDB. Si `MINGA_DUCKDB_S3_URL` está configurada, la API descarga la base a un temporal y responde `fuente: duckdb`; si falla, cae al CSV (`fuente: csv`).
 
 ### Tablero en Streamlit Cloud
 
@@ -120,12 +123,12 @@ Endpoints: `GET /health`, `GET /version`, `GET /modelo/info`, `POST /predict`, `
 
 **Secrets** (en Settings → Secrets de Streamlit Cloud):
 ```toml
-MINGA_API_URL = "https://TU-API.onrender.com"
-MINGA_DATA_BUCKET = "mingadata-pi-2026"
-MINGA_DATA_REGION = "us-east-1"
-AWS_ACCESS_KEY_ID = "TU_ACCESS_KEY_ID"
-AWS_SECRET_ACCESS_KEY = "TU_SECRET_ACCESS_KEY"
+MINGA_API_URL = "https://mingadata-api.onrender.com"
 ```
+
+No necesitas credenciales AWS en Streamlit Cloud: el tablero lee los Parquet/CSV versionados en el repositorio y consume la API para predicciones, métricas y estado de DuckDB. Si quieres que lea Parquet directamente desde S3, agrega `MINGA_DATA_BUCKET`, `MINGA_DATA_REGION`, `AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY`.
+
+En la pantalla **0. Resumen** el tablero muestra el estado de la API y de DuckDB, y permite probar una predicción en vivo contra `POST /predict`.
 
 ### Pantallas del tablero
 

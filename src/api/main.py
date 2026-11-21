@@ -18,13 +18,19 @@ from pathlib import Path
 # Agregar src/ al path para importar módulos de deploy
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from api.modelo import predictor
 
 try:
-    from deploy.database import DuckDBDatabase, DB_PATH
+    from deploy.database import DuckDBDatabase, DB_PATH, descargar_duckdb_s3
+
+    # En la nube el .duckdb no viaja en el repo: se descarga de S3 al arrancar.
+    _DB_CLOUD = descargar_duckdb_s3()
+    if _DB_CLOUD is not None:
+        DB_PATH = _DB_CLOUD
     _DEPLOY_DISPONIBLE = True
 except Exception:
     _DEPLOY_DISPONIBLE = False
@@ -41,6 +47,21 @@ class PrediccionRequest(BaseModel):
     cod_dane: str
     horizonte: int
     anio_objetivo: int | None = None
+
+
+def _registros_json(df: pd.DataFrame) -> list[dict]:
+    """Convierte un DataFrame a registros JSON reemplazando NaN/NA por None."""
+    registros = df.to_dict(orient="records")
+    for fila in registros:
+        for clave, valor in list(fila.items()):
+            if valor is None:
+                continue
+            try:
+                if pd.isna(valor):
+                    fila[clave] = None
+            except (TypeError, ValueError):
+                continue
+    return registros
 
 
 @app.on_event("startup")
@@ -101,7 +122,7 @@ def metricas():
                     LIMIT 10
                     """
                 )
-            return {"metricas": df.to_dict(orient="records"), "fuente": "duckdb"}
+            return {"metricas": _registros_json(df), "fuente": "duckdb"}
         except Exception:
             pass  # cae al CSV
 
@@ -118,7 +139,7 @@ def metricas():
             df = df[cols].head(10)
             df = df.rename(columns={"MASE": "mase", "WAPE": "wape", "modelo": "modelo"})
             return {
-                "metricas": df.to_dict(orient="records"),
+                "metricas": _registros_json(df),
                 "fuente": "csv",
                 "aviso": "DuckDB no disponible; métricas desde CSV local.",
             }

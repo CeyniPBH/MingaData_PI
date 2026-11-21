@@ -13,6 +13,8 @@ la nube.
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -25,14 +27,41 @@ DB_DIR = ROOT / "data" / "db"
 DB_PATH = DB_DIR / "mingadata.duckdb"
 
 
+def descargar_duckdb_s3(url: str | None = None) -> Path | None:
+    """Descarga el archivo DuckDB desde S3 a un temporal y devuelve su ruta.
+
+    Se usa en despliegues (Render/Streamlit Cloud) donde el repositorio no
+    incluye `data/db/mingadata.duckdb`. La variable de entorno es
+    `MINGA_DUCKDB_S3_URL`; si no está definida o falla, devuelve None y el
+    llamador debe caer al respaldo local/CSV.
+    """
+    s3_url = (url if url is not None else os.getenv("MINGA_DUCKDB_S3_URL", "")).strip()
+    if not s3_url.startswith("s3://"):
+        return None
+    try:
+        import boto3
+
+        resto = s3_url[len("s3://"):]
+        bucket, clave = resto.split("/", 1)
+        destino = Path(tempfile.gettempdir()) / "mingadata.duckdb"
+        region = os.getenv("MINGA_DATA_REGION") or os.getenv("AWS_DEFAULT_REGION") or None
+        boto3.client("s3", region_name=region).download_file(bucket, clave, str(destino))
+        return destino
+    except Exception:
+        return None
+
+
 class DuckDBDatabase:
     """Envoltura sobre DuckDB para persistir y consultar resultados del proyecto."""
 
     def __init__(self, ruta_db: Path | None = None, modo_lectura: bool = False):
         self.ruta_db = ruta_db or DB_PATH
-        self.ruta_db.parent.mkdir(parents=True, exist_ok=True)
+        if not modo_lectura:
+            self.ruta_db.parent.mkdir(parents=True, exist_ok=True)
         self.con = duckdb.connect(str(self.ruta_db), read_only=modo_lectura)
-        self._crear_tablas()
+        # En solo lectura la base ya existe y no se puede ejecutar CREATE.
+        if not modo_lectura:
+            self._crear_tablas()
 
     def _crear_tablas(self) -> None:
         self.con.execute(
@@ -152,4 +181,4 @@ class DuckDBDatabase:
         self.cerrar()
 
 
-__all__ = ["DuckDBDatabase", "DB_PATH"]
+__all__ = ["DuckDBDatabase", "DB_PATH", "descargar_duckdb_s3"]
