@@ -121,6 +121,10 @@ Endpoints: `GET /health`, `GET /version`, `GET /modelo/info`, `POST /predict`, `
 
 **Main file:** `src/dashboard/app.py`
 
+**URL pública:** <https://mingadatapi-4puozskgkscj82yxoxmc3q.streamlit.app>
+
+**Repositorio fuente:** `CeyniPBH/MingaData_PI`, rama `main` (desplegado con la cuenta CeyniPBH).
+
 **Secrets** (en Settings → Secrets de Streamlit Cloud):
 ```toml
 MINGA_API_URL = "https://mingadata-api.onrender.com"
@@ -129,6 +133,8 @@ MINGA_API_URL = "https://mingadata-api.onrender.com"
 No necesitas credenciales AWS en Streamlit Cloud: el tablero lee los Parquet/CSV versionados en el repositorio y consume la API para predicciones, métricas y estado de DuckDB. Si quieres que lea Parquet directamente desde S3, agrega `MINGA_DATA_BUCKET`, `MINGA_DATA_REGION`, `AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY`.
 
 En la pantalla **0. Resumen** el tablero muestra el estado de la API y de DuckDB, y permite probar una predicción en vivo contra `POST /predict`.
+
+La app está publicada en modo **público** y verificada el 2026-11-21: abre sin iniciar sesión (HTTP 200). Si se cambia a privada en App settings → Sharing, Streamlit pedirá login.
 
 ### Pantallas del tablero
 

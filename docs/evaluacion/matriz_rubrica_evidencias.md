@@ -17,7 +17,7 @@ Convenciones:
 | 3 | Origen e ingesta de datos | 15% | Excelente | `docs/ML_C/fuentes_caracterizacion.md`, `data/raw/LEEME.md`, `src/ML_C/00b_validar_ingesta.py`, `data/logs/ingesta_*.log`, `data/logs/ingesta_ultima.json` | 9 fuentes caracterizadas (tipo, formato, volumen, frecuencia, uso), validación de ingesta con 0 fallas, logs de auditoría. |
 | 4 | Almacenamiento | 15% | Excelente | `data/metadata/catalogo.yaml` (37 tablas), `data/clean/` (Parquet+CSV), `data/results/` (Parquet+CSV), `src/pipeline/exportar_parquet.py`, `docs/arquitectura/almacenamiento_zonas.md` | Zonas raw/trusted/refined, Parquet Snappy, partición por año en producción y excedentes, catálogo con rutas, zonas, filas, columnas, dtypes, fuente y fecha. |
 | 5 | Procesamiento distribuido | 20% | **Aceptable (techo)** | `docs/arquitectura/justificacion_procesamiento.md`, `docs/arquitectura/rendimiento.md`, `src/pipeline/run_all.py` | Techo declarado "Aceptable": volumen 0,79 GB crudo / 47.659 filas máx. entrenamiento, batch anual, un nodo, 0 COP de infraestructura. Pandas suficiente; puertas abiertas para migrar. |
-| 6 | Despliegue de modelos y consumo | 20% | Excelente | `src/api/main.py`, `src/api/modelo.py`, `src/api/test_api.py`, `src/deploy/persistencia.py`, `src/deploy/database.py`, `src/deploy/test_database.py`, `src/pipeline/guardar_persistencia.py`, `requirements-api.txt`, `docs/evaluacion/evidencia_despliegue.md` | API FastAPI en Render (`https://mingadata-api.onrender.com`) con `/predict` (LightGBM, 14 features, expm1 → toneladas), `/health`, `/version`, `/modelo/info`, `/metricas`. Modelo versionado en S3 (`mingadata-pi-2026`) con MLflow. DuckDB en `s3://mingadata-pi-2026/duckdb/mingadata.duckdb`, descargado por la API vía `MINGA_DUCKDB_S3_URL`; respaldo CSV si falla. Tablero Streamlit Cloud consume la API para estado, métricas y predicción en vivo. |
+| 6 | Despliegue de modelos y consumo | 20% | Excelente | `src/api/main.py`, `src/api/modelo.py`, `src/api/test_api.py`, `src/deploy/persistencia.py`, `src/deploy/database.py`, `src/deploy/test_database.py`, `src/pipeline/guardar_persistencia.py`, `requirements-api.txt`, `docs/evaluacion/evidencia_despliegue.md` | API FastAPI en Render (`https://mingadata-api.onrender.com`) con `/predict` (LightGBM, 14 features, expm1 → toneladas), `/health`, `/version`, `/modelo/info`, `/metricas`. Modelo versionado en S3 (`mingadata-pi-2026`) con MLflow. DuckDB en `s3://mingadata-pi-2026/duckdb/mingadata.duckdb`, descargado por la API vía `MINGA_DUCKDB_S3_URL`; respaldo CSV si falla. Tablero público en Streamlit Cloud (<https://mingadatapi-4puozskgkscj82yxoxmc3q.streamlit.app>, cuenta CeyniPBH) consume la API para estado, métricas y predicción en vivo. |
 | 7 | Sustentación | 30% | Fuera de alcance | — | Omitido por instrucción (no se crea guion de sustentación). |
 
 ## SI7009 — Formulación, modelado, diagnóstico y métrica de negocio
@@ -46,7 +46,7 @@ Convenciones:
 | # | Criterio / entregable | Peso | Nivel | Artefactos / evidencias |
 |---|---|---:|---|---|
 | T1 | Matriz de rúbrica y evidencias | — | — | `docs/evaluacion/matriz_rubrica_evidencias.md` (este documento) |
-| T2 | Orquestación y calidad | — | — | `src/pipeline/run_all.py` (`--rapido`, `--skip`, `--con-tuning`, logs), `pytest` (58 pruebas), `src/dashboard/test_tarea3.py`, `src/ML_C/08_validar_entregas.py` (TODO OK) |
+| T2 | Orquestación y calidad | — | — | `src/pipeline/run_all.py` (`--rapido`, `--skip`, `--con-tuning`, logs), `pytest` (60 pruebas), `src/dashboard/test_tarea3.py`, `src/ML_C/08_validar_entregas.py` (TODO OK) |
 | T3 | README actualizado | — | — | `README.md` (pipeline, Parquet, catálogo, docs nuevos, default "0. Resumen") |
 | T4 | Validación de ingesta | — | — | `src/ML_C/00b_validar_ingesta.py` (9 fuentes OK, 0 fallas), añadido a `PASOS` de `src/ML_C/ejecutar_todo.py` |
 
@@ -76,6 +76,9 @@ python src\ML_C\08_validar_entregas.py
 Invoke-RestMethod https://mingadata-api.onrender.com/version
 Invoke-RestMethod https://mingadata-api.onrender.com/health
 Invoke-RestMethod https://mingadata-api.onrender.com/metricas
+
+# Verificación del tablero (esperado: 200, sin pedir login)
+(Invoke-WebRequest "https://mingadatapi-4puozskgkscj82yxoxmc3q.streamlit.app/" -UseBasicParsing).StatusCode
 
 # Despliegue en Render (opcional, Opción B)
 # Build: pip install -r requirements-api.txt
