@@ -140,6 +140,29 @@ def subir_modelo_a_s3_manual(
     return meta
 
 
+def subir_duckdb_a_s3(bucket: str, prefijo: str = "duckdb") -> bool:
+    """Sube la base de datos DuckDB local a S3 para consumo en la nube."""
+    if not _BOTO3_DISPONIBLE:
+        print("  AVISO: boto3 no instalado; no se sube DuckDB a S3.")
+        return False
+    if not DB_PATH.exists():
+        print("  AVISO: no existe DuckDB local; no se sube a S3.")
+        return False
+
+    import boto3
+
+    s3 = boto3.client("s3")
+    version = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    clave = f"{prefijo.strip('/')}/{version}/mingadata.duckdb"
+    try:
+        s3.upload_file(str(DB_PATH), bucket, clave)
+        print(f"  OK DuckDB subido a S3: s3://{bucket}/{clave}")
+        return True
+    except Exception as e:
+        print(f"  ERROR subiendo DuckDB a S3: {e}")
+        return False
+
+
 def persistir_resultados_en_duckdb(commit: str) -> None:
     if not _DEPLOY_DISPONIBLE:
         print("  AVISO: deploy no disponible; no se escriben resultados en DuckDB.")
@@ -314,8 +337,14 @@ def main():
                     print(f"        versión: {res["version"]}")
                 except Exception as e:
                     print(f"  ERROR subiendo a S3: {e}")
+
+                # También subir la base de datos DuckDB con los resultados
+                try:
+                    subir_duckdb_a_s3(args.bucket, prefijo=args.prefix)
+                except Exception as e:
+                    print(f"  ERROR subiendo DuckDB a S3: {e}")
         else:
-            print("  AVISO: no se indicó --bucket; el modelo queda solo en local.")
+            print("  AVISO: no se indicó --bucket; el modelo y DuckDB quedan solo en local.")
 
         if args.con_mlflow:
             try:

@@ -1,0 +1,18 @@
+# Dependencias mínimas para la API REST en Render (FastAPI + modelo LightGBM)
+# Sirve /health, /modelo/info, /predict, /metricas, /docs
+# No incluye mlflow, streamlit, geopandas, ortools, etc. (solo para el tablero)
+
+pandas>=2.1
+numpy>=1.26
+pyarrow>=14          # lectura/escritura .parquet
+pyyaml>=6.0          # config/ML_C/parametros.yaml
+scikit-learn>=1.4
+lightgbm>=4.3
+joblib               # serialización del modelo .joblib
+
+fastapi>=0.104       # API REST
+uvicorn>=0.24        # servidor
+python-multipart>=0.0.6
+
+boto3>=1.28          # cliente AWS S3 (descargar modelo)
+duckdb>=1.0          # motor SQL (métricas, opcional en Render)

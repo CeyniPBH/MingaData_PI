@@ -21,7 +21,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from api.modelo import predictor
-from deploy.database import DuckDBDatabase, DB_PATH
+
+try:
+    from deploy.database import DuckDBDatabase, DB_PATH
+    _DEPLOY_DISPONIBLE = True
+except Exception:
+    _DEPLOY_DISPONIBLE = False
 
 app = FastAPI(
     title="MingaData API",
@@ -78,21 +83,48 @@ def predecir(req: PrediccionRequest):
 
 @app.get("/metricas", tags=["metricas"])
 def metricas():
-    """Devuelve las últimas métricas del modelo desde la base de datos DuckDB."""
+    """Devuelve las últimas métricas del modelo.
+
+    Intenta leer DuckDB; si no existe (despliegue en nube), cae al CSV
+    `data/results/ML_Ce/metricas_comparacion.csv` que viaja en el repositorio.
+    """
+    # --- Intento 1: DuckDB ---
+    if _DEPLOY_DISPONIBLE:
+        try:
+            with DuckDBDatabase(DB_PATH, modo_lectura=True) as db:
+                df = db.consultar(
+                    """
+                    SELECT commit, horizonte, producto, mase, wape, sesgo, modelo, fecha_utc
+                    FROM metricas_modelo
+                    ORDER BY fecha_utc DESC
+                    LIMIT 10
+                    """
+                )
+            return {"metricas": df.to_dict(orient="records"), "fuente": "duckdb"}
+        except Exception:
+            pass  # cae al CSV
+
+    # --- Intento 2: CSV local (está trackeado en Git) ---
     try:
-        with DuckDBDatabase(DB_PATH, modo_lectura=True) as db:
-            df = db.consultar(
-                """
-                SELECT commit, horizonte, producto, mase, wape, sesgo, modelo, fecha_utc
-                FROM metricas_modelo
-                ORDER BY fecha_utc DESC
-                LIMIT 10
-                """
-            )
-        return {"metricas": df.to_dict(orient="records")}
+        import pandas as pd
+        from pathlib import Path
+        ROOT = Path(__file__).resolve().parents[2]
+        csv_path = ROOT / "data" / "results" / "ML_Ce" / "metricas_comparacion.csv"
+        if csv_path.exists():
+            df = pd.read_csv(csv_path)
+            cols = ["producto", "modelo", "MASE", "WAPE", "mejora_MASE_vs_naive", "mejora_WAPE_vs_naive"]
+            cols = [c for c in cols if c in df.columns]
+            df = df[cols].head(10)
+            df = df.rename(columns={"MASE": "mase", "WAPE": "wape", "modelo": "modelo"})
+            return {
+                "metricas": df.to_dict(orient="records"),
+                "fuente": "csv",
+                "aviso": "DuckDB no disponible; métricas desde CSV local.",
+            }
     except Exception as e:
-        # Si la BD no existe aún, devolver vacío en lugar de fallar
-        return {"metricas": [], "aviso": str(e)}
+        pass
+
+    return {"metricas": [], "fuente": None, "aviso": "No se pudieron leer métricas."}
 
 
 @app.get("/", tags=["estado"])

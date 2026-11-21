@@ -21,10 +21,36 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import streamlit as st
+
+# st.set_page_config debe ser el PRIMER comando de Streamlit
+st.set_page_config(
+    page_title="MingaData - Central de Acopio Valle del Cauca",
+    page_icon="🌱",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 import pandas as pd
 import plotly.graph_objects as go
 import folium
 from streamlit_folium import st_folium
+
+# --- Leer secrets de Streamlit Cloud y establecer como variables de entorno ---
+# utils.py y API_URL leen os.getenv; en Streamlit Cloud los valores vienen de st.secrets
+try:
+    for _key in [
+        "MINGA_API_URL",
+        "MINGA_DATA_BUCKET",
+        "MINGA_DATA_REGION",
+        "MINGA_DATA_PREFIX",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "MINGA_MODELO_S3_URL",
+    ]:
+        if _key in st.secrets:
+            os.environ[_key] = str(st.secrets[_key])
+except Exception:
+    pass  # No estamos en Streamlit Cloud o no hay secrets configurados
 
 from utils import (
     cargar_oferta_escenarios,
@@ -81,12 +107,6 @@ except Exception:
 
 # URL de la API (variable de entorno o localhost por defecto)
 API_URL = os.getenv("MINGA_API_URL", "http://localhost:8000").rstrip("/")
-st.set_page_config(
-    page_title="MingaData - Central de Acopio Valle del Cauca",
-    page_icon="🌱",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
 
 # =============================================================================
 # CARGA DE DATOS

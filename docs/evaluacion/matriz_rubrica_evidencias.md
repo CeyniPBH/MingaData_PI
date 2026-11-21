@@ -6,18 +6,18 @@ Convenciones:
 - Los artefactos en `data/clean/` y `data/results/` son CSV versionados + Parquet derivados (ver `data/metadata/catalogo.yaml`, 37 tablas).
 - Los lectores prefieren Parquet con fallback a CSV (`src/dashboard/utils.py`, `src/ML_C/common.py`).
 - `cod_dane` se conserva siempre como texto de 5 dígitos.
-- Nada depende de servicios de pago; todo ejecuta localmente con `requirements.txt`.
+- El despliegue en nube es opcional (Opción B): API en Render, modelo versionado en S3 (`mingadata-pi-2026`), DuckDB en S3 y tablero en Streamlit Cloud. Todo ejecuta igualmente localmente con `requirements.txt` o `requirements-api.txt`.
 
 ## SI7006 — Arquitectura, ingesta y almacenamiento
 
 | # | Criterio | Peso | Nivel declarado | Artefactos / evidencias | Notas |
 |---|---|---:|---|---|---|
 | 1 | Arquitectura de referencia y flujo de datos | 15% | Excelente | `docs/arquitectura/arquitectura_referencia.md`, `docs/arquitectura/pipeline.mmd`, `docs/arquitectura/almacenamiento_zonas.md`, `docs/arquitectura/justificacion_procesamiento.md`, `docs/arquitectura/rendimiento.md` | Data lake ligero por zonas raw/trusted/refined, diagrama Mermaid, flujos y contratos entre etapas. |
-| 2 | Entorno tecnológico | 10% | Fuera de alcance | — | Despliegue en nube/cluster excluido por instrucción; ejecución local justificada en `justificacion_procesamiento.md`. |
+| 2 | Entorno tecnológico | 10% | Aceptable (opcional) | `requirements-api.txt`, `.env.example`, `src/deploy/` | Despliegue opcional en Render (API) y Streamlit Cloud (tablero); ejecuta localmente sin nube. |
 | 3 | Origen e ingesta de datos | 15% | Excelente | `docs/ML_C/fuentes_caracterizacion.md`, `data/raw/LEEME.md`, `src/ML_C/00b_validar_ingesta.py`, `data/logs/ingesta_*.log`, `data/logs/ingesta_ultima.json` | 9 fuentes caracterizadas (tipo, formato, volumen, frecuencia, uso), validación de ingesta con 0 fallas, logs de auditoría. |
 | 4 | Almacenamiento | 15% | Excelente | `data/metadata/catalogo.yaml` (37 tablas), `data/clean/` (Parquet+CSV), `data/results/` (Parquet+CSV), `src/pipeline/exportar_parquet.py`, `docs/arquitectura/almacenamiento_zonas.md` | Zonas raw/trusted/refined, Parquet Snappy, partición por año en producción y excedentes, catálogo con rutas, zonas, filas, columnas, dtypes, fuente y fecha. |
 | 5 | Procesamiento distribuido | 20% | **Aceptable (techo)** | `docs/arquitectura/justificacion_procesamiento.md`, `docs/arquitectura/rendimiento.md`, `src/pipeline/run_all.py` | Techo declarado "Aceptable": volumen 0,79 GB crudo / 47.659 filas máx. entrenamiento, batch anual, un nodo, 0 COP de infraestructura. Pandas suficiente; puertas abiertas para migrar. |
-| 6 | Despliegue de modelos y consumo | 20% | Fuera de alcance | `src/dashboard/app.py`, `src/dashboard/utils.py` | Consumo vía tablero Streamlit local; sin API, sin MLflow, sin despliegue en nube (excluido). |
+| 6 | Despliegue de modelos y consumo | 20% | Excelente | `src/api/main.py`, `src/api/modelo.py`, `src/api/test_api.py`, `src/deploy/persistencia.py`, `src/pipeline/guardar_persistencia.py`, `requirements-api.txt` | API FastAPI en Render con `/predict` (modelo LightGBM con 14 features, expm1 → toneladas), `/health`, `/modelo/info`, `/metricas` (DuckDB o CSV). Modelo versionado en S3 (`mingadata-pi-2026`) con MLflow. DuckDB subido a S3. Tablero en Streamlit Cloud con secrets apuntando a API y bucket. |
 | 7 | Sustentación | 30% | Fuera de alcance | — | Omitido por instrucción (no se crea guion de sustentación). |
 
 ## SI7009 — Formulación, modelado, diagnóstico y métrica de negocio
@@ -52,10 +52,11 @@ Convenciones:
 
 ## Criterios fuera de alcance (no evaluables en este entregable)
 
-- SI7006-2 (entorno tecnológico / nube), SI7006-6 (despliegue y consumo en la nube), SI7006-7 (sustentación).
+- SI7006-7 (sustentación).
 - SI7009-7 (sustentación).
 - SI7007-4 (sustentación).
-- Cualquier requerimiento de despliegue: Streamlit Cloud, API, Docker, S3, CI/CD, MLflow, credenciales, SageMaker, Kafka, Kinesis, Flink, EMR, Glue, Redshift, Athena, QuickSight. Spark solo como nota opcional sin implementar.
+- CI/CD automático, Docker, SageMaker, Kafka, Kinesis, Flink, EMR, Glue, Redshift, Athena, QuickSight. Spark solo como nota opcional sin implementar.
+- El despliegue en Render/Streamlit Cloud es opcional (Opción B) y no bloquea la ejecución local.
 
 ## Cómo verificar
 
@@ -63,12 +64,20 @@ Convenciones:
 # Pipeline completo (modo rápido)
 python src\pipeline\run_all.py --rapido
 
-# Pruebas automatizadas
+# Pruebas automatizadas (pytest + API + tablero)
 python -m pytest -q
-
-# Verificación Tarea 3 (tablero)
+python src\api\test_api.py
 python src\dashboard\test_tarea3.py
 
 # Validación de entregas ML
 python src\ML_C\08_validar_entregas.py
+
+# Despliegue en Render (opcional, Opción B)
+# Build: pip install -r requirements-api.txt
+# Start: uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
+# Variables de entorno: MINGA_DATA_BUCKET, MINGA_DATA_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, MINGA_MODELO_S3_URL
+
+# Despliegue en Streamlit Cloud (opcional, Opción B)
+# Main file: src/dashboard/app.py
+# Secrets: MINGA_API_URL, MINGA_DATA_BUCKET, MINGA_DATA_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 ```

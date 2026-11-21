@@ -92,6 +92,38 @@ streamlit run src/dashboard/app.py
 
 Luego abre http://localhost:8501 en tu navegador.
 
+## Despliegue en la nube (opcional — Opción B)
+
+Se puede alcanzar el nivel "Excelente" de SI7006-6 desplegando la API y el tablero en la nube. Esto es opcional; todo funciona igualmente en local.
+
+### API REST en Render
+
+**Build Command:** `pip install -r requirements-api.txt`
+
+**Start Command:** `uvicorn src.api.main:app --host 0.0.0.0 --port $PORT`
+
+**Variables de entorno:**
+- `MINGA_DATA_BUCKET` = `mingadata-pi-2026`
+- `MINGA_DATA_REGION` = `us-east-1`
+- `AWS_ACCESS_KEY_ID` = tu clave AWS
+- `AWS_SECRET_ACCESS_KEY` = tu clave secreta AWS
+- `MINGA_MODELO_S3_URL` = `s3://mingadata-pi-2026//20261121_034051/modelo_lgbm_20261121_032739.joblib`
+
+Endpoints: `GET /health`, `GET /modelo/info`, `POST /predict`, `GET /metricas`, `GET /docs`.
+
+### Tablero en Streamlit Cloud
+
+**Main file:** `src/dashboard/app.py`
+
+**Secrets** (en Settings → Secrets de Streamlit Cloud):
+```toml
+MINGA_API_URL = "https://TU-API.onrender.com"
+MINGA_DATA_BUCKET = "mingadata-pi-2026"
+MINGA_DATA_REGION = "us-east-1"
+AWS_ACCESS_KEY_ID = "TU_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY = "TU_SECRET_ACCESS_KEY"
+```
+
 ### Pantallas del tablero
 
 0. **Resumen**: landing con KPIs globales (productos, municipios, horizonte, años de historial, exposición con y sin modelo en t·min y COP), callout de alcance, tarjetas de navegación con drill-down y descarga del resumen en CSV. Es la pantalla que se abre por defecto.
