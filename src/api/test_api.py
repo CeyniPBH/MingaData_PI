@@ -70,6 +70,14 @@ def main():
     check("status" in datos, "GET /health tiene campo status")
     check("modelo_cargado" in datos, "GET /health indica si el modelo está cargado")
 
+    # --- 2b. Versión desplegada ---
+    print("\n--- 2b. Versión desplegada ---")
+    r = client.get("/version")
+    check(r.status_code == 200, f"GET /version devuelve 200 (obtuvo {r.status_code})")
+    datos = r.json()
+    check("commit" in datos, "GET /version indica el commit en ejecución")
+    check("modelo_version" in datos, "GET /version indica la versión del modelo")
+
     # --- 3. Info del modelo ---
     print("\n--- 3. Info del modelo ---")
     r = client.get("/modelo/info")

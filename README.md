@@ -108,8 +108,11 @@ Se puede alcanzar el nivel "Excelente" de SI7006-6 desplegando la API y el table
 - `AWS_ACCESS_KEY_ID` = tu clave AWS
 - `AWS_SECRET_ACCESS_KEY` = tu clave secreta AWS
 - `MINGA_MODELO_S3_URL` = `s3://mingadata-pi-2026//20261121_034051/modelo_lgbm_20261121_032739.joblib`
+- `PYTHON_VERSION` = `3.12.7` (evita problemas de wheels con la versión por defecto de Render)
 
-Endpoints: `GET /health`, `GET /modelo/info`, `POST /predict`, `GET /metricas`, `GET /docs`.
+Endpoints: `GET /health`, `GET /version`, `GET /modelo/info`, `POST /predict`, `GET /metricas`, `GET /docs`.
+
+`GET /version` devuelve el commit que Render está ejecutando (`RENDER_GIT_COMMIT`) y la versión del modelo; úsalo para confirmar que el despliegue sí tomó el último push.
 
 ### Tablero en Streamlit Cloud
 

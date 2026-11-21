@@ -58,14 +58,8 @@ class ModeloPredictor:
                     s3.download_file(bucket, clave, str(tmp_joblib))
                     self.modelo = joblib.load(tmp_joblib)
 
-                    # Intentar descargar metadata del mismo prefijo
-                    meta_clave = clave.rsplit(".", 1)[0] + ".meta.json"
-                    tmp_meta = Path(tempfile.gettempdir()) / "minga_modelo_metadata.json"
-                    try:
-                        s3.download_file(bucket, meta_clave, str(tmp_meta))
-                        self.metadata = json.loads(tmp_meta.read_text(encoding="utf-8"))
-                    except Exception:
-                        self.metadata = {"fuente": "s3", "url": s3_url}
+                    # Descargar metadata probando las convenciones de guardado
+                    self.metadata = self._cargar_metadata_s3(s3, bucket, clave, s3_url)
 
                     self.cargado = True
                     self.error_carga = ""
@@ -91,6 +85,54 @@ class ModeloPredictor:
 
         self.cargado = False
         return False
+
+    def _cargar_metadata_s3(self, s3, bucket: str, clave: str, s3_url: str) -> dict[str, Any]:
+        """Busca la metadata del modelo en S3 con las convenciones usadas al subirlo.
+
+        Se intenta, en orden:
+          1. `<prefijo>/modelo_metadata.json` (formato de src/deploy/persistencia.py)
+          2. `<nombre_modelo>.meta.json` (formato local)
+          3. `indice_versiones.json` en la raíz del bucket, buscando la versión
+             cuyo archivo coincida con el modelo descargado.
+        """
+        prefijo = clave.rsplit("/", 1)[0] if "/" in clave else ""
+        nombre = clave.rsplit("/", 1)[-1]
+        candidatos: list[str] = []
+        if prefijo:
+            candidatos.append(f"{prefijo}/modelo_metadata.json")
+        candidatos.append(clave.rsplit(".", 1)[0] + ".meta.json")
+
+        for meta_clave in candidatos:
+            try:
+                obj = s3.get_object(Bucket=bucket, Key=meta_clave)
+                meta = json.loads(obj["Body"].read().decode("utf-8"))
+                if isinstance(meta, dict):
+                    meta.setdefault("fuente", "s3")
+                    meta.setdefault("url", s3_url)
+                    meta.setdefault("clave_s3", clave)
+                    return meta
+            except Exception:
+                continue
+
+        claves_indice = ["indice_versiones.json", "/indice_versiones.json", "modelos/indice_versiones.json"]
+        for indice_clave in claves_indice:
+            try:
+                obj = s3.get_object(Bucket=bucket, Key=indice_clave)
+                indice = json.loads(obj["Body"].read().decode("utf-8"))
+            except Exception:
+                continue
+            versiones = indice.get("versiones", []) if isinstance(indice, dict) else []
+            for meta in reversed(versiones):
+                if not isinstance(meta, dict):
+                    continue
+                archivo_meta = str(meta.get("modelo_archivo", ""))
+                clave_meta = str(meta.get("clave_s3", "")).lstrip("/")
+                if archivo_meta == nombre or clave_meta == clave.lstrip("/"):
+                    meta.setdefault("fuente", "s3")
+                    meta.setdefault("url", s3_url)
+                    return meta
+
+        return {"fuente": "s3", "url": s3_url}
 
     # ------------------------------------------------------------------
     # Features históricas reales (mismo cálculo que 06_lgbm.py)

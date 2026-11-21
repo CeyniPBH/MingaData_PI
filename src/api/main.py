@@ -11,6 +11,7 @@ Cumple SI7006-6 "Excelente": API publicada con prueba funcional.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -127,10 +128,27 @@ def metricas():
     return {"metricas": [], "fuente": None, "aviso": "No se pudieron leer métricas."}
 
 
+@app.get("/version", tags=["estado"])
+def version():
+    """Muestra el commit que Render está ejecutando y la versión del modelo.
+
+    Render define RENDER_GIT_COMMIT en cada despliegue; si no existe (local),
+    devuelve "local".
+    """
+    return {
+        "commit": os.getenv("RENDER_GIT_COMMIT", "local"),
+        "rama": os.getenv("RENDER_GIT_BRANCH", "local"),
+        "servicio": os.getenv("RENDER_SERVICE_NAME", "local"),
+        "api_version": app.version,
+        "modelo_version": predictor.metadata.get("version", "desconocida"),
+        "modelo_cargado": predictor.cargado,
+    }
+
+
 @app.get("/", tags=["estado"])
 def root():
     return {
         "api": "MingaData API",
         "version": "1.0.0",
-        "endpoints": ["/health", "/modelo/info", "/predict", "/metricas", "/docs"],
+        "endpoints": ["/health", "/modelo/info", "/predict", "/metricas", "/version", "/docs"],
     }
