@@ -14,9 +14,9 @@ Con ≤ 24 datos por serie no hay información suficiente para entrenar un model
 
 ## 3. Modelo global LightGBM
 - **Objetivo:** `log1p(y[T+h]) − log1p(y[T])` (cambio logarítmico respecto al último valor). Así el modelo aprende cuánto se aleja del ingenuo, y la escala de la caña de azúcar no domina el entrenamiento.
-- **Variables:** último valor en log, cambios de 1 y 2 años, medias móviles de 3 y 5 años relativas al último valor, % de ceros en los últimos 5 años, longitud de la historia, distancia al máximo histórico, horizonte, año de origen, producto y municipio (categóricas). Opcional: ONI del año de origen y del anterior (`usar_oni` en `config/ML_C/parametros.yaml`).
+- **Variables:** último valor en log, cambios de 1 y 2 años, medias móviles de 3 y 5 años relativas al último valor, % de ceros en los últimos 5 años, longitud de la historia, distancia al máximo histórico, horizonte, año de origen, producto y municipio (categóricas). Además, el ONI del año de origen y del anterior, que el modelo final usa (`usar_oni: true` en `config/ML_C/parametros.yaml`).
 - **Parámetros:** pérdida L1, 300 árboles, tasa 0,03, 15 hojas, mínimo 30 observaciones por hoja, submuestreo 0,8 (todo en `parametros.yaml`).
-- **ONI:** el ONI futuro no se conoce al pronosticar, por lo que solo entra con rezago (años T y T−1). El experimento con/sin ONI se corre con `python src/ML_C/06_lgbm.py --comparar-oni`.
+- **ONI:** el ONI futuro no se conoce al pronosticar, por lo que solo entra con rezago (años T y T−1). El experimento con/sin ONI se corre con `python src/ML_C/06_lgbm.py --comparar-oni`. Resultado: el ONI pesa 2,0 % y no mejora el error (modelo final: MASE 3,907 con ONI y 3,899 sin ONI). Se mantiene porque quitarlo no cambia la central en ninguno de los 54 escenarios; el detalle está en `sensibilidad_oni.md`.
 
 ## 4. Validación walk-forward
 Se simula lo que habría pasado si se hubiera pronosticado en el pasado, con ventana que se expande:
@@ -41,19 +41,19 @@ Se simula lo que habría pasado si se hubiera pronosticado en el pasado, con ven
 ## 6. Resultados
 | Modelo | MASE | WAPE | Mejora MASE | Mejora WAPE |
 |---|---|---|---|---|
-| Promedio ingenuo + LightGBM | 3,899 | 0,101 | +0,5 % | −0,1 % |
-| LightGBM | 3,904 | 0,103 | +0,3 % | −1,9 % |
+| Promedio ingenuo + LightGBM (modelo final) | 3,907 | 0,101 | +0,28 % | −0,35 % |
 | Ingenuo | 3,918 | 0,101 | 0 | 0 |
+| LightGBM | 3,919 | 0,104 | −0,04 % | −2,7 % |
 | Deriva | 4,049 | 0,106 | −3,3 % | −5,1 % |
 | ETS amortiguado | 4,212 | 0,131 | −7,5 % | −29,5 % |
 | Promedio 5 años | 4,291 | 0,150 | −9,5 % | −48,5 % |
 
-**Conclusión honesta:** ningún modelo supera de forma material al ingenuo. LightGBM empata técnicamente y mejora MASE y WAPE a la vez en 12 de 22 productos, con márgenes pequeños. Ver `decisiones_modelado.md` para la elección del modelo final.
+**Conclusión honesta:** ningún modelo supera de forma material al ingenuo. LightGBM empata técnicamente y mejora MASE y WAPE a la vez en 12 de 22 productos; el modelo final lo hace en 13 de 22. Los márgenes son pequeños. Sin caña de azúcar, el modelo final mejora el MASE en 0,31 % y el WAPE en 0,13 %. Las métricas del modelo final por producto, sin caña y por horizonte están en `data/results/ML_Ce/metricas_modelo_final.csv` (`06c_metricas_modelo_final.py`). Ver `decisiones_modelado.md` para la elección del modelo final.
 
 ## 7. Escenarios de oferta 2024-2028
 - **Base:** promedio de ingenuo y LightGBM en los detallados; ingenuo en los simplificados. Origen 2023.
 - **Bajo / alto:** percentiles 10 y 90 del error logarítmico del walk-forward (`log1p(real) − log1p(pred)`), por producto y horizonte si hay ≥ 30 observaciones; si no, por grupo (detallado/simplificado) y horizonte. El horizonte 5 solo tiene un origen, así que se calibra con h = 4 y se ensancha por √(5/4).
-- **Cobertura empírica** (calibrando sin el origen evaluado): 75,9 % frente al 80 % nominal.
+- **Cobertura empírica** (calibrando sin el origen evaluado): 76,0 % frente al 80 % nominal.
 - **Coherencia jerárquica:** el total departamental es la suma de los municipios (bottom-up); diferencia 0.
 
 ## 8. Cómo se evalúan los otros módulos (para el informe)

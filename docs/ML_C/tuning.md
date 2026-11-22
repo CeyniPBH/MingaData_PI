@@ -103,7 +103,7 @@ Salidas:
 - El tuning se hizo con `n_jobs=1` por determinismo; una búsqueda paralela no cambiaría la conclusión, solo el tiempo.
 - Los candidatos son cambios discretos alrededor de la configuración actual, no una exploración global.
 - El conjunto de 2022/2023 es pequeño; una diferencia de 0,002 en MASE no es significativa en términos prácticos.
-- El flag `usar_oni` no se modificó; el modelo actual usa ONI. Cambiarlo habría alterado la comparación y los resultados del modelo final.
+- El tuning se corrió con el ONI, igual que el modelo final (`usar_oni: true`). Quitar el ONI no cambia la central en ninguno de los 54 escenarios (`sensibilidad_oni.md`).
 
 ## 9. Conclusión
 

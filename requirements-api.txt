@@ -1,18 +1,22 @@
+# Versiones fijadas el 21 de noviembre de 2026 con Python 3.12.16, el mismo Python de Render y Streamlit Cloud.
+# Con estas versiones pasan las pruebas y se reproducen las métricas del pronóstico (ver docs/ML_C/sensibilidad_oni.md).
+# Para actualizar: instalar sin versión en un entorno nuevo, correr las pruebas y volver a fijar.
+
 # Dependencias mínimas para la API REST en Render (FastAPI + modelo LightGBM)
 # Sirve /health, /modelo/info, /predict, /metricas, /docs
 # No incluye mlflow, streamlit, geopandas, ortools, etc. (solo para el tablero)
 
-pandas>=2.1
-numpy>=1.26
-pyarrow>=14          # lectura/escritura .parquet
-pyyaml>=6.0          # config/ML_C/parametros.yaml
-scikit-learn>=1.4
-lightgbm>=4.3
-joblib               # serialización del modelo .joblib
+pandas==3.1.0
+numpy==2.5.5
+pyarrow==26.0.1             # lectura/escritura .parquet
+pyyaml==6.0.4               # config/ML_C/parametros.yaml
+scikit-learn==1.9.1
+lightgbm==4.7.0
+joblib==1.6.0               # serialización del modelo .joblib
 
-fastapi>=0.104       # API REST
-uvicorn>=0.24        # servidor
-python-multipart>=0.0.6
+fastapi==0.165.0            # API REST
+uvicorn==0.54.0             # servidor
+python-multipart==0.0.34
 
-boto3>=1.28          # cliente AWS S3 (descargar modelo)
-duckdb>=1.0          # motor SQL (métricas, opcional en Render)
+boto3==1.43.117             # cliente AWS S3 (descargar modelo)
+duckdb==2.0.1               # motor SQL (métricas, opcional en Render)

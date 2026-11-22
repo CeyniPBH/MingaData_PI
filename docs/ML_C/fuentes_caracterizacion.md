@@ -121,4 +121,4 @@ Resultado de la última corrida: **9 fuentes OK, 0 fallas, 0 omitidas**, con avi
 | Matriz de tiempos aproximada | Los costos logísticos son una cota | Se declara en el tablero y en los docs; se puede reemplazar por OSRM sin cambiar el modelo. |
 | Comtrade no incorporado | Menor granularidad de comercio | ICA FRONTERA cubre exportaciones/importaciones. |
 | ONI 2026 parcial | Último año incompleto | Se usa solo como variable histórica; no afecta el pronóstico 2024-2028. |
-| `usar_oni: false` en configuración | La implementación carga `oni.csv` si existe | El modelo final reportado usa ONI; se documenta la inconsistencia y no se cambia el resultado. |
+| La configuración decía `usar_oni: false` y el código cargaba `oni.csv` igual | El modelo final usa el ONI | Corregido: el código respeta el parámetro y la configuración dice `true`. La evidencia para mantener el ONI está en `sensibilidad_oni.md`. |

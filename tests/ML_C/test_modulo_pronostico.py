@@ -70,3 +70,23 @@ def test_oni_anual():
     o = leer(CLEAN / "oni.csv")
     assert o.anio.is_unique and o.anio.min() <= 2000 and o.anio.max() >= ANIO_FIN
     assert o.oni.between(-3, 3).all()
+
+
+def test_metricas_modelo_final():
+    mf = leer(RES / "metricas_modelo_final.csv", dtype={"horizonte": str})
+    pr = leer(RES / "predicciones_comparacion.csv", dtype={"cod_dane": str})
+    tot = mf.query("producto == 'TOTAL' and alcance == 'todos' and horizonte == 'todos' and modelo == 'naive_lgbm'")
+    assert len(tot) == 1
+    final = (pr.naive + pr.lgbm) / 2
+    assert np.isclose(tot.WAPE.iloc[0], (final - pr.real).abs().sum() / pr.real.abs().sum(), atol=1e-4)
+    assert set(mf.horizonte) == {"todos", "1", "2", "3", "4", "5"}
+
+
+def test_modelo_final_usa_oni():
+    """El modelo final reportado es la variante con ONI del experimento 06_lgbm.py --comparar-oni."""
+    assert CFG["pronostico"]["usar_oni"] is True
+    oni = leer(RES / "metricas_oni.csv")
+    mf = leer(RES / "metricas_modelo_final.csv", dtype={"horizonte": str})
+    con = oni.query("variante == 'con_oni' and alcance == 'todos' and modelo == 'naive_lgbm'").MASE.iloc[0]
+    oficial = mf.query("producto == 'TOTAL' and alcance == 'todos' and horizonte == 'todos' and modelo == 'naive_lgbm'").MASE.iloc[0]
+    assert np.isclose(con, oficial, atol=1e-4)

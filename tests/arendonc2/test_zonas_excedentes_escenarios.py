@@ -39,6 +39,12 @@ requiere_resultados = pytest.mark.skipif(
     reason="Faltan resultados; correr src/arendonc2/ejecutar_todo.py primero.",
 )
 
+# Los polígonos GADM no se versionan (data/raw/geo/ está en .gitignore).
+requiere_geometrias = pytest.mark.skipif(
+    not (common.DATA_GEO / "gadm41_COL_2.json.zip").exists(),
+    reason="Falta data/raw/geo/gadm41_COL_2.json.zip; descargarlo con python src/arendonc2/descargar_geometrias.py.",
+)
+
 
 @pytest.fixture(scope="module")
 def zonas():
@@ -71,6 +77,7 @@ def test_un_centro_por_zona(zonas):
 
 
 @requiere_resultados
+@requiere_geometrias
 def test_zonas_conexas():
     """Cada zona debe ser espacialmente conexa en el grafo Queen."""
     from arendonc2 import zonas_acopio as za
@@ -102,6 +109,7 @@ def test_emparejamiento_geometrias_1a1():
 
 
 @requiere_resultados
+@requiere_geometrias
 def test_features_usan_coordenadas_proyectadas():
     """Auditoría 3: el método espacial por defecto proyecta a EPSG:3116 con escala común."""
     from arendonc2 import zonas_acopio as za

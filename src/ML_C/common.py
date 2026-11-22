@@ -48,7 +48,10 @@ def cargar_panel():
 
 
 def cargar_oni(forzar=False):
-    """Devuelve un dict {anio: oni} si la tabla de ONI existe; `forzar` intenta regenerarla desde fuentes crudas cuando falta."""
+    """Devuelve un dict {anio: oni} si `pronostico.usar_oni` es true en config/ML_C/parametros.yaml y la tabla existe.
+    `forzar=True` (experimento `06_lgbm.py --comparar-oni`) ignora el parámetro e intenta regenerar la tabla si falta."""
+    if not forzar and not CFG["pronostico"].get("usar_oni", False):
+        return None
     path = CLEAN / "oni.csv"
     if not path.exists():
         if not forzar:

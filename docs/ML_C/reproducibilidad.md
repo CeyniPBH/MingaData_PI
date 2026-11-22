@@ -40,7 +40,7 @@ pytest tests/ML_C -q
 ```
 
 ## 4. Qué debe salir
-`08_validar_entregas.py` termina en `RESULTADO: TODO OK`, con dos avisos conocidos: matriz de tiempos aproximada y población municipal pendiente. Los números de referencia están en `resumen_pronostico.md` (MASE ingenuo 3,918; LightGBM 3,904; cobertura 75,9 %).
+`08_validar_entregas.py` termina en `RESULTADO: TODO OK`, con dos avisos conocidos: matriz de tiempos aproximada y población municipal pendiente. Los números de referencia están en `resumen_pronostico.md` (MASE ingenuo 3,918; LightGBM 3,919; modelo final 3,907; cobertura 76,0 %). Las pruebas del ONI (`06_lgbm.py --comparar-oni`, `07b_sensibilidad_oni.py` y `07c_comparar_oni_optimizacion.py`) se explican en `sensibilidad_oni.md`.
 
 ## 5. Parámetros
 Todo lo ajustable está en `config/ML_C/parametros.yaml`: número de detallados, criterio de ranking, orígenes del walk-forward, uso del ONI, hiperparámetros de LightGBM, cuantiles de los escenarios, mercados SIPSA y factores de precios derivados. `random_state: 42` fija la aleatoriedad de LightGBM.

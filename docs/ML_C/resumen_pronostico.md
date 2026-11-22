@@ -10,26 +10,26 @@
 ## Resultados (22 detallados, 8.323 observaciones, mismas filas para todos los modelos)
 | Modelo | MASE | WAPE | Mejora MASE vs ingenuo | Mejora WAPE vs ingenuo |
 |---|---|---|---|---|
+| Promedio ingenuo + LightGBM (modelo final) | 3,907 | 0,101 | +0,28 % | −0,35 % |
 | Ingenuo | 3,918 | 0,101 | 0 % | 0 % |
-| Promedio ingenuo + LightGBM | 3,899 | 0,101 | +0,5 % | −0,1 % |
-| LightGBM global | 3,904 | 0,103 | +0,3 % | −1,9 % |
+| LightGBM global | 3,919 | 0,104 | −0,04 % | −2,7 % |
 | Deriva | 4,049 | 0,106 | −3,3 % | −5,1 % |
 | ETS amortiguado | 4,212 | 0,131 | −7,5 % | −29,5 % |
 | Promedio 5 años | 4,291 | 0,150 | −9,5 % | −48,5 % |
 
 ## Para el informe (5 líneas)
 1. Se probaron ingenuo, deriva, ETS amortiguado, promedio de 5 años y un LightGBM global (log del cambio respecto al último valor; rezagos, medias móviles, producto, municipio y horizonte).
-2. Ningún modelo supera de forma material al ingenuo: LightGBM queda en empate técnico (MASE +0,3 %, WAPE −1,9 %) y solo mejora MASE y WAPE a la vez en 12 de 22 productos, con márgenes pequeños.
+2. Ningún modelo supera de forma material al ingenuo: LightGBM queda en empate técnico (MASE −0,04 %, WAPE −2,7 %) y solo mejora MASE y WAPE a la vez en 12 de 22 productos; el promedio con el ingenuo mejora el MASE en 0,28 % y lo hace en 13 de 22. Los márgenes son pequeños.
 3. ETS, deriva y promedio de 5 años empeoran: con 24 datos anuales y cambios de nivel bruscos, extrapolar la tendencia no ayuda.
 4. Para la oferta se usa el promedio ingenuo + LightGBM en los detallados y el ingenuo en los simplificados; no se vende como una mejora, sino como la mejor opción disponible en un empate.
-5. El ONI no se probó porque aún no está en data/clean/oni.csv; el script lo incorpora (con rezago) apenas exista el archivo.
+5. El ONI rezagado está en el modelo final, pero no ayuda: pesa 2,0 % y sin él el MASE del modelo final sería 3,899. Quitarlo no cambia la central en ninguno de los 54 escenarios (`sensibilidad_oni.md`).
 
 ## Sobre los valores repetidos
 El 20,9 % de las transiciones anuales repiten exactamente el valor del año anterior. Pero en estos datos **no encontré evidencia de que eso explique** un buen desempeño del ingenuo: a nivel de serie la correlación entre % de repetidos y WAPE del ingenuo es ≈ 0 (Spearman 0,01), y los productos con más de 25 % de repetidos tienen un MASE del ingenuo mayor (mediana 3,1 vs 1,8). El ingenuo es difícil de superar por otras razones (series cortas y de nivel casi constante).
 
 ## Escenarios 2024-2028
 - Base = pronóstico anterior; bajo y alto = percentiles 10 y 90 del error logarítmico del walk-forward, por producto y horizonte (si hay ≥ 30 observaciones) o por estado y horizonte.
-- Cobertura con calibración dejando un origen afuera: **75,9 %** frente al 80 % nominal (horizontes 1-5: 76,4; 76,2; 76,0; 73,7; 76,4). El horizonte 5 solo tiene un origen, así que se calibra con h = 4 y se ensancha por √(5/4).
+- Cobertura con calibración dejando un origen afuera: **76,0 %** frente al 80 % nominal (horizontes 1-5: 76,4; 76,2; 76,0; 73,8; 77,3). El horizonte 5 solo tiene un origen, así que se calibra con h = 4 y se ensancha por √(5/4).
 - Coherencia: la oferta departamental es la suma de los municipios (bottom-up), diferencia 0. Las sumas de bajo y de alto describen un caso extremo en el que todos los municipios caen o suben a la vez; el rango real del departamento es más angosto.
 
 ## Limitaciones

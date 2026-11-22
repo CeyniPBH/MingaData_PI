@@ -19,7 +19,10 @@ pronostico:
   anio_fin: 2023
   origenes_walk_forward: [2018, 2019, 2020, 2021, 2022]
   horizonte_max: 5
-  usar_oni: false                  # true para incluir ONI rezagado en LightGBM (ver notebook 06)
+  # ONI rezagado (años T y T-1) como variable de LightGBM. El modelo final, los escenarios, la optimización
+  # y la API desplegada se construyeron con el ONI. El experimento `06_lgbm.py --comparar-oni`
+  # (metricas_oni.csv) muestra que no mejora: modelo final MASE 3,907 con ONI y 3,899 sin ONI.
+  usar_oni: true
 
 lightgbm:
   objective: l1

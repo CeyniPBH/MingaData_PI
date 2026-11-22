@@ -1,0 +1,88 @@
+@startuml arquitectura_datos_escala
+' Minga Data - Escenario a escala: arquitectura de datos (Medallion + ELT) en AWS
+' Iconos oficiales: https://github.com/awslabs/aws-icons-for-plantuml (v23.1)
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v23.1/dist
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/AWSSimplified.puml
+!include AWSPuml/General/Internet.puml
+!include AWSPuml/Database/Aurora.puml
+!include AWSPuml/InternetOfThings/IoTCore.puml
+!include AWSPuml/Satellite/Satellite.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/Database/DatabaseMigrationService.puml
+!include AWSPuml/Analytics/KinesisDataStreams.puml
+!include AWSPuml/Storage/SimpleStorageService.puml
+!include AWSPuml/Storage/SimpleStorageServiceS3Tables.puml
+!include AWSPuml/Analytics/Glue.puml
+!include AWSPuml/Analytics/EMR.puml
+!include AWSPuml/Analytics/Athena.puml
+!include AWSPuml/Analytics/LakeFormation.puml
+!include AWSPuml/ApplicationIntegration/StepFunctions.puml
+!include AWSPuml/ManagementGovernance/CloudWatch.puml
+!include AWSPuml/ArtificialIntelligence/SageMakerAI.puml
+!include AWSPuml/BusinessApplications/Quick.puml
+!include AWSPuml/Compute/Batch.puml
+!include AWSPuml/Groups/Generic.puml
+!include AWSPuml/Groups/AWSCloud.puml
+
+skinparam defaultFontSize 18
+skinparam shadowing false
+skinparam ArrowColor #4D4D4D
+skinparam ArrowThickness 1.4
+skinparam nodesep 22
+skinparam ranksep 38
+
+GenericGroup(fuentes, "Fuentes") {
+  Internet(pub, "Datos\npúblicos", "")
+  Aurora(oltp, "Recepción\nen centrales", "")
+  IoTCore(iot, "GPS y\nbásculas", "")
+  Satellite(s2, "Imágenes\nSentinel-2", "")
+}
+
+AWSCloudGroup(nube) {
+  GenericGroup(ingesta, "Ingesta: cargar primero") {
+    Lambda(lam, "EventBridge\ny Lambda", "")
+    DatabaseMigrationService(dms, "DMS\ncambios", "")
+    KinesisDataStreams(kds, "Kinesis y\nFirehose", "")
+  }
+  GenericGroup(img, "Imágenes") {
+    EMR(emr, "EMR Serverless\nNDVI", "")
+  }
+  GenericGroup(lake, "Lakehouse Medallion: transformar dentro (ELT)") {
+    SimpleStorageService(bronce, "BRONCE\ncrudos", "")
+    Glue(glue, "Glue\nSpark", "")
+    SimpleStorageServiceS3Tables(plata, "PLATA\nvalidado", "")
+    Athena(ath, "Athena\ny dbt", "")
+    SimpleStorageServiceS3Tables(oro, "ORO\nnegocio", "")
+  }
+  GenericGroup(gobierno, "Gobierno y operación") {
+    StepFunctions(sf, "Step\nFunctions", "")
+    LakeFormation(lf, "Catálogo y\nLake Formation", "")
+    CloudWatch(cw, "CloudWatch\ny SNS", "")
+  }
+  GenericGroup(consumo, "Consumo") {
+    SageMakerAI(sm, "SageMaker AI\npronóstico", "")
+    Batch(bat, "AWS Batch\noptimización", "")
+    Quick(qs, "Quick Sight\ntableros", "")
+  }
+}
+
+pub -down-> lam
+oltp -down-> dms
+iot -down-> kds
+s2 -down-> emr : sin copiar
+lam -down-> bronce
+dms -down-> bronce
+kds -down-> bronce
+bronce -right-> glue
+glue -right-> plata
+emr -down-> plata
+plata -right-> ath
+ath -right-> oro
+oro -down-> sm
+oro -down-> bat
+oro -down-> qs
+gobierno .up.> lake
+sf -[hidden]right-> lf
+lf -[hidden]right-> cw
+@enduml

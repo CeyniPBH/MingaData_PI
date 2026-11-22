@@ -1,0 +1,13 @@
+﻿producto,modelo,n_obs,n_series,pct_obs_escala0,MASE,WAPE,mejora_MASE_vs_naive,mejora_WAPE_vs_naive,variante,alcance
+TOTAL,naive,8323,571,0.3,3.9175,0.101,0.0,0.0,sin_oni,todos
+TOTAL,lgbm,8323,571,0.3,3.9041,0.1029,0.0034,-0.0192,sin_oni,todos
+TOTAL,naive_lgbm,8323,571,0.3,3.899,0.1011,0.0047,-0.0012,sin_oni,todos
+TOTAL,naive,7873,541,0.3,4.0664,0.3358,0.0,0.0,sin_oni,sin_cana
+TOTAL,lgbm,7873,541,0.3,4.0491,0.3429,0.0043,-0.0213,sin_oni,sin_cana
+TOTAL,naive_lgbm,7873,541,0.3,4.0458,0.3362,0.0051,-0.0012,sin_oni,sin_cana
+TOTAL,naive,8323,571,0.3,3.9175,0.101,0.0,0.0,con_oni,todos
+TOTAL,lgbm,8323,571,0.3,3.919,0.1037,-0.0004,-0.0274,con_oni,todos
+TOTAL,naive_lgbm,8323,571,0.3,3.9067,0.1013,0.0028,-0.0035,con_oni,todos
+TOTAL,naive,7873,541,0.3,4.0664,0.3358,0.0,0.0,con_oni,sin_cana
+TOTAL,lgbm,7873,541,0.3,4.0645,0.3415,0.0005,-0.0171,con_oni,sin_cana
+TOTAL,naive_lgbm,7873,541,0.3,4.0538,0.3353,0.0031,0.0013,con_oni,sin_cana

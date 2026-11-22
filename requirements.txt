@@ -1,36 +1,40 @@
+# Versiones fijadas el 21 de noviembre de 2026 con Python 3.12.16, el mismo Python de Render y Streamlit Cloud.
+# Con estas versiones pasan las pruebas y se reproducen las métricas del pronóstico (ver docs/ML_C/sensibilidad_oni.md).
+# Para actualizar: instalar sin versión en un entorno nuevo, correr las pruebas y volver a fijar.
+
 # --- Base (todos) ---
-pandas>=2.1
-numpy>=1.26
-pyarrow>=14          # lectura/escritura .parquet
-pyyaml>=6.0          # config/*/parametros.yaml
-openpyxl>=3.1         # lectura del Excel de proyecciones de población DANE (tarea #3)
-matplotlib>=3.8
-jupyter>=1.0
-pytest>=8.0
+pandas==3.1.0
+numpy==2.5.5
+pyarrow==26.0.1             # lectura/escritura .parquet
+pyyaml==6.0.4               # config/*/parametros.yaml
+openpyxl==3.1.5             # lectura del Excel de proyecciones de población DANE (tarea #3)
+matplotlib==3.11.2
+jupyter==1.1.1
+pytest==9.2.0
 
 # --- Pronóstico (Ceyni) ---
-scikit-learn>=1.4
-statsmodels>=0.14    # ETS amortiguado
-lightgbm>=4.3
+scikit-learn==1.9.1
+statsmodels==0.15.0         # ETS amortiguado
+lightgbm==4.7.0
 
 # --- Zonas y excedentes (Samuel) ---
-geopandas>=0.14
-libpysal>=4.10
-spopt>=0.6
-osmnx>=1.9           # opcional: matriz de tiempos real por OSM
+geopandas==1.2.0
+libpysal==4.15.1
+spopt==0.8.0
+osmnx==2.2.0                # opcional: matriz de tiempos real por OSM
 
 # --- Optimización y tablero (Samuel) ---
-ortools>=9.8
-plotly>=5.18
-folium>=0.15
-streamlit>=1.67      # st.iframe para el tablero central
-streamlit-folium>=0.13
+ortools==9.15.6755
+plotly==7.1.0
+folium==1.0.0
+streamlit==1.67.0           # st.iframe para el tablero central
+streamlit-folium==0.27.4
 
 # --- Nube y despliegue (opcional, para alcanzar Excelente en SI7006-6) ---
-boto3>=1.28        # cliente AWS S3
-s3fs>=2023.1       # leer/escribir parquet en s3://
-fastapi>=0.104     # API REST para servir predicciones
-uvicorn>=0.24      # servidor para la API
-mlflow>=2.9        # tracking y versionado de modelos
-duckdb>=1.0        # motor SQL analítico (resultados y métricas)
-python-multipart>=0.0.6  # formularios en API
+boto3==1.43.117             # cliente AWS S3
+s3fs==2026.9.0              # leer/escribir parquet en s3://
+fastapi==0.165.0            # API REST para servir predicciones
+uvicorn==0.54.0             # servidor para la API
+mlflow==3.18.0              # tracking y versionado de modelos
+duckdb==2.0.1               # motor SQL analítico (resultados y métricas)
+python-multipart==0.0.34    # formularios en API

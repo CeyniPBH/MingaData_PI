@@ -9,9 +9,9 @@ Proyecto para planear una central de acopio agrícola en el Valle del Cauca. El 
 - **Samuel Gutiérrez Jaramillo** — Optimización (OR-Tools), tablero Streamlit y excedentes
 - **Alejandro Rendón Correa** — Zonas de acopio, escenarios de optimización y tablero
 
-## Ejecutar el proyecto (Windows)
+## Ejecutar el proyecto
 
-Necesitas Python 3.10+ y Git. Desde PowerShell:
+Necesitas Python 3.12 y Git. Es la versión que usan Render y Streamlit Cloud, y las versiones de `requirements.txt` están fijadas con ella. En Windows, desde PowerShell:
 
 ```powershell
 git clone https://github.com/CeyniPBH/MingaData_PI.git
@@ -23,6 +23,18 @@ python src\ML_C\ejecutar_todo.py
 ```
 
 La primera ejecución descarga los datos SIPSA desde el [Release `datos-v1`](https://github.com/CeyniPBH/MingaData_PI/releases/tag/datos-v1) si no están en `data/raw/SIPSA/`. Se requiere internet; el ZIP se verifica y se descomprime automáticamente. **No subas `data/raw/SIPSA/` ni el ZIP al repositorio.**
+
+En macOS, LightGBM necesita la librería OpenMP, que se instala con [Homebrew](https://brew.sh):
+
+```bash
+brew install libomp python@3.12
+git clone https://github.com/CeyniPBH/MingaData_PI.git
+cd MingaData_PI
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python src/ML_C/ejecutar_todo.py
+```
 
 Para correr las pruebas:
 
@@ -38,9 +50,10 @@ python -m pytest tests\ML_C -q
 - `data/results/ML_Ce/oferta_departamento.csv`: totales departamentales.
 - `data/results/ML_Ce/oferta_escenarios_detalle.csv`: oferta más modelo y horizonte.
 - `data/results/opt/`: Pareto, estabilidad por escenario y comparación libre vs zonas para el informe (ver `data/results/opt/LEEME.md`).
-- `docs/ML_C/`: metodología, diccionario de datos, fuentes, formulación, EDA, tuning, diagnóstico, métrica de negocio y caso aplicado.
+- `docs/ML_C/`: metodología, diccionario de datos, fuentes, calidad de los datos y limitaciones (`calidad_y_limitaciones.md`), formulación, EDA, tuning, diagnóstico, métrica de negocio, caso aplicado y sensibilidad al ONI (`sensibilidad_oni.md`).
 - `docs/arquitectura/`: arquitectura de referencia, diagrama del pipeline, almacenamiento por zonas, justificación del procesamiento y rendimiento.
-- `docs/dashboard/`: narrativa visual, auditoría de mensajes y mejoras de usabilidad.
+- `docs/dashboard/`: matriz de trazabilidad de las preguntas de negocio (`matriz_trazabilidad.md`), narrativa visual, auditoría de mensajes y mejoras de usabilidad.
+- `docs/informe/`: figuras del informe final y guía para regenerarlas, junto con las cifras que no están en `data/results`, con `python src/informe/ejecutar_todo.py`.
 - `docs/evaluacion/matriz_rubrica_evidencias.md`: matriz de criterios de rúbrica y evidencias.
 
 Al leer CSV, conserva `cod_dane` como texto para no perder ceros iniciales:

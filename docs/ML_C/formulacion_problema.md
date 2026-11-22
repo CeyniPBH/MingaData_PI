@@ -101,7 +101,7 @@ La cobertura nominal es 80 %; la cobertura observada es cercana a 76 % en la eva
 - Los productos simplificados usan el ingenuo, no LightGBM.
 - La matriz de tiempos es aproximada; afecta la métrica de negocio, no el pronóstico.
 - El modelo no es causal: no estima el efecto de un precio, un crédito o una política.
-- La configuración declara `usar_oni: false`, pero la implementación carga `oni.csv` si existe; el modelo final reportado usa ONI. Se documenta la inconsistencia y no se altera el resultado.
+- El modelo final usa el ONI rezagado (`usar_oni: true`). Hasta el 21 de noviembre la configuración decía `false`, pero el código cargaba `oni.csv` igual; ahora el código respeta el parámetro y los resultados no cambian. El ONI no mejora el error y quitarlo no cambia la central (`sensibilidad_oni.md`).
 - Los años 2022 y 2023 son escasos para estimar errores de horizontes largos; por eso la calibración usa h=4 y extiende a h=5.
 
 ## 9. Criterios de éxito

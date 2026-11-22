@@ -1,0 +1,68 @@
+@startuml tableros_escala
+' Minga Data - Escenario a escala: tableros por audiencia en AWS
+' Iconos oficiales: https://github.com/awslabs/aws-icons-for-plantuml (v23.1)
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v23.1/dist
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/AWSSimplified.puml
+!include AWSPuml/General/Users.puml
+!include AWSPuml/Storage/SimpleStorageServiceS3Tables.puml
+!include AWSPuml/Analytics/Athena.puml
+!include AWSPuml/BusinessApplications/Quick.puml
+!include AWSPuml/NetworkingContentDelivery/APIGateway.puml
+!include AWSPuml/Database/DynamoDB.puml
+!include AWSPuml/Containers/ElasticContainerService.puml
+!include AWSPuml/Compute/Batch.puml
+!include AWSPuml/Analytics/KinesisDataStreams.puml
+!include AWSPuml/Database/Aurora.puml
+!include AWSPuml/ManagementGovernance/ManagedGrafana.puml
+!include AWSPuml/ApplicationIntegration/SimpleNotificationService.puml
+!include AWSPuml/SecurityIdentityCompliance/IAMIdentityCenter.puml
+!include AWSPuml/Groups/Generic.puml
+
+skinparam defaultFontSize 18
+skinparam shadowing false
+skinparam ArrowColor #4D4D4D
+skinparam ArrowThickness 1.4
+skinparam nodesep 24
+skinparam ranksep 40
+
+IAMIdentityCenter(idc, "IAM Identity Center\ny Lake Formation", "")
+SimpleStorageServiceS3Tables(oro, "ORO\nlas mismas cifras", "")
+
+GenericGroup(est, "Estratégico: cada mes") {
+  Athena(ath, "Athena", "")
+  Quick(qs, "Quick Sight\nKPI y mapa\nnacional", "")
+  Users(dir, "Ministerio y\nsecretarías", "")
+}
+
+GenericGroup(ana, "Analítico: bajo demanda") {
+  DynamoDB(ddb, "DynamoDB", "")
+  APIGateway(api, "API Gateway\ny Lambda", "")
+  ElasticContainerService(ecs, "Streamlit en\nECS Express", "")
+  Batch(bat, "AWS Batch\na pedido", "")
+  Users(form, "Formuladores", "")
+}
+
+GenericGroup(ope, "Operativo: cada minuto") {
+  KinesisDataStreams(kds, "Kinesis y\nLambda", "")
+  Aurora(aur, "Aurora\nrecepción", "")
+  ManagedGrafana(gra, "Managed\nGrafana", "")
+  SimpleNotificationService(sns, "SNS\nalertas", "")
+  Users(jefes, "Jefes de\ncentral", "")
+}
+
+idc .right.> oro : permisos
+oro --> ath
+ath --> qs
+qs --> dir
+oro --> ddb
+ddb --> api
+api --> ecs
+ecs --> form
+ecs .right.> bat
+kds --> aur
+aur --> gra
+oro ..> gra : capacidad y\npronóstico
+gra --> jefes
+gra .right.> sns
+@enduml

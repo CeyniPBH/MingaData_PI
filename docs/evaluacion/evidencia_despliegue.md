@@ -1,6 +1,6 @@
 # Evidencia de despliegue en la nube — MingaData_PI
 
-Fecha de verificación: 2026-11-21 (UTC).
+Fecha de verificación: 2026-11-21 (UTC). La API se verificó de nuevo el 2026-11-22, después de redesplegarla con las versiones fijas de `requirements-api.txt`.
 
 Este documento registra la evidencia del despliegue de la API, el modelo versionado en S3, el motor SQL DuckDB y el tablero. Complementa la matriz de rúbrica (`docs/evaluacion/matriz_rubrica_evidencias.md`), en especial el criterio SI7006-6.
 
@@ -11,7 +11,8 @@ Este documento registra la evidencia del despliegue de la API, el modelo version
 - Build Command: `pip install -r requirements-api.txt`
 - Start Command: `uvicorn src.api.main:app --host 0.0.0.0 --port $PORT`
 - Python: `3.12.7` (`PYTHON_VERSION`)
-- Commit verificado con `GET /version`: `aacd4d5085042bb3fab31661df4e9304f4116080` (2026-11-21 17:07 UTC).
+- Commit verificado con `GET /version`: `d97b9c7fa1afd0fc35299e55542b184857cf7ab6` (2026-11-22 05:39 UTC). El despliegue anterior, `aacd4d5` (verificado el 2026-11-21 17:07 UTC), tenía el mismo código de la API; el nuevo instala las versiones fijas de `requirements-api.txt` y devuelve la misma predicción hasta el último decimal.
+- En este servicio un push no dispara el despliegue. Después de cambiar el código que usa la API (`src/api/`, `src/ML_C/`), su configuración, los datos de `data/clean/` o `requirements-api.txt`, hay que usar Manual Deploy > Deploy latest commit en el panel de Render.
 - Modelo verificado: `20261121_032739`, commit de entrenamiento `c2d8d2807546`.
 
 ### Endpoints
@@ -19,9 +20,9 @@ Este documento registra la evidencia del despliegue de la API, el modelo version
 | Endpoint | Evidencia |
 |---|---|
 | `GET /health` | `{"status":"ok","modelo_cargado":true,"error":null}` |
-| `GET /version` | `{"commit":"aacd4d5085042bb3fab31661df4e9304f4116080","rama":"main","servicio":"mingadata-api","api_version":"1.0.0","modelo_version":"20261121_032739","modelo_cargado":true}` |
+| `GET /version` | `{"commit":"d97b9c7fa1afd0fc35299e55542b184857cf7ab6","rama":"main","servicio":"mingadata-api","api_version":"1.0.0","modelo_version":"20261121_032739","modelo_cargado":true}` |
 | `GET /modelo/info` | Metadata completa del modelo descargada desde S3 (`n_features=14`, `n_filas_entrenamiento=50453`). |
-| `POST /predict` | `{"producto":"Caña de azúcar","cod_dane":"76113","horizonte":1,"anio_objetivo":2024,"prediccion_t":1426611.3487248344,"unidad":"toneladas","pred_log_cambio":-0.025761156206548667,"log_last":14.196574361047897,"T":2023,"modelo_version":"20261121_032739","commit":"c2d8d2807546","fuente":"s3","fecha_utc":"2026-11-21T17:11:08.439329+00:00"}` |
+| `POST /predict` | `{"producto":"Caña de azúcar","cod_dane":"76113","horizonte":1,"anio_objetivo":2024,"prediccion_t":1426611.3487248344,"unidad":"toneladas","pred_log_cambio":-0.025761156206548667,"log_last":14.196574361047897,"T":2023,"modelo_version":"20261121_032739","commit":"c2d8d2807546","fuente":"s3","fecha_utc":"2026-11-22T05:39:40.594509+00:00"}` |
 | `GET /metricas` | `{"fuente":"duckdb","metricas":[...]}` con las últimas 10 filas de `metricas_modelo` (la base tiene 115). Respaldo `fuente: csv` si DuckDB no está disponible. |
 
 > En `/predict`, `commit` es el commit con el que se entrenó el modelo. En `/version`, `commit` es el commit del código que Render está ejecutando.

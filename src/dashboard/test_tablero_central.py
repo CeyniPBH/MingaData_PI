@@ -200,9 +200,11 @@ def main():
         _area(mejor_cn) / total_ha > 0.5,
         "A 40 km, el centro-norte cubre mas de la mitad del area",
     )
+    razon = _ton(mejor_cn) / _ton(mejor_sur)
     check(
-        _ton(mejor_cn) / _ton(mejor_sur) >= 1.8,
-        "A 40 km, el centro-norte requiere cerca del doble de capacidad",
+        1.85 <= razon < 2.0,
+        "A 40 km, el centro-norte requiere {:.2f} veces la capacidad del sur: menos del doble, "
+        "asi que la parte de tamano de la hipotesis no se cumple".format(razon),
     )
 
     return resumen()

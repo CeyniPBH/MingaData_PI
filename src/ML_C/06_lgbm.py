@@ -67,12 +67,18 @@ def comparar_oni():
     b5 = import_module("05_baselines")
     out = []
     for etiqueta, oni in [("sin_oni", None), ("con_oni", cargar_oni(forzar=True))]:
-        pl, _ = walk_forward(series, estado, oni)
+        pl, imps = walk_forward(series, estado, oni)
         comp = base.merge(pl[["producto", "cod_dane", "origen_anio", "horizonte", "lgbm"]], on=["producto", "cod_dane", "origen_anio", "horizonte"])
-        out.append(b5.metricas(comp, modelos=("naive", "lgbm")).query("producto == 'TOTAL'").assign(variante=etiqueta))
+        comp["naive_lgbm"] = (comp["naive"] + comp["lgbm"]) / 2       # modelo final: promedio ingenuo + LightGBM
+        for alcance, c in [("todos", comp), ("sin_cana", comp[comp["producto"] != "Caña de azúcar"])]:
+            m = b5.metricas(c, modelos=("naive", "lgbm", "naive_lgbm")).query("producto == 'TOTAL'")
+            out.append(m.assign(variante=etiqueta, alcance=alcance))
+        if oni is not None:
+            imp = (pd.concat(imps, axis=1) / pd.concat(imps, axis=1).sum()).mean(axis=1)
+            print(f"Participación del ONI en la ganancia (con_oni): {imp[['oni_t', 'oni_t1']].sum():.1%}")
     res = pd.concat(out)
     res.round(4).to_csv(RES / "metricas_oni.csv", index=False, encoding="utf-8-sig")
-    print(res[["variante", "modelo", "MASE", "WAPE", "mejora_MASE_vs_naive", "mejora_WAPE_vs_naive"]].to_string(index=False))
+    print(res[["variante", "alcance", "modelo", "MASE", "WAPE", "mejora_MASE_vs_naive", "mejora_WAPE_vs_naive"]].to_string(index=False))
 
 
 def main():

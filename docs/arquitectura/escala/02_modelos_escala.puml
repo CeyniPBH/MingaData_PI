@@ -1,0 +1,66 @@
+@startuml modelos_escala
+' Minga Data - Escenario a escala: modelos de aprendizaje automático y optimización en AWS
+' Iconos oficiales: https://github.com/awslabs/aws-icons-for-plantuml (v23.1)
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v23.1/dist
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/AWSSimplified.puml
+!include AWSPuml/Storage/SimpleStorageServiceS3Tables.puml
+!include AWSPuml/ArtificialIntelligence/SageMakerAI.puml
+!include AWSPuml/ArtificialIntelligence/SageMakerAIModel.puml
+!include AWSPuml/ApplicationIntegration/StepFunctions.puml
+!include AWSPuml/ApplicationIntegration/SimpleNotificationService.puml
+!include AWSPuml/Compute/Batch.puml
+!include AWSPuml/FrontEndWebMobile/LocationService.puml
+!include AWSPuml/ManagementGovernance/CloudWatch.puml
+!include AWSPuml/Analytics/EMR.puml
+!include AWSPuml/Satellite/Satellite.puml
+!include AWSPuml/Groups/Generic.puml
+!include AWSPuml/Groups/AWSCloud.puml
+
+skinparam defaultFontSize 18
+skinparam shadowing false
+skinparam ArrowColor #4D4D4D
+skinparam ArrowThickness 1.4
+skinparam nodesep 24
+skinparam ranksep 40
+
+Satellite(s2, "Imágenes\nSentinel-2", "")
+
+AWSCloudGroup(nube) {
+  GenericGroup(vision, "Visión satelital") {
+    EMR(emr, "EMR Serverless\nNDVI", "")
+    SageMakerAI(cv, "Clasificador\nde cultivos", "")
+  }
+  StepFunctions(sf, "Step Functions\ncada mes", "")
+  SimpleStorageServiceS3Tables(oroIn, "ORO\nvariables", "")
+  GenericGroup(pipe, "SageMaker AI Pipelines") {
+    SageMakerAI(train, "Entrena\nLightGBM,\nDeepAR y\nChronos-2", "")
+    SageMakerAI(eval, "Evalúa\nwalk-forward\ncon MLflow", "")
+    SageMakerAIModel(reg, "Registra solo\nsi le gana\nal ingenuo", "")
+    SageMakerAI(bt, "Pronostica\ny reconcilia", "")
+  }
+  GenericGroup(opt, "Optimización en paralelo") {
+    LocationService(loc, "Location Service\ntiempos por\ncarretera", "")
+    Batch(bat, "AWS Batch\nuna tarea por\nescenario", "")
+    SimpleStorageServiceS3Tables(oroRes, "ORO\nresultados", "")
+  }
+  GenericGroup(mon, "Monitoreo") {
+    CloudWatch(cw, "Model Monitor\ny CloudWatch", "")
+    SimpleNotificationService(sns, "SNS\nalertas", "")
+  }
+}
+
+s2 -right-> emr
+emr -right-> cv
+cv -down-> oroIn : área estimada
+oroIn -right-> train
+train -right-> eval
+eval -right-> reg
+reg -right-> bt
+sf .down.> pipe
+bt -down-> bat : escenarios
+loc -right-> bat
+bat -right-> oroRes
+bt .down.> cw
+cw -right-> sns
+@enduml
