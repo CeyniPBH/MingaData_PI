@@ -1,17 +1,10 @@
 # MingaData_PI
 
-Proyecto para planear una central de acopio agrícola en el Valle del Cauca. El flujo previsto es: pronóstico de oferta → zonas de acopio → optimización y tablero → informe.
+Proyecto para estimar la oferta agrícola del Valle del Cauca y apoyar la ubicación de una central de acopio. Integra pronósticos, zonas y excedentes, optimización logística y un tablero interactivo.
 
-## Autores
+## Ejecutar en Windows
 
-- **Carlos Guillermo Zúñiga Méndez**: diagramas, informes y documentación
-- **Ceyni Paola Beltrán Hoyos**: datos, baselines, modelo LightGBM y escenarios de oferta
-- **Samuel Gutiérrez Jaramillo**: optimización (OR-Tools), tablero Streamlit y excedentes
-- **Alejandro Rendón Correa**: zonas de acopio, escenarios de optimización y tablero
-
-## Ejecutar el proyecto
-
-Necesitas Python 3.12 y Git. Es la versión que usan Render y Streamlit Cloud, y las versiones de `requirements.txt` están fijadas con ella. En Windows, desde PowerShell:
+Requiere Python 3.12, Git e internet para descargar los datos SIPSA la primera vez.
 
 ```powershell
 git clone https://github.com/CeyniPBH/MingaData_PI.git
@@ -19,211 +12,68 @@ cd MingaData_PI
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python src\ML_C\ejecutar_todo.py
-```
-
-La primera ejecución descarga los datos SIPSA desde el [Release `datos-v1`](https://github.com/CeyniPBH/MingaData_PI/releases/tag/datos-v1) si no están en `data/raw/SIPSA/`. Se requiere internet; el ZIP se verifica y se descomprime automáticamente. **No subas `data/raw/SIPSA/` ni el ZIP al repositorio.**
-
-En macOS, LightGBM necesita la librería OpenMP, que se instala con [Homebrew](https://brew.sh):
-
-```bash
-brew install libomp python@3.12
-git clone https://github.com/CeyniPBH/MingaData_PI.git
-cd MingaData_PI
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python src/ML_C/ejecutar_todo.py
-```
-
-Para correr las pruebas:
-
-```powershell
-python -m pytest tests\ML_C -q
-```
-
-## Archivos para continuar el trabajo
-
-- `data/clean/`: tablas compartidas, coordenadas y matriz de tiempos.
-- `data/clean/` y `data/results/` también se publican como Parquet derivados (regenerables con `python src/pipeline/exportar_parquet.py`); el catálogo está en `data/metadata/catalogo.yaml` (37 tablas). Las lecturas prefieren Parquet con fallback a CSV.
-- `data/results/ML_Ce/oferta_escenarios.csv`: oferta por producto, municipio y año (2024–2028), en escenarios bajo, base y alto.
-- `data/results/ML_Ce/oferta_departamento.csv`: totales departamentales.
-- `data/results/ML_Ce/oferta_escenarios_detalle.csv`: oferta más modelo y horizonte.
-- `data/results/opt/`: Pareto, estabilidad por escenario y comparación libre vs zonas para el informe (ver `data/results/opt/LEEME.md`).
-- `docs/ML_C/`: metodología, diccionario de datos, fuentes, calidad de los datos y limitaciones (`calidad_y_limitaciones.md`), formulación, EDA, tuning, diagnóstico, métrica de negocio, caso aplicado y sensibilidad al ONI (`sensibilidad_oni.md`).
-- `docs/arquitectura/`: arquitectura de referencia, diagrama del pipeline, almacenamiento por zonas, justificación del procesamiento y rendimiento.
-- `docs/dashboard/`: matriz de trazabilidad de las preguntas de negocio (`matriz_trazabilidad.md`), narrativa visual, auditoría de mensajes y mejoras de usabilidad.
-- `docs/informe/`: figuras del informe final y guía para regenerarlas, junto con las cifras que no están en `data/results`, con `python src/informe/ejecutar_todo.py`.
-- `docs/evaluacion/matriz_rubrica_evidencias.md`: matriz de criterios de rúbrica y evidencias.
-- `docs/diagramas/`: los tres diagramas del proyecto (arquitectura y flujo de datos, frontera entre el pronóstico y la optimización, pantallas del tablero) en PNG y en `.drawio`, con sus leyendas en `leyendas.md`.
-- `docs/criterios_exito.md`, `docs/metodologia_efectividad.md`, `docs/calidad_y_limitaciones.md` y `docs/fuentes_y_licencias.md`: informes base del proyecto.
-- `docs/informe_final/`: informe final (`Informe_final_MingaData.docx`) y presentación de la sustentación (`Sustentacion_MingaData.pptx`).
-
-Al leer CSV, conserva `cod_dane` como texto para no perder ceros iniciales:
-
-```python
-import pandas as pd
-
-oferta = pd.read_csv(
-    "data/results/ML_Ce/oferta_escenarios.csv",
-    dtype={"cod_dane": str},
-)
-```
-
-## Estado y pendientes
-
-Los módulos de pronóstico, zonas de acopio, excedentes, escenarios, optimización, tablero, arquitectura, documentación y pruebas están implementados. El informe final y la presentación de la sustentación (24 de noviembre de 2026) están en `docs/informe_final/`.
-
-- La matriz de tiempos actual es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado.
-- La población municipal DANE está procesada en `data/clean/poblacion_municipal.csv`.
-- Los parámetros del pronóstico están en `config/ML_C/parametros.yaml`. Más detalles de columnas y resultados: `docs/ML_C/diccionario_datos.md`.
-
-## Pipeline y orquestación
-
-El pipeline completo se ejecuta con:
-
-```powershell
-# Ejecuta validación, pronóstico (ML), diagnóstico, métrica de negocio,
-# exportación a Parquet + catálogo y pruebas (pytest). Omite tuning y optimización.
 python src\pipeline\run_all.py --rapido
+```
 
-# Fuerza también tuning y optimización arendonc2
+El pipeline valida los datos, genera pronósticos, diagnósticos y métricas, prepara los resultados y ejecuta las pruebas. `--rapido` omite el tuning y los cálculos de optimización de ubicación; deja el registro de la corrida en `data/logs/`. Si faltan insumos geográficos o de población, reutiliza las salidas existentes de zonas, excedentes y escenarios.
+
+Para ejecutar todo, incluidos tuning y optimización:
+
+```powershell
 python src\pipeline\run_all.py --con-tuning --con-arendonc2
-
-# Ejecutar solo el módulo ML (orden original)
-python src\ML_C\ejecutar_todo.py
 ```
 
-`run_all.py` acepta `--skip <etapa>`, `--rapido`, `--con-tuning`, `--con-arendonc2`, `--continuar` y `--dry-run`; deja log en `data/logs/pipeline_YYYYMMDD_HHMMSS.log`.
+La optimización completa puede tardar más y requiere los insumos geográficos y de población correspondientes.
 
+## Datos
 
-## Ejecutar el tablero interactivo (Streamlit)
+Los archivos SIPSA y FRONTERA se descargan del [Release `datos-v1`](https://github.com/CeyniPBH/MingaData_PI/releases/tag/datos-v1) cuando hacen falta. La descarga verifica el archivo y lo extrae en `data/raw/SIPSA/`. Se necesita internet; no subas el ZIP ni la carpeta SIPSA al repositorio.
 
-El tablero tiene seis opciones: `0. Resumen` (pantalla de aterrizaje, por defecto), `1. Oferta`, `2. Zonas`, `2b. Zonas de acopio`, `3. Ubicacion` y `4. Cobertura y capacidad`.
+Los datos originales están en `data/raw/`; los datos procesados y resultados, en `data/clean/` y `data/results/`. Para revisar fuentes o regenerar datos desde cero, consulta [guía de reproducibilidad](docs/ML_C/reproducibilidad.md) y [data/raw/LEEME.md](data/raw/LEEME.md).
+
+## Ver el tablero
+
+Con el entorno virtual activo:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
-streamlit run src/dashboard/app.py
+python -m streamlit run src\dashboard\app.py
 ```
 
-Luego abre http://localhost:8501 en tu navegador.
+Se abrirá en <http://localhost:8501>. El menú contiene:
 
-## Despliegue en la nube (opcional, opción B)
+- **0. Resumen:** indicadores generales y estado de los servicios.
+- **1. Oferta:** pronósticos por producto y municipio.
+- **2. Zonas:** oferta municipal en el mapa.
+- **2b. Zonas de acopio:** zonas, centros y excedentes.
+- **3. Ubicación:** central y acopios calculados para el escenario elegido.
+- **4. Cobertura y capacidad:** cobertura territorial con datos históricos.
 
-Se puede alcanzar el nivel "Excelente" de SI7006-6 desplegando la API y el tablero en la nube. Esto es opcional; todo funciona igualmente en local.
+También está disponible el [tablero publicado](https://mingadatapi-4puozskgkscj82yxoxmc3q.streamlit.app/). El despliegue opcional de la API y el tablero se explica en [evidencia de despliegue](docs/evaluacion/evidencia_despliegue.md). No guardes credenciales en el repositorio.
 
-### API REST en Render
+## Resultados y comandos útiles
 
-**Build Command:** `pip install -r requirements-api.txt`
+| Qué necesitas | Comando |
+|---|---|
+| Pronóstico solamente | `python src\ML_C\ejecutar_todo.py` |
+| Pronóstico sin entrenar modelos | `python src\ML_C\ejecutar_todo.py --sin-modelos` |
+| Resultados de ubicación | `python src\optimizacion\generar_resultados.py` |
+| Figuras y cifras del informe | `python src\informe\ejecutar_todo.py` |
+| Pruebas del repositorio | `python -m pytest tests -q` |
 
-**Start Command:** `uvicorn src.api.main:app --host 0.0.0.0 --port $PORT`
+Los resultados principales quedan en `data/results/ML_Ce/` (pronósticos), `data/results/arendonc2/` (zonas y excedentes) y `data/results/opt/` (optimización). Las figuras del informe se guardan en `docs/informe/figuras/`.
 
-**Variables de entorno:**
-- `MINGA_DATA_BUCKET` = `mingadata-pi-2026`
-- `MINGA_DATA_REGION` = `us-east-1`
-- `AWS_ACCESS_KEY_ID` = tu clave AWS
-- `AWS_SECRET_ACCESS_KEY` = tu clave secreta AWS
-- `MINGA_MODELO_S3_URL` = `s3://mingadata-pi-2026//20261121_034051/modelo_lgbm_20261121_032739.joblib`
-- `MINGA_DUCKDB_S3_URL` = `s3://mingadata-pi-2026/duckdb/mingadata.duckdb`
-- `PYTHON_VERSION` = `3.12.7` (evita problemas de wheels con la versión por defecto de Render)
+## Documentación
 
-Endpoints: `GET /health`, `GET /version`, `GET /modelo/info`, `POST /predict`, `GET /metricas`, `GET /docs`.
+- [Arquitectura y flujo de datos](docs/arquitectura/arquitectura_referencia.md)
+- [Metodología del pronóstico](docs/ML_C/metodologia_pronostico.md)
+- [Reproducibilidad y datos SIPSA](docs/ML_C/reproducibilidad.md)
+- [Resultados de optimización](data/results/opt/LEEME.md)
+- [Figuras y cifras del informe](docs/informe/README.md)
+- [Diagramas del proyecto](docs/diagramas/leyendas.md)
 
-`GET /version` devuelve el commit que Render está ejecutando (`RENDER_GIT_COMMIT`) y la versión del modelo; úsalo para confirmar que el despliegue sí tomó el último push.
+## Equipo
 
-`GET /metricas` intenta leer DuckDB. Si `MINGA_DUCKDB_S3_URL` está configurada, la API descarga la base a un temporal y responde `fuente: duckdb`; si falla, cae al CSV (`fuente: csv`).
-
-### Tablero en Streamlit Cloud
-
-**Main file:** `src/dashboard/app.py`
-
-**URL pública:** <https://mingadatapi-4puozskgkscj82yxoxmc3q.streamlit.app>
-
-**Repositorio fuente:** `CeyniPBH/MingaData_PI`, rama `main` (desplegado con la cuenta CeyniPBH).
-
-**Secrets** (en Settings → Secrets de Streamlit Cloud):
-```toml
-MINGA_API_URL = "https://mingadata-api.onrender.com"
-```
-
-No necesitas credenciales AWS en Streamlit Cloud: el tablero lee los Parquet/CSV versionados en el repositorio y consume la API para predicciones, métricas y estado de DuckDB. Si quieres que lea Parquet directamente desde S3, agrega `MINGA_DATA_BUCKET`, `MINGA_DATA_REGION`, `AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY`.
-
-En la pantalla **0. Resumen** el tablero muestra el estado de la API y de DuckDB, y permite probar una predicción en vivo contra `POST /predict`.
-
-La app está publicada en modo **público** y verificada el 2026-11-21: abre sin iniciar sesión (HTTP 200). Si se cambia a privada en App settings → Sharing, Streamlit pedirá login.
-
-### Pantallas del tablero
-
-0. **Resumen**: landing con KPIs globales (productos, municipios, horizonte, años de historial, exposición con y sin modelo en t·min y COP), callout de alcance, tarjetas de navegación con drill-down y descarga del resumen en CSV. Es la pantalla que se abre por defecto.
-1. **Oferta**: selecciona producto y municipio para ver la serie histórica (2000-2023) y el pronóstico con intervalo bajo/base/alto (2024-2028). Drill-down producto → municipios.
-2. **Zonas**: mapa con los 42 municipios coloreados por oferta pronosticada, por producto y año.
-2b. **Zonas de acopio**: polígonos de zona, centros de referencia, volúmenes nacional/exportación y advertencia de cobertura parcial. Drill-down zona → municipios y descargas filtradas.
-3. **Ubicación**: mapa con la central y acopios satélite, frontera de Pareto (costo de recolección vs distribución) y tabla de estabilidad por escenario. Optimización bajo demanda al pulsar "Calcular ubicación".
-4. **Cobertura y capacidad**: vista de cobertura con datos históricos (promedio 2021-2023). Los controles (sede, radio, captación y escenario) están en la barra lateral. Muestra cuánta área y producción alcanza cada sede y trae la comparación territorial entre sedes. La pantalla 3 es otra cosa: minimiza el costo logístico (t·min) con el pronóstico 2024-2028. El indicador "recuperable" es una referencia del análisis original y no se recalcula desde el CSV.
-
-Cada pantalla tiene título declarativo, subtítulo, unidades explícitas (t, t·min, COP, %) y callouts informativos. Las cadenas requeridas por `test_tarea3.py` (`Pantalla 1 - Oferta`, `Pantalla 2 - Zonas`, `Pantalla 3 - Ubicacion`) se conservan intactas.
-
-La vista 0 se abre por defecto para presentar primero el resumen ejecutivo. Las pantallas 1, 2, 2b, 3 y 4 conservan el flujo de pronóstico, zonas, costo logístico y cobertura.
-
-
-## Módulo de optimización (OR-Tools)
-
-El esqueleto del modelo de localización de instalaciones está en `src/optimizacion/modelo_esqueleto.py`. Ejecuta con:
-
-```powershell
-python src/optimizacion/modelo_esqueleto.py
-```
-
-La formulación matemática está documentada en `docs/formulacion_optimizacion.md`.
-
-### Resultados de optimización para el informe
-
-El modelo real se ejecuta con:
-
-```powershell
-# Genera Pareto, estabilidad 2024/2028 y comparación libre vs zonas
-python src/optimizacion/generar_resultados.py
-
-# Opcional: los 5 años de escenarios.csv (135 escenarios)
-python src/optimizacion/generar_resultados.py --anios 2024 2025 2026 2027 2028
-```
-
-Los CSV quedan en `data/results/opt/`:
-
-- `frontera_pareto_base.csv` y `barrido_lambda_base.csv`: central, satélites y costos por lambda.
-- `estabilidad_escenarios.csv`: 27 escenarios por año (2024 y 2028 por defecto), con central, satélites y costos.
-- `comparacion_libre_vs_zonas.csv` y `comparacion_libre_vs_zonas_resumen.csv`: mismo escenario con y sin las zonas de Alejandro.
-- `metadata.json`: parámetros, solver, commit y huellas SHA256.
-
-Definiciones: `costo_total = λ·A + (1−λ)·B` es el objetivo del solver;
-`costo_total_suma = A1 + A2 + B` es la suma física de los tres tramos. El detalle
-de columnas está en `data/results/opt/LEEME.md`.
-
-### Sensibilidad por valor (SIPSA)
-
-La ubicación también se probó ponderando el excedente por valor (toneladas × precio SIPSA):
-
-```powershell
-python src/optimizacion/corrida_valor.py
-```
-
-Genera `comparacion_toneladas_vs_valor.csv` y su resumen. En el escenario base la
-central no cambia (Bugalagrande), pero en 21 de 54 escenarios de 2024/2028 sí
-cambia. El detalle metodológico y los resultados están en
-`data/results/opt/LEEME_valor.md`.
-
-## Pruebas automatizadas
-
-```powershell
-# Verificar Tarea 1 (optimización)
-python src/optimizacion/test_tarea1.py
-
-# Verificar los CSV de optimización para el informe
-python src/optimizacion/test_resultados_opt.py
-
-# Verificar Tarea 3 (tablero)
-python src/dashboard/test_tarea3.py
-
-# Verificar el tablero central (sincronización con el CSV)
-python src/dashboard/test_tablero_central.py
-```
+- Carlos Guillermo Zúñiga Méndez: diagramas, informe y documentación.
+- Ceyni Paola Beltrán Hoyos: datos y pronóstico.
+- Samuel Gutiérrez Jaramillo: optimización y tablero.
+- Alejandro Rendón Correa: zonas de acopio y escenarios.
