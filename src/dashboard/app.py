@@ -75,7 +75,7 @@ from utils import (
     obtener_pronostico_municipio,
 )
 
-from tablero_central import generar_html_tablero
+from tablero_central import generar_html_tablero, construir_config
 import cobertura as cob
 from utils import (
     cargar_estabilidad_opt,
@@ -246,6 +246,70 @@ def _resumen_sede_sidebar():
     st.sidebar.caption("Selecciona una sede para actualizar los indicadores y gráficos")
 
 
+# Claves específicas de la pantalla 4 (prefijo t4_) para no colisionar con otras vistas.
+T4_SEDE = "t4_sede"
+T4_RADIO = "t4_radio"
+T4_CAPT = "t4_captacion"
+T4_CAP = "t4_capacidad"
+T4_ESC = "t4_escenario"
+T4_DEFAULTS = {T4_RADIO: 40, T4_CAPT: 20, T4_CAP: 100000, T4_ESC: "base"}
+
+
+def _tablero_opciones_sede():
+    """Devuelve (nombres de sede ordenados por nombre, nombre->cod_dane, sede por defecto).
+    La sede por defecto es la de mayor cobertura de área (calculada)."""
+    muns = _modelo_cobertura()
+    modelo = cob.ModeloCobertura(muns)
+    rk = modelo.ranking_area()
+    por_nombre = dict(zip(rk["sede"], rk["cod_dane"]))
+    nombres = sorted(por_nombre.keys(), key=lambda s: s.lower())
+    return nombres, por_nombre, rk.iloc[0]["sede"]
+
+
+def _tablero_controles_sidebar():
+    """Cinco controles nativos de la pantalla 4 en la barra lateral, con claves propias.
+
+    Streamlit descarta el estado de un widget en las ejecuciones donde no se instancia (al
+    navegar a otra pantalla). Para conservar la selección al volver, se guarda un espejo
+    persistente (claves *_val) y, al inicio de cada ejecución, se re-siembra la clave del
+    widget desde ese espejo. Así se inicializa solo si no hay estado previo y cambiar un
+    control no reinicia los demás.
+    """
+    try:
+        nombres, por_nombre, sede_default = _tablero_opciones_sede()
+    except Exception:
+        st.sidebar.info("No se pudo cargar la lista de sedes del tablero.")
+        return
+
+    ss = st.session_state
+    defaults = {T4_SEDE: sede_default, **T4_DEFAULTS}
+    # Inicializa el espejo persistente solo si no existe estado previo.
+    for clave, valor in defaults.items():
+        pk = clave + "_val"
+        if pk not in ss:
+            ss[pk] = valor
+        if clave == T4_SEDE and ss[pk] not in por_nombre:
+            ss[pk] = sede_default
+        # Re-siembra la clave del widget desde el espejo antes de crearlo.
+        ss[clave] = ss[pk]
+
+    def _sync(clave):
+        ss[clave + "_val"] = ss[clave]
+
+    st.sidebar.selectbox("Municipio sede", nombres, key=T4_SEDE,
+                         on_change=_sync, args=(T4_SEDE,))
+    st.sidebar.slider("Radio de cobertura (km)", 20, 80, step=5, key=T4_RADIO,
+                      on_change=_sync, args=(T4_RADIO,))
+    st.sidebar.slider("Captación (%)", 5, 50, step=5, key=T4_CAPT,
+                      on_change=_sync, args=(T4_CAPT,))
+    st.sidebar.slider("Capacidad anual de referencia (t/año)", 20000, 200000, step=1000,
+                      key=T4_CAP, format="%d", on_change=_sync, args=(T4_CAP,))
+    st.sidebar.radio("Escenario de oferta", ["bajo", "base", "alto"], key=T4_ESC,
+                     horizontal=True, on_change=_sync, args=(T4_ESC,))
+    st.sidebar.caption("Cambia la sede, el radio, la captación, la capacidad o el escenario "
+                       "para actualizar el tablero.")
+
+
 # =============================================================================
 # SIDEBAR - NAVEGACION
 # =============================================================================
@@ -270,6 +334,9 @@ if pantalla == "0. Resumen":
     ano_seleccionado = anos_disponibles[0]
     escenario = "base"
 elif pantalla == "4. Tablero central":
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Filtros de esta vista")
+    _tablero_controles_sidebar()
     ano_seleccionado = anos_disponibles[0]
     escenario = "base"
 else:
@@ -1386,28 +1453,50 @@ def pantalla_ubicacion():
 # PANTALLA 4 - TABLERO CENTRAL DE ACOPIO (HTML)
 # =============================================================================
 def pantalla_tablero_central():
-    """Muestra el tablero visual de la central de acopio con sus propios controles."""
+    """Tablero HTML de cobertura; los cinco parámetros vienen de la barra lateral (Streamlit)."""
     ruta_html = Path(__file__).resolve().parent / "assets" / "tablero_central_acopio_valle.html"
 
     if not ruta_html.exists():
         st.error("No se encontro el tablero en {}".format(ruta_html))
         return
 
+    # Construir la configuración desde el estado de Streamlit (única fuente de verdad).
+    config = None
     try:
-        html = generar_html_tablero(ruta_html, produccion)
+        muns = _modelo_cobertura()
+        _, por_nombre, _ = _tablero_opciones_sede()
+        ss = st.session_state
+        sede_nombre = ss.get(T4_SEDE, ss.get(T4_SEDE + "_val"))
+        cod_dane = por_nombre.get(sede_nombre)
+        config = construir_config(
+            {"muns": muns},
+            cod_dane=cod_dane,
+            radio_km=ss.get(T4_RADIO, T4_DEFAULTS[T4_RADIO]),
+            captacion_pct=ss.get(T4_CAPT, T4_DEFAULTS[T4_CAPT]),
+            capacidad_t=ss.get(T4_CAP, T4_DEFAULTS[T4_CAP]),
+            escenario=ss.get(T4_ESC, T4_DEFAULTS[T4_ESC]),
+        )
+    except Exception as e:
+        st.warning("No se pudo aplicar la configuración de la barra lateral: {}".format(e))
+        config = None
+
+    try:
+        html = generar_html_tablero(ruta_html, produccion, config=config)
     except Exception as e:
         st.error("No se pudo cargar el tablero central: {}".format(e))
         return
 
     st.caption(
         "Herramienta de exploración de cobertura: muestra cuánta área y producción "
-        "alcanza cada sede con datos históricos (promedio 2021-2023). No reemplaza la "
-        "pantalla 3, que minimiza el costo logístico con el pronóstico seleccionado. "
-        "El indicador 'recuperable' es una referencia del análisis original y no se "
-        "recalcula desde el CSV."
+        "alcanza cada sede con datos históricos (promedio 2021-2023). Los controles están "
+        "en la barra lateral. No reemplaza la pantalla 3, que minimiza el costo logístico "
+        "con el pronóstico seleccionado. El indicador 'recuperable' es una referencia del "
+        "análisis original y no se recalcula desde el CSV."
     )
-    # components.html permite desplazamiento vertical interno; así el tablero no se recorta.
-    components.html(html, height=1400, scrolling=True)
+    # components.html permite desplazamiento vertical interno. Altura ajustada tras mover los
+    # controles a la barra lateral (fila de controles retirada del HTML). scrolling=True evita
+    # recortes si el contenido supera la altura en pantallas pequeñas.
+    components.html(html, height=1320, scrolling=True)
 
 
 # =============================================================================

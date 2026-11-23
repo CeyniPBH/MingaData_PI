@@ -126,6 +126,46 @@ integración en `app.py` y las pruebas. No cambian fórmulas, fuentes ni valores
 - **Figuras del informe afectadas:** Figuras 9 y 10 (capturas de la pantalla 4) quedan
   desactualizadas; ver `docs/dashboard/capturas/README.md`.
 
+## Controles de la pantalla 4 en la barra lateral de Streamlit
+
+Cambio posterior que traslada los cinco controles de la pantalla 4 del HTML a la barra
+lateral nativa, manteniendo el tablero HTML/CSS/JS para visualizar los resultados.
+
+- **Ubicación (§1):** debajo del selector de pantalla y antes de "Estado de los datos", bajo
+  "Filtros de esta vista": Municipio sede, Radio de cobertura (km), Captación (%), Capacidad
+  anual de referencia (t/año) y Escenario de oferta (bajo/base/alto). Widgets nativos
+  (`selectbox`, `slider`, `radio`), coherentes con las demás pestañas. Se conservan opciones,
+  rangos, pasos y valores iniciales. Se retiraron los controles del HTML; queda una línea
+  compacta de contexto (`#ctxLinea`) que muestra la configuración activa, sin duplicar
+  controles. El mapa ya no cambia la sede al hacer clic (la sede se elige en la barra
+  lateral), evitando estados que se contradigan.
+- **Estado (§2):** Streamlit es la única fuente de verdad. Claves propias de la pantalla 4
+  (`t4_sede`, `t4_radio`, `t4_captacion`, `t4_capacidad`, `t4_escenario`) para no colisionar
+  con otras vistas. Como Streamlit descarta el estado de un widget cuando no se instancia
+  (al navegar a otra pantalla), se guarda un espejo persistente (`*_val`) y se re-siembra el
+  widget al volver; así la selección persiste, se inicializa solo si no hay estado previo y
+  cambiar un control no reinicia los demás (en particular, cambiar sede/radio/captación/
+  escenario no toca la capacidad).
+- **Paso al HTML (§3):** `tablero_central.construir_config()` valida tipos, rangos y opciones
+  y **resuelve el código DANE contra los municipios del payload** (no por posición en el
+  selector). `generar_html_tablero(..., config=...)` inyecta `window.__CFG__` con
+  `json.dumps` (sin concatenar valores a mano), escapando `< > &` para que no pueda cerrar el
+  `<script>` ni el HTML. Sin `config`, no inyecta nada y conserva los valores predeterminados
+  (compatibilidad con las llamadas existentes). El JSON lleva: `cod_dane`, `radio_km`,
+  `captacion_pct` (porcentaje, no fracción), `capacidad_t` (t/año) y `escenario`.
+- **JavaScript (§4):** `const CFG = window.__CFG__ || {}`; `st` se inicializa desde `CFG`
+  (resolviendo el índice por `cod_dane`) y `pintar()` se ejecuta con esos valores. Se
+  retiraron los listeners de los controles HTML y el selector `#sede`; no quedan referencias
+  a nodos eliminados. No se reintroduce sombreado, modo de presentación ni cambios
+  automáticos de sede/capacidad. No cambian fórmulas ni datos.
+- **Comparación territorial (§5):** se corrigió el texto. Ahora dice que el radio cambia la
+  cobertura y puede cambiar las sedes comparadas, y que la captación cambia los volúmenes;
+  usa siempre el escenario base, y la sede seleccionada y la capacidad no la alteran (sus
+  fórmulas no las usan).
+- **Integración (§6):** se mantiene `st.components.v1.html(..., scrolling=True)` (funciona
+  con Streamlit 1.67; `st.iframe` espera una URL, no HTML). Altura ajustada a 1320 px tras
+  quitar la fila de controles.
+
 ## Documentado por separado (no implementado en este PR)
 
 Estas mejoras se registran como pendientes y **no** se implementan aquí:

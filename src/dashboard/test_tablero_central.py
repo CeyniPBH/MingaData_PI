@@ -17,7 +17,9 @@ sys.path.insert(0, str(ROOT / "src" / "dashboard"))
 
 from tablero_central import (  # noqa: E402
     CATEGORIAS,
+    PATRON_DATOS,
     calcular_series_municipios,
+    construir_config,
     generar_html_tablero,
 )
 
@@ -227,11 +229,14 @@ def main():
           "pintar() no referencia elementos retirados (frase/q1/q2)")
     check('"q1"' not in texto and '"q2"' not in texto,
           "No quedan referencias DOM a q1/q2")
-    # Radio y captacion visibles, fuera de 'Ajustes'
-    check('id="c-radio"' in cuerpo and 'id="c-capt"' in cuerpo,
-          "Radio y captacion son controles visibles")
-    check('id="ajustes"' not in cuerpo and ">Ajustes<" not in cuerpo,
-          "El desplegable 'Ajustes' fue retirado")
+    # Los controles se trasladaron a la barra lateral de Streamlit: no deben quedar en el HTML.
+    for cid in ('id="c-sede"', 'id="c-radio"', 'id="c-capt"', 'id="c-cap"', 'id="c-esc"',
+                'id="sede"', 'id="radio"', 'id="capt"', 'id="cap"', 'id="ajustes"'):
+        check(cid not in cuerpo, "No queda el control en el HTML: {}".format(cid))
+    check('name="esc"' not in cuerpo, "No queda el radiogroup de escenario en el HTML")
+    # En su lugar, una línea compacta de contexto
+    check('id="contexto"' in cuerpo and 'id="ctxLinea"' in cuerpo,
+          "El HTML conserva una línea de contexto (sin controles)")
     # Seccion de comparacion territorial independiente y siempre visible
     check('id="comparacion"' in cuerpo and "Comparación territorial" in cuerpo,
           "La comparacion territorial es una seccion independiente y titulada")
@@ -244,6 +249,43 @@ def main():
     for prohibido in ("Hipótesis", "veredicto", "alcanza el doble", "no alcanza el doble"):
         check(prohibido not in cuerpo,
               "No queda lenguaje de hipotesis/veredicto en el cuerpo: '{}'".format(prohibido))
+
+    print("\n--- 6. Configuracion desde Streamlit (window.__CFG__) ---")
+    datos_html = json.loads(PATRON_DATOS.search(
+        ruta_html.read_text(encoding="utf-8")).group(1))
+    # Sin config: compatibilidad con las llamadas antiguas (no inyecta __CFG__).
+    html_sin = generar_html_tablero(ruta_html, produccion)
+    check("window.__CFG__ = " not in html_sin,
+          "Sin config, generar_html_tablero() no inyecta la asignacion __CFG__ (compatibilidad)")
+    # Con config valida: resuelve el DANE y serializa un JSON seguro.
+    cfg = construir_config(datos_html, cod_dane="76113", radio_km=40,
+                           captacion_pct=20, capacidad_t=100000, escenario="base")
+    check(cfg["cod_dane"] == "76113", "construir_config resuelve el cod_dane contra el payload")
+    html_cfg = generar_html_tablero(ruta_html, produccion, config=cfg)
+    m_cfg = re.search(r"window\.__CFG__ = (\{.*?\});</script>", html_cfg)
+    check(m_cfg is not None, "El HTML con config inyecta window.__CFG__ antes del bloque de datos")
+    if m_cfg:
+        # Está escapado (<,>,& como \u00xx); al desescapar debe ser el JSON esperado.
+        crudo = m_cfg.group(1).replace("\\u003c", "<").replace("\\u003e", ">").replace("\\u0026", "&")
+        obj = json.loads(crudo)
+        check(obj == cfg, "window.__CFG__ coincide con la configuracion enviada")
+        check("</script" not in m_cfg.group(1), "El JSON inyectado no puede cerrar el <script>")
+    # Validaciones de rango/opciones.
+    for kwargs, motivo in [
+        (dict(cod_dane="00000"), "cod_dane inexistente"),
+        (dict(radio_km=10), "radio fuera de rango"),
+        (dict(captacion_pct=60), "captacion fuera de rango"),
+        (dict(capacidad_t=5000), "capacidad fuera de rango"),
+        (dict(escenario="medio"), "escenario invalido"),
+    ]:
+        try:
+            construir_config(datos_html, **kwargs)
+            check(False, "construir_config rechaza: {}".format(motivo))
+        except ValueError:
+            check(True, "construir_config rechaza: {}".format(motivo))
+    # El HTML ya no trae controles; el estado inicial lo fija __CFG__ y pintar().
+    check("window.__CFG__" in html_cfg and "const CFG = (window.__CFG__" in html_cfg,
+          "El JavaScript lee la configuracion recibida (window.__CFG__)")
 
     return resumen()
 

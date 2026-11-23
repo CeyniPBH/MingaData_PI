@@ -30,11 +30,13 @@ ranking incluye la sede seleccionada con su puesto real. Falta la **revisión vi
    cuatro indicadores, los cuatro gráficos (cuadrícula 2×2) y las respuestas. Guardar como
    `resumen_1440.png`.
 
-4. **Pantalla 4. Tablero central (exploración):** sede Bugalagrande, radio 40 km, captación
-   20 %, escenario base. Verificar que los controles estén visibles arriba, que el mapa, la
-   superficie/composición, el volumen/utilización, el ranking y la comparación territorial
-   se lean sin recortes, con desplazamiento vertical si hace falta. Guardar como
-   `pantalla4_exploracion_1440.png`.
+4. **Pantalla 4. Tablero central (exploración):** en la **barra lateral**, fijar sede
+   Bugalagrande, radio 40 km, captación 20 %, capacidad 100.000 t/año y escenario base.
+   Verificar que haya un único juego de controles (en la barra lateral), que el tablero
+   muestre la línea de contexto con esa configuración y que el mapa, la superficie/
+   composición, el volumen/utilización, el ranking y la comparación territorial se lean sin
+   recortes ni espacio vacío excesivo, con desplazamiento vertical solo si hace falta.
+   Guardar como `pantalla4_exploracion_1440.png`.
 
 ## Figuras del informe afectadas por el rediseño de la pantalla 4
 

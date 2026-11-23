@@ -113,8 +113,97 @@ def calcular_series_municipios(produccion: pd.DataFrame) -> dict[str, dict[str, 
     return datos
 
 
-def generar_html_tablero(ruta_html: Path | str, produccion: pd.DataFrame) -> str:
-    """Devuelve el HTML del tablero con las cifras actualizadas desde el CSV."""
+ESCENARIOS = ("bajo", "base", "alto")
+
+# Rangos y pasos de los controles (coinciden con los widgets de Streamlit y los límites
+# históricos del tablero). Se usan para validar la configuración recibida.
+RADIO_MIN, RADIO_MAX = 20, 80
+CAPTACION_MIN, CAPTACION_MAX = 5, 50
+CAPACIDAD_MIN, CAPACIDAD_MAX = 20000, 200000
+
+
+def construir_config(
+    datos_html: dict[str, Any],
+    cod_dane: str | None = None,
+    radio_km: int = 40,
+    captacion_pct: int = 20,
+    capacidad_t: int = 100000,
+    escenario: str = "base",
+) -> dict[str, Any]:
+    """Valida y normaliza la configuración de los cinco parámetros de la pantalla 4.
+
+    El código DANE se resuelve contra los municipios del payload (no por posición en un
+    selector). Si no se entrega o no existe, no se fija sede y el HTML usa su valor por
+    defecto (la mejor sede por área). Lanza ValueError si un valor numérico está fuera de
+    rango o el escenario no es válido.
+    """
+    ids = {m.get("id") for m in datos_html.get("muns", [])}
+
+    cod = None
+    if cod_dane is not None:
+        cod = str(cod_dane)
+        if cod not in ids:
+            raise ValueError("cod_dane {!r} no está en los municipios del tablero".format(cod))
+
+    radio = int(radio_km)
+    if not (RADIO_MIN <= radio <= RADIO_MAX):
+        raise ValueError("radio_km fuera de rango [{}, {}]: {}".format(RADIO_MIN, RADIO_MAX, radio))
+
+    capt = int(captacion_pct)
+    if not (CAPTACION_MIN <= capt <= CAPTACION_MAX):
+        raise ValueError("captacion_pct fuera de rango [{}, {}]: {}".format(CAPTACION_MIN, CAPTACION_MAX, capt))
+
+    cap = int(capacidad_t)
+    if not (CAPACIDAD_MIN <= cap <= CAPACIDAD_MAX):
+        raise ValueError("capacidad_t fuera de rango [{}, {}]: {}".format(CAPACIDAD_MIN, CAPACIDAD_MAX, cap))
+
+    esc = str(escenario)
+    if esc not in ESCENARIOS:
+        raise ValueError("escenario inválido: {!r} (use {})".format(esc, ", ".join(ESCENARIOS)))
+
+    return {
+        "cod_dane": cod,            # None o código DANE válido del payload
+        "radio_km": radio,          # km
+        "captacion_pct": capt,      # porcentaje (0-100), no fracción
+        "capacidad_t": cap,         # toneladas por año
+        "escenario": esc,           # "bajo" | "base" | "alto"
+    }
+
+
+def _inyectar_config(html: str, config: dict[str, Any] | None) -> str:
+    """Inserta window.__CFG__ con la configuración antes del bloque de datos del tablero.
+
+    El JSON se serializa con json.dumps (sin concatenar valores a mano) y se escapa para que
+    no pueda romper el contexto <script> ni el HTML. Si config es None, no inyecta nada y el
+    HTML conserva sus valores predeterminados.
+    """
+    if not config:
+        return html
+    payload = json.dumps(config, ensure_ascii=True)
+    # Evita que una secuencia </script> o comentarios HTML cierren el contexto del script.
+    payload = (
+        payload.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    )
+    bloque = "<script>window.__CFG__ = {};</script>\n".format(payload)
+    marcador = "<script>\nconst D = "
+    idx = html.find(marcador)
+    if idx == -1:
+        # Reserva: insertar antes del primer <script> que define D.
+        idx = html.find("<script>")
+    return html[:idx] + bloque + html[idx:]
+
+
+def generar_html_tablero(
+    ruta_html: Path | str,
+    produccion: pd.DataFrame,
+    config: dict[str, Any] | None = None,
+) -> str:
+    """Devuelve el HTML del tablero con las cifras actualizadas desde el CSV.
+
+    Si se entrega `config` (dict de construir_config), se inyecta como window.__CFG__ para
+    fijar sede, radio, captación, capacidad y escenario. Sin `config`, el HTML conserva sus
+    valores predeterminados (compatibilidad con las llamadas existentes).
+    """
     ruta = Path(ruta_html)
     html = ruta.read_text(encoding="utf-8")
 
@@ -132,4 +221,5 @@ def generar_html_tablero(ruta_html: Path | str, produccion: pd.DataFrame) -> str
             municipio["t"] = valores["t"]
 
     nuevo_json = json.dumps(datos_html, ensure_ascii=False, separators=(",", ":"))
-    return html[: coincidencia.start(1)] + nuevo_json + html[coincidencia.end(1) :]
+    html = html[: coincidencia.start(1)] + nuevo_json + html[coincidencia.end(1) :]
+    return _inyectar_config(html, config)

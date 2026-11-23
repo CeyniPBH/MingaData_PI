@@ -40,20 +40,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14p
 .encab h1{font-family:var(--display);font-weight:700;font-size:clamp(20px,2.3vw,28px);line-height:1.15;margin:0;text-wrap:balance}
 .encab p{margin:4px 0 0;font-size:14px;color:var(--muted);max-width:70ch}
 
-.controles{display:flex;flex-wrap:wrap;align-items:end;gap:10px 22px;position:relative}
-.campo{display:flex;flex-direction:column;gap:3px;min-width:0}
-.campo label,.campo .rot{font-size:11.5px;color:var(--muted);font-weight:500}
-select,input[type=range]{font:inherit;color:inherit}
-select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:170px}
-input[type=range]{accent-color:var(--accent);width:190px;max-width:100%}
-.valor{font-variant-numeric:tabular-nums;font-weight:600}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
-.seg input{position:absolute;opacity:0;pointer-events:none}
-.seg label{padding:6px 12px;font-size:13px;color:var(--ink);cursor:pointer;border-left:1px solid var(--line);font-weight:500}
-.seg label:first-of-type{border-left:0}
-.seg input:checked + label{background:var(--accent);color:var(--on-accent)}
-.seg input:focus-visible + label{outline:2px solid var(--accent);outline-offset:-2px}
-select:focus-visible,input[type=range]:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Línea compacta de contexto: muestra la configuración activa, sin controles. */
+.contexto{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px}
+.contexto .rot{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.contexto #ctxLinea{font-size:13.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.contexto #ctxLinea b{color:var(--accent)}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 details summary{cursor:pointer;font-size:12.5px;color:var(--muted);list-style:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--surface)}
 details summary::-webkit-details-marker{display:none}
 details .panel{z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.14);display:flex;flex-direction:column;gap:10px;margin-top:6px}
@@ -64,7 +56,7 @@ details .panel{z-index:5;background:var(--surface);border:1px solid var(--line);
 .lado{display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:10px;min-height:0}
 .mapa-caja{flex:1;min-height:0;position:relative}
 svg#mapa{width:100%;height:100%;display:block}
-.mun{fill:var(--map);stroke:var(--map-edge);stroke-width:1.2;cursor:pointer;transition:fill .15s}
+.mun{fill:var(--map);stroke:var(--map-edge);stroke-width:1.2;cursor:default;transition:fill .15s}
 .mun.cub{fill:var(--map-cov)}
 .mun:hover{stroke:var(--accent);stroke-width:1.6}
 .pt{pointer-events:none}
@@ -144,31 +136,9 @@ svg#mapa.arrastra,svg#mapa.arrastra .mun{cursor:grabbing}
     <p>Explora municipios sede, cobertura territorial y utilización estimada según la capacidad y la captación seleccionadas.</p>
   </header>
 
-  <section class="controles" id="controles" aria-label="Controles de la exploración">
-    <div class="campo" id="c-sede">
-      <label for="sede">Municipio sede</label>
-      <select id="sede"></select>
-    </div>
-    <div class="campo" id="c-radio">
-      <label for="radio">Radio de cobertura: <span class="valor" id="radioV"></span></label>
-      <input type="range" id="radio" min="20" max="80" step="5" value="40">
-    </div>
-    <div class="campo" id="c-capt">
-      <label for="capt">Captación: <span class="valor" id="captV"></span></label>
-      <input type="range" id="capt" min="5" max="50" step="5" value="20">
-    </div>
-    <div class="campo" id="c-cap">
-      <label for="cap">Capacidad anual de referencia: <span class="valor" id="capV"></span></label>
-      <input type="range" id="cap" min="20000" max="200000" step="1000" value="100000">
-    </div>
-    <div class="campo" id="c-esc">
-      <span class="rot" id="escRot">Escenario de oferta</span>
-      <div class="seg" role="radiogroup" aria-labelledby="escRot">
-        <input type="radio" name="esc" id="esc0" value="0"><label for="esc0">Bajo</label>
-        <input type="radio" name="esc" id="esc1" value="1" checked><label for="esc1">Base</label>
-        <input type="radio" name="esc" id="esc2" value="2"><label for="esc2">Alto</label>
-      </div>
-    </div>
+  <section class="contexto" id="contexto" aria-label="Configuración activa">
+    <span class="rot">Configuración activa (se ajusta en la barra lateral):</span>
+    <span id="ctxLinea"></span>
   </section>
 
   <main class="principal">
@@ -214,7 +184,7 @@ svg#mapa.arrastra,svg#mapa.arrastra .mun{cursor:grabbing}
     <p class="nota" id="compNota"></p>
     <div class="subt">Área de fruta y plátano cubierta (radio actual)</div>
     <div class="barras" id="cmpArea"></div>
-    <div class="subt">Volumen captable al 20 % (escenario base, no cambia con el control de escenario)</div>
+    <div class="subt">Volumen captable a la captación actual (escenario base; no cambia con el control de escenario)</div>
     <div class="barras" id="cmpTon"></div>
     <details id="recuperable">
       <summary>Producción por recuperar (referencia original, no sincronizada con el CSV)</summary>
@@ -286,7 +256,24 @@ function calcular(st) {
   return {cub, haCat, ha, ton, uso, rk, fuera, partCN: haCN / totHa, n: cub.filter(Boolean).length, puesto: rk.indexOf(st.sede) + 1};
 }
 
-const st = {sede: ranking(40)[0], cap: 100000, esc: 1, radio: 40, capt: 0.20};
+// Configuración recibida de Streamlit (única fuente de verdad de los cinco parámetros).
+// Si no llega, se usan los valores predeterminados históricos del tablero.
+const CFG = (window.__CFG__ && typeof window.__CFG__ === "object") ? window.__CFG__ : {};
+const ESC_ID = {bajo: 0, base: 1, alto: 2};
+function resolverSede(cfg) {
+  if (cfg && typeof cfg.cod_dane === "string") {
+    const i = M.findIndex(m => m.id === cfg.cod_dane);
+    if (i >= 0) return i;
+  }
+  return ranking(40)[0]; // por defecto: mejor sede por área cubierta
+}
+const st = {
+  sede: resolverSede(CFG),
+  cap: Number.isFinite(CFG.capacidad_t) ? CFG.capacidad_t : 100000,
+  esc: (CFG.escenario in ESC_ID) ? ESC_ID[CFG.escenario] : 1,
+  radio: Number.isFinite(CFG.radio_km) ? CFG.radio_km : 40,
+  capt: Number.isFinite(CFG.captacion_pct) ? CFG.captacion_pct / 100 : 0.20,
+};
 
 // Mapa: se dibuja una vez y luego solo cambian clases y atributos.
 const svg = $("mapa");
@@ -296,7 +283,7 @@ svg.append(gM, gP);
 const elMun = M.map((m, i) => {
   const p = document.createElementNS(NS, "path");
   p.setAttribute("d", m.d); p.setAttribute("class", "mun"); p.setAttribute("fill-rule", "evenodd");
-  p.addEventListener("click", () => { st.sede = i; $("sede").value = i; pintar(); });
+  // La sede se elige en la barra lateral de Streamlit; el mapa solo muestra el detalle al pasar el cursor.
   p.addEventListener("mousemove", ev => mostrarTip(ev, i));
   p.addEventListener("mouseleave", () => { $("tip").style.display = "none"; });
   gM.append(p); return p;
@@ -364,16 +351,6 @@ function mostrarTip(ev, i) {
   tip.style.top = Math.max(4, ev.clientY - caja.top - 34) + "px";
 }
 
-// Selector de sede, agrupado por subregión.
-const sel = $("sede");
-["Norte", "Centro", "Sur", "Pacífico"].forEach(s => {
-  const g = document.createElement("optgroup"); g.label = s;
-  M.map((m, i) => [m, i]).filter(x => x[0].s === s).sort((a, b) => a[0].n.localeCompare(b[0].n, "es"))
-    .forEach(([m, i]) => { const o = document.createElement("option"); o.value = i; o.textContent = `${m.n} (${m.s})`; g.append(o); });
-  sel.append(g);
-});
-sel.value = st.sede;
-
 // Reserva a la derecha el ancho de la etiqueta más larga, para que la barra más grande y su texto quepan.
 function ajustarEtiquetas() {
   ["barras", "rank"].forEach(id => {
@@ -409,8 +386,8 @@ function pintar() {
     const nCN = M[mejor(["Centro", "Norte"])].n, nSur = M[mejor(["Sur"])].n;
     const rArea = zs[0].ha / (zs[1].ha || 1), rVol = zs[0].tn / (zs[1].tn || 1);
     $("compNota").textContent = `Compara las mejores sedes del centro-norte (${nCN}) y del sur (${nSur}) por área cubierta a ${st.radio} km; `
-      + `puede diferir del municipio seleccionado. ${nCN} cubre ${fmt(rArea, 1)} veces el área de ${nSur} y ${fmt(rVol, 1)} veces su volumen captable al 20 %. `
-      + `Solo el radio de cobertura afecta esta comparación; el escenario, la capacidad y la sede no la cambian.`;
+      + `puede diferir del municipio seleccionado. ${nCN} cubre ${fmt(rArea, 1)} veces el área de ${nSur} y ${fmt(rVol, 1)} veces su volumen captable a la captación actual (${pct(st.capt)}). `
+      + `El radio cambia la cobertura y puede cambiar las sedes comparadas; la captación cambia los volúmenes. Usa siempre el escenario base; la sede seleccionada y la capacidad de referencia no la alteran.`;
   }
   const filas = (id, val, txt, extra) => {
     const caja = $(id); caja.replaceChildren();
@@ -481,19 +458,30 @@ function pintar() {
     : dif > 0 ? `${capTxt} queda grande: sobran ${miles(dif)} toneladas` : `${capTxt} queda pequeña: faltan ${miles(-dif)} toneladas`;
   $("escLinea").textContent = `Uso por escenario: bajo ${pct(r.uso[0])} · base ${pct(r.uso[1])} · alto ${pct(r.uso[2])}`;
   ajustarEtiquetas();
-  // Etiquetas de controles
-  $("capV").textContent = `${miles(st.cap, 1000)} toneladas al año`;
-  $("radioV").textContent = `${st.radio} km`;
-  $("captV").textContent = pct(st.capt);
+  // Línea compacta de contexto (refleja la configuración activa de la barra lateral).
+  const ctx = $("ctxLinea");
+  if (ctx) {
+    ctx.replaceChildren();
+    const partes = [
+      [`${sede.n} (${sede.s})`, "sede"],
+      [`${st.radio} km`, "radio"],
+      [pct(st.capt), "captación"],
+      [`${miles(st.cap, 1000)} t/año`, "capacidad"],
+      [ESC[st.esc], "escenario"],
+    ];
+    partes.forEach(([val, rot], k) => {
+      if (k) ctx.append(document.createTextNode(" · "));
+      const b = document.createElement("b"); b.textContent = val;
+      ctx.append(b, document.createTextNode(` ${rot}`));
+    });
+  }
 }
 
-sel.addEventListener("change", () => { st.sede = +sel.value; pintar(); });
-$("cap").addEventListener("input", e => { st.cap = +e.target.value; pintar(); });
-$("radio").addEventListener("input", e => { st.radio = +e.target.value; pintar(); });
-$("capt").addEventListener("input", e => { st.capt = +e.target.value / 100; pintar(); });
-document.querySelectorAll('input[name="esc"]').forEach(i => i.addEventListener("change", e => { st.esc = +e.target.value; pintar(); }));
-// Los desplegables (recuperable, supuestos) solo muestran u ocultan su propio contenido:
-// no cambian sede, capacidad, radio, captación ni escenario, ni atenúan otros paneles.
+// Los cinco parámetros (sede, radio, captación, capacidad, escenario) vienen de la barra
+// lateral de Streamlit a través de window.__CFG__; aquí no hay controles ni listeners que
+// los modifiquen. Al cambiar un widget en Streamlit se regenera el HTML con la nueva
+// configuración y pintar() se ejecuta con esos valores. Los desplegables (recuperable,
+// supuestos) solo muestran u ocultan su propio contenido.
 pintar();
 </script>
 </body>
