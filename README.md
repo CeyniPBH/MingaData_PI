@@ -57,7 +57,7 @@ python -m pytest tests\ML_C -q
 - `docs/evaluacion/matriz_rubrica_evidencias.md`: matriz de criterios de rúbrica y evidencias.
 - `docs/diagramas/`: los tres diagramas del proyecto (arquitectura y flujo de datos, frontera entre el pronóstico y la optimización, pantallas del tablero) en PNG y en `.drawio`, con sus leyendas en `leyendas.md`.
 - `docs/criterios_exito.md`, `docs/metodologia_efectividad.md`, `docs/calidad_y_limitaciones.md` y `docs/fuentes_y_licencias.md`: informes base del proyecto.
-- `docs/informe_final/`: informe final (`Informe_final_MingaData.docx`) y presentación de la sustentación (`Sustentacion_MingaData.pptx`).
+- `docs/informe_final/`: informe final (`Informe_final_MingaData.docx` y su PDF) y presentación de la sustentación (`Sustentacion_MingaData.pptx` y su PDF).
 
 Al leer CSV, conserva `cod_dane` como texto para no perder ceros iniciales:
 
