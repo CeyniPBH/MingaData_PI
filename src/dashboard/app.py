@@ -399,6 +399,59 @@ O_MUNICIPIO = "oferta_municipio"
 O_ESCENARIOS = "oferta_mostrar_escenarios"
 
 
+# =============================================================================
+# PANTALLA 2b - ZONAS DE ACOPIO: controles de negocio en la barra lateral
+# =============================================================================
+Z_ANIO = "zacopio_anio"
+Z_OFERTA = "zacopio_oferta"
+Z_CONSUMO = "zacopio_consumo"
+Z_MEZCLA = "zacopio_mezcla"  # código "nac_exp", p. ej. "80_20"
+
+
+def _zonas_id_escenario(anio, oferta, consumo, mezcla_code):
+    """Reconstruye el id_escenario interno a partir de los campos de negocio.
+    Formato de los datos: {anio}_O{oferta}_C{consumo}_M{nac}_{exp}."""
+    return "{}_O{}_C{}_M{}".format(anio, oferta, consumo, mezcla_code)
+
+
+def _zonas_controles_sidebar(escen):
+    """Filtros comprensibles de la pantalla 2b en la barra lateral. Devuelve
+    (anio, oferta, consumo, mezcla_code, id_escenario, existe). No inventa escenarios:
+    las opciones salen de los datos y se avisa si una combinación no existe."""
+    if escen is None or escen.empty:
+        st.sidebar.info("No hay escenarios de excedentes disponibles.")
+        return None, None, None, None, None, False
+
+    anios = sorted(int(a) for a in escen["anio"].unique())
+    ofertas = [o for o in ["bajo", "base", "alto"] if o in set(escen["oferta"])]
+    consumos = [c for c in ["bajo", "base", "alto"] if c in set(escen["consumo"])]
+    # Códigos de mezcla presentes, derivados del id_escenario (no se suponen).
+    mezclas = sorted(escen["id_escenario"].str.extract(r"_M(\d+_\d+)$")[0].dropna().unique())
+
+    # Índices por defecto sensatos (base/base/80_20) si existen, sin inventar opciones.
+    i_of = ofertas.index("base") if "base" in ofertas else 0
+    i_co = consumos.index("base") if "base" in consumos else 0
+    i_mz = mezclas.index("80_20") if "80_20" in mezclas else 0
+
+    anio = st.sidebar.selectbox("Año", anios, key=Z_ANIO)
+    oferta = st.sidebar.selectbox(
+        "Oferta agrícola", ofertas, index=i_of,
+        format_func=lambda v: {"bajo": "Baja", "base": "Base", "alto": "Alta"}.get(v, v),
+        key=Z_OFERTA, help="Cantidad de producción estimada.")
+    consumo = st.sidebar.selectbox(
+        "Consumo local", consumos, index=i_co,
+        format_func=lambda v: {"bajo": "Bajo", "base": "Base", "alto": "Alto"}.get(v, v),
+        key=Z_CONSUMO, help="Cantidad estimada que se consume localmente.")
+    mezcla = st.sidebar.selectbox(
+        "Distribución entre mercados", mezclas, index=i_mz,
+        format_func=lambda v: _MEZCLA_ETIQUETAS.get(v, v),
+        key=Z_MEZCLA, help="Reparto del excedente entre mercado nacional y exportación.")
+
+    id_esc = _zonas_id_escenario(anio, oferta, consumo, mezcla)
+    existe = not escen[(escen["id_escenario"] == id_esc) & (escen["anio"] == anio)].empty
+    return anio, oferta, consumo, mezcla, id_esc, existe
+
+
 def _oferta_controles_sidebar(oferta_df, municipios_df):
     """Producto, municipio y el interruptor de escenarios de la pantalla 1, en la barra
     lateral. Devuelve (producto, cod_dane, mostrar_escenarios). Conserva la selección y
@@ -473,6 +526,12 @@ elif pantalla == "1. Oferta":
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de esta vista")
     _OFERTA_SEL = _oferta_controles_sidebar(oferta, municipios)
+    ano_seleccionado = anos_disponibles[0]
+    escenario = "base"
+elif pantalla == "2b. Zonas de acopio":
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Filtros de esta vista")
+    _ZONAS_SEL = _zonas_controles_sidebar(cargar_escenarios_opt())
     ano_seleccionado = anos_disponibles[0]
     escenario = "base"
 else:
@@ -1303,12 +1362,10 @@ def _color_zona(zona, zonas_lista):
 
 
 def pantalla_zonas_acopio():
-    st.title("🧭 Pantalla 2b - Zonas de acopio por agrupamiento espacial")
-    st.markdown("""
-    Zonas de acopio espacialmente conexas (contigüidad Queen + Ward con restricción
-    de conectividad). Los **centros de zona son referencias** (tiempos ponderados por
-    oferta), no la ubicación óptima: esa la calcula la **optimización de la pantalla 3**.
-    """)
+    st.title("Zonas de acopio y excedentes disponibles")
+    st.markdown(
+        "Consulta cómo se agrupan los municipios y cuánto producto queda disponible "
+        "después del consumo local en cada zona.")
 
     zonas_df = cargar_zonas()
     if zonas_df.empty or municipios.empty:
@@ -1317,101 +1374,181 @@ def pantalla_zonas_acopio():
 
     zonas_geo = cargar_zonas_geometrias()
     escen = cargar_escenarios_opt()
-
     zonas_lista = sorted(zonas_df["zona"].unique())
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        anios_esc = sorted(escen["anio"].unique()) if not escen.empty else [ano_seleccionado]
-        anio_z = st.selectbox("Año:", anios_esc, index=0, key="zacopio_anio")
-    with col2:
-        if not escen.empty:
-            ids = sorted(escen[escen["anio"] == anio_z]["id_escenario"].unique())
-            id_esc = st.selectbox("Escenario de optimización:", ids,
-                                  index=ids.index(f"{anio_z}_Obase_Cbase_M80_20")
-                                  if f"{anio_z}_Obase_Cbase_M80_20" in ids else 0,
-                                  key="zacopio_id")
-        else:
-            id_esc = None
-    with col3:
-        st.metric("Zonas", len(zonas_lista))
+    n_zonas = len(zonas_lista)  # número de zonas obtenido de los datos
 
-    # Mapa de zonas
+    st.info("Las zonas y sus centros de referencia permanecen fijos. Los filtros cambian "
+            "los volúmenes estimados y su distribución entre mercados.")
+    st.caption("Son {} zonas de acopio. Configura la selección en la barra lateral.".format(n_zonas))
+
+    # --- Selección (barra lateral) ---
+    sel = globals().get("_ZONAS_SEL") or (None, None, None, None, None, False)
+    anio_z, oferta_z, consumo_z, mezcla_z, id_esc, existe = sel
+    if id_esc is None:
+        st.warning("No hay escenarios de excedentes disponibles.")
+        return
+    desc_sel = "Año {} · oferta {} · consumo {} · {}".format(
+        anio_z,
+        {"bajo": "baja", "base": "base", "alto": "alta"}.get(oferta_z, oferta_z),
+        {"bajo": "bajo", "base": "base", "alto": "alto"}.get(consumo_z, consumo_z),
+        _MEZCLA_ETIQUETAS.get(mezcla_z, mezcla_z))
+
+    if not existe:
+        st.warning("No hay datos para esta combinación ({}). Ajusta los filtros en la barra "
+                   "lateral.".format(desc_sel))
+        return
+
+    fila = escen[(escen["id_escenario"] == id_esc) & (escen["anio"] == anio_z)].copy()
+    fila["excedente_zona_t"] = fila["volumen_nacional"] + fila["volumen_exportacion"]
+    fila = fila.sort_values("zona").reset_index(drop=True)
+
+    total = float(fila["excedente_zona_t"].sum())
+    total_nac = float(fila["volumen_nacional"].sum())
+    total_exp = float(fila["volumen_exportacion"].sum())
+
+    # --- Resumen de la selección + indicadores (antes del mapa) ---
+    st.markdown("### Resultados de la selección")
+    st.caption(desc_sel)
+    k1, k2, k3 = st.columns(3)
+    k1.metric("Excedente estimado total", fmt_toneladas(total))
+    k2.metric("Mercado nacional", fmt_toneladas(total_nac))
+    k3.metric("Exportación", fmt_toneladas(total_exp))
+
+    # Cobertura: por zona si difiere; si es uniforme, una sola cifra. Nunca el mínimo como global.
+    cob_por_zona = dict(zip(fila["zona"], fila["cobertura_oferta_pct"]))
+    cob_vals = sorted(set(round(float(c), 2) for c in fila["cobertura_oferta_pct"]))
+    if len(cob_vals) == 1:
+        st.caption("Cobertura de la oferta con consumo estimable: {} (igual en todas las zonas).".format(
+            fmt_pct(cob_vals[0] / 100)))
+    else:
+        detalle = " · ".join("{}: {}".format(z, fmt_pct(c / 100)) for z, c in cob_por_zona.items())
+        st.caption("Cobertura de la oferta con consumo estimable, por zona — {}".format(detalle))
+    st.caption("Los productos sin una estimación de consumo comparable quedan fuera de estos "
+               "excedentes; no se consideran disponibles automáticamente. (Cobertura de datos, "
+               "no porcentaje de superficie territorial.)")
+
+    # --- Gráfico de barras horizontales apiladas por zona ---
+    C_NAC = "#D62828"   # mercado nacional (acento del dashboard)
+    C_EXP = "#667085"   # exportación (neutro); distintos de los colores territoriales del mapa
+    y = fila["zona"].tolist()
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        y=y, x=fila["volumen_nacional"], orientation="h", name="Mercado nacional",
+        marker_color=C_NAC,
+        customdata=fila["excedente_zona_t"],
+        hovertemplate="Zona %{y}<br>Nacional: %{x:,.0f} t<br>Total de la zona: %{customdata:,.0f} t<extra></extra>",
+    ))
+    fig.add_trace(go.Bar(
+        y=y, x=fila["volumen_exportacion"], orientation="h", name="Exportación",
+        marker_color=C_EXP,
+        customdata=fila["excedente_zona_t"],
+        hovertemplate="Zona %{y}<br>Exportación: %{x:,.0f} t<br>Total de la zona: %{customdata:,.0f} t<extra></extra>",
+    ))
+    fig.update_layout(
+        barmode="stack", template="plotly_white", height=320,
+        margin=dict(l=8, r=8, t=10, b=8),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, xanchor="left"),
+        xaxis=dict(title="Toneladas", rangemode="tozero", separatethousands=True),
+        yaxis=dict(title="Zona", categoryorder="array", categoryarray=sorted(y, reverse=True)),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    st.caption("Cambiar la distribución modifica el reparto entre mercados, no el excedente "
+               "total. Cambiar oferta, consumo o año puede modificar el volumen disponible.")
+
+    # --- Mapa (geometrías/centros fijos; no se re-agrupa al cambiar filtros) ---
+    st.markdown("### Municipios y centros de referencia por zona")
+    st.caption("Leyenda — colores: zonas de acopio · círculos pequeños: municipios · "
+               "círculos grandes: centros de referencia.")
+    st.caption("Los centros son referencias para cada zona; la selección de instalaciones se "
+               "realiza en la pantalla 3. Ubicación.")
+
+    vol_por_zona = {r["zona"]: (r["excedente_zona_t"], r["volumen_nacional"], r["volumen_exportacion"])
+                    for _, r in fila.iterrows()}
     mun_coord = municipios.merge(zonas_df, on="cod_dane", how="left", suffixes=("", "_z"))
     m = folium.Map(location=[4.2, -76.2], zoom_start=8, tiles="OpenStreetMap")
 
     if zonas_geo is not None:
         for _, row in zonas_geo.iterrows():
             color = _color_zona(row["zona"], zonas_lista)
+            tot_z, nac_z, exp_z = vol_por_zona.get(row["zona"], (0.0, 0.0, 0.0))
+            tip = ("Zona {z} · {sel}<br>Excedente total: {t} t<br>"
+                   "Nacional: {n} t<br>Exportación: {e} t").format(
+                z=row["zona"], sel=desc_sel, t=fmt_entero(tot_z),
+                n=fmt_entero(nac_z), e=fmt_entero(exp_z))
             folium.GeoJson(
                 row["geometry"].__geo_interface__,
                 style_function=lambda x, c=color: {
-                    "fillColor": c, "color": "black", "weight": 1, "fillOpacity": 0.35
-                },
-                tooltip=f"Zona {row['zona']}",
+                    "fillColor": c, "color": "black", "weight": 1, "fillOpacity": 0.35},
+                tooltip=folium.Tooltip(tip),
             ).add_to(m)
 
     for _, row in mun_coord.iterrows():
-        color = _color_zona(row.get("zona"), zonas_lista)
+        zona = row.get("zona")
+        color = _color_zona(zona, zonas_lista)
         es_centro = int(row.get("es_centro_zona", 0) or 0) == 1
+        tot_z, nac_z, exp_z = vol_por_zona.get(zona, (0.0, 0.0, 0.0))
+        popup = ("<b>{nom}</b> ({cod})<br>Zona: {z}{centro}<br>"
+                 "<i>Total de la zona</i> ({sel}):<br>Excedente: {t} t · "
+                 "Nacional: {n} t · Exportación: {e} t").format(
+            nom=row["municipio"], cod=row["cod_dane"], z=zona,
+            centro=" · centro de referencia" if es_centro else "",
+            sel=desc_sel, t=fmt_entero(tot_z), n=fmt_entero(nac_z), e=fmt_entero(exp_z))
         folium.CircleMarker(
             location=[row["lat"], row["lon"]],
             radius=10 if es_centro else 5,
-            popup=folium.Popup(
-                "<b>{}</b> ({})<br>Zona: {}<br>{}".format(
-                    row["municipio"], row["cod_dane"], row.get("zona"),
-                    "CENTRO de zona (referencia)" if es_centro else ""
-                ), max_width=220),
+            popup=folium.Popup(popup, max_width=260),
             color="black", weight=2 if es_centro else 1,
             fill=True, fillColor=color,
             fillOpacity=0.95 if es_centro else 0.7,
         ).add_to(m)
 
-    st_folium(m, width=900, height=560, key="mapa_zonas_acopio")
+    # key depende del escenario: fuerza re-render sin datos del escenario anterior.
+    st_folium(m, width=900, height=560, key="mapa_zonas_acopio_{}".format(id_esc))
 
-    # Volúmenes por zona del escenario seleccionado + advertencia de cobertura
-    if id_esc is not None and not escen.empty:
-        fila = escen[(escen["id_escenario"] == id_esc) & (escen["anio"] == anio_z)].copy()
-        if not fila.empty:
-            cobertura = float(fila["cobertura_oferta_pct"].min())
-            if cobertura < 100.0:
-                st.warning(
-                    "⚠️ **Cobertura parcial de consumo:** {:.2f}% de la oferta tiene consumo "
-                    "FAOSTAT definido. Los productos sin equivalencia de unidad (p. ej. café, "
-                    "caña panelera, flores) quedan con excedente desconocido y NO aportan "
-                    "volumen a la optimización; su oferta se conserva pero se excluye de estos volúmenes."
-                    .format(cobertura)
-                )
-            fila["excedente_zona_t"] = fila["volumen_nacional"] + fila["volumen_exportacion"]
-            st.markdown("### Volúmenes por zona — {}".format(id_esc))
-            tabla = fila[["zona", "volumen_nacional", "volumen_exportacion",
-                          "excedente_zona_t", "cobertura_oferta_pct"]].sort_values("zona")
-            st.dataframe(
-                tabla.style.format({
-                    "volumen_nacional": "{:,.1f}", "volumen_exportacion": "{:,.1f}",
-                    "excedente_zona_t": "{:,.1f}", "cobertura_oferta_pct": "{:.2f}%",
-                }),
-                use_container_width=True,
-            )
-            col_a, col_b = st.columns(2)
-            col_a.metric("Excedente total (t)", "{:,.0f}".format(tabla["excedente_zona_t"].sum()))
-            col_b.metric("Hacia exportación (t)", "{:,.0f}".format(tabla["volumen_exportacion"].sum()))
+    # --- Tabla por zona ---
+    st.markdown("### Excedentes por zona")
+    tabla = fila[["zona", "excedente_zona_t", "volumen_nacional", "volumen_exportacion",
+                  "cobertura_oferta_pct"]].rename(columns={
+        "zona": "Zona", "excedente_zona_t": "Excedente total (t)",
+        "volumen_nacional": "Mercado nacional (t)", "volumen_exportacion": "Exportación (t)",
+        "cobertura_oferta_pct": "Cobertura de oferta (%)"})
+    st.dataframe(
+        tabla.style.format({
+            "Excedente total (t)": lambda v: fmt_entero(v),
+            "Mercado nacional (t)": lambda v: fmt_entero(v),
+            "Exportación (t)": lambda v: fmt_entero(v),
+            "Cobertura de oferta (%)": lambda v: fmt_pct(v / 100),
+        }),
+        use_container_width=True, hide_index=True)
 
-            st.download_button(
-                "⬇️ Descargar volúmenes de este escenario (CSV)",
-                data=tabla.to_csv(index=False).encode("utf-8-sig"),
-                file_name="volumenes_{}.csv".format(id_esc),
-                mime="text/csv",
-            )
-
-    st.markdown("### Asignación municipio → zona")
-    tz = zonas_df.copy()
-    tz["es_centro_zona"] = tz["es_centro_zona"].map({1: "centro (ref.)", 0: ""})
-    st.dataframe(tz.sort_values(["zona", "municipio"]), use_container_width=True)
+    # Descarga del escenario con año y supuestos identificables.
+    descarga = fila[["zona", "excedente_zona_t", "volumen_nacional", "volumen_exportacion",
+                     "cobertura_oferta_pct", "anio", "oferta", "consumo",
+                     "pct_nacional", "pct_exportacion", "id_escenario", "alcance"]].copy()
     st.download_button(
-        "⬇️ Descargar zonas.csv",
-        data=zonas_df.to_csv(index=False).encode("utf-8-sig"),
-        file_name="zonas.csv", mime="text/csv",
-    )
+        "⬇️ Descargar excedentes de esta selección (CSV)",
+        data=descarga.to_csv(index=False).encode("utf-8-sig"),
+        file_name="excedentes_{}.csv".format(id_esc), mime="text/csv")
+
+    # --- Desplegables: municipios por zona y metodología ---
+    with st.expander("Ver municipios de cada zona"):
+        tz = zonas_df.copy()
+        tz["es_centro_zona"] = tz["es_centro_zona"].map({1: "centro (ref.)", 0: ""})
+        st.dataframe(tz.sort_values(["zona", "municipio"]), use_container_width=True, hide_index=True)
+        st.download_button(
+            "⬇️ Descargar asignación municipio–zona (CSV)",
+            data=zonas_df.to_csv(index=False).encode("utf-8-sig"),
+            file_name="zonas.csv", mime="text/csv")
+
+    with st.expander("Cómo se definieron las zonas"):
+        st.markdown(
+            "Las zonas son grupos de municipios **espacialmente conexos**: se parte de la "
+            "vecindad entre municipios (contigüidad Queen) y se agrupan con el método de Ward "
+            "con restricción de conectividad, de modo que cada zona quede unida en el mapa. "
+            "Los **centros de referencia** se eligen por el tiempo promedio ponderado por "
+            "oferta dentro de cada zona; son una referencia, no la ubicación óptima (esa se "
+            "calcula en la pantalla 3. Ubicación). Las zonas y los centros no cambian con los "
+            "filtros de este tablero.")
 
 
 # =============================================================================
