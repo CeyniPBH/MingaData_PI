@@ -75,6 +75,22 @@ from utils import (
 )
 
 from tablero_central import generar_html_tablero
+import cobertura as cob
+from utils import (
+    cargar_estabilidad_opt,
+    fmt_pct,
+    fmt_puntos,
+    fmt_entero,
+    fmt_toneladas,
+    fmt_millones_cop,
+    fmt_razon,
+)
+
+# Paleta del manual (sección 9)
+AZUL = "#002855"       # protagonista: la sede seleccionada
+GRIS_CTX = "#B8BEC8"   # contexto
+GRIS_CLARO = "#D0D5DD"
+REFERENCIA = "#18212D"  # referente del sur / líneas punteadas
 
 from optimizacion.modelo_real import (
     cargar_datos_reales,
@@ -85,7 +101,7 @@ from optimizacion.modelo_real import (
     comparar_configuraciones,
 )
 
-# Agregar src/ al path para importar el adaptador de Alejandro
+# Agregar src/ al path para importar el adaptador de escenarios de optimización
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "arendonc2"))
 from adaptador import preparar_para_solver, listar_escenarios
 
@@ -299,259 +315,463 @@ def agregar_destinos_al_mapa(m, destinos_df):
 # PANTALLA 0: RESUMEN (landing)
 # =============================================================================
 def pantalla_resumen():
-    """Pantalla de aterrizaje: KPIs globales, alcance, navegación con drill-down
-    y descarga del resumen. No altera las pantallas existentes."""
-    st.title("MingaData — Resumen ejecutivo: central de acopio Valle del Cauca")
-    st.markdown("""
-    **Estado de la oferta pronosticada 2024-2028, exposición logística con y sin modelo, y acceso rápido a las pantallas de detalle.**
+    _pantalla_resumen_impl()
 
-    Fuentes: Gobernación del Valle del Cauca, DANE (DIVIPOLA, SIPSA, población), ICA FRONTERA, NOAA (ONI), FAOSTAT, OpenStreetMap.
-    Los datos se leen en Parquet cuando existen y caen a CSV si no; `cod_dane` se conserva como texto de 5 dígitos.
 
-    **Alcance:** el tablero soporta decisiones de planificación (volumen, ubicación de central y satélites, capacidad). No es un sistema de trading ni de precios, y las cifras de COP usan un supuesto operativo (250 COP/(t·min)), no un costo contable.
-    """)
+# =============================================================================
+# PANTALLA 0: RESUMEN EJECUTIVO (rediseño conforme al manual)
+# =============================================================================
+@st.cache_data(show_spinner=False)
+def _modelo_cobertura():
+    """Construye la lista de municipios del tablero una vez (reusa el payload del tablero)."""
+    prod = cargar_produccion_limpia()
+    return cob.cargar_municipios_tablero(prod)
 
-    # --- cargar evidencia existente (sin fallar si faltan archivos) ---
-    oferta = cargar_oferta_escenarios()
-    municipios = cargar_municipios_coordenadas()
-    metrica = cargar_metrica_negocio()
-    metricas_cmp = cargar_metricas_comparacion()
-    excedentes = cargar_excedentes()
-    zonas = cargar_zonas()
 
-    n_productos = int(oferta["producto"].nunique()) if not oferta.empty else 0
-    n_municipios = int(municipios["cod_dane"].nunique()) if not municipios.empty else 0
-    anos = sorted(oferta["año"].unique()) if not oferta.empty else []
-    horizonte = "{} a {}".format(anos[0], anos[-1]) if anos else "-"
-    n_anios_hist = 24  # panel 2000-2023
+def _barras_figura(fig, alto=320):
+    fig.update_layout(
+        template="plotly_white", height=alto,
+        margin=dict(l=8, r=8, t=28, b=8),
+        font=dict(size=12), showlegend=False,
+    )
+    return fig
 
-    # KPIs de exposición logística (ámbito h1 2019-2023)
-    tmin_sin = None
-    tmin_modelo = None
-    reduccion = None
-    cop_sin = None
-    cop_modelo = None
-    if metrica is not None and not metrica.empty:
-        fila = metrica[metrica["ambito"] == "h1_2019_2023"]
-        if not fila.empty:
-            r_sin = fila[fila["alternativa"] == "sin_modelo"]
-            r_mod = fila[fila["alternativa"] == "modelo_final"]
-            if not r_sin.empty and not r_mod.empty:
-                tmin_sin = float(r_sin.iloc[0]["tmin_millones"])
-                tmin_modelo = float(r_mod.iloc[0]["tmin_millones"])
-                cop_sin = float(r_sin.iloc[0]["cop_base"]) / 1e9
-                cop_modelo = float(r_mod.iloc[0]["cop_base"]) / 1e9
-                if tmin_sin:
-                    reduccion = 100 * (tmin_sin - tmin_modelo) / tmin_sin
 
-    # --- KPIs principales ---
-    st.markdown("### Indicadores clave")
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Productos modelados", n_productos)
-    k2.metric("Municipios cubiertos", n_municipios)
-    k3.metric("Horizonte de pronóstico", horizonte)
-    k4.metric("Años de historial", n_anios_hist)
-
-    st.markdown("---")
-    k5, k6, k7, k8 = st.columns(4)
-    k5.metric("Exposición sin modelo", "{:,.2f} M t·min".format(tmin_sin) if tmin_sin is not None else "n.d.")
-    k6.metric("Exposición con modelo", "{:,.2f} M t·min".format(tmin_modelo) if tmin_modelo is not None else "n.d.")
-    k7.metric("Reducción de exposición", "{:,.1f} %".format(reduccion) if reduccion is not None else "n.d.")
-    k8.metric("Costo base (sin → modelo)", "{:.0f} → {:.0f} M COP".format(cop_sin, cop_modelo) if cop_sin is not None else "n.d. → n.d.")
-
-    st.caption("Exposición = Σ |predicción − real| × minutos al nodo logístico más cercano. Costo base: 250 COP/(t·min).")
-
-    # --- Estado del despliegue (API y base de datos) ---
-    st.markdown("---")
-    st.markdown("### Estado del despliegue (nube)")
-    col_api, col_db = st.columns(2)
-    with col_api:
-        st.markdown("**API REST (predicciones)**")
-        if _REQUESTS_DISPONIBLE:
-            try:
-                r = requests.get(f"{API_URL}/health", timeout=15)
-                if r.status_code == 200:
-                    datos = r.json()
-                    st.success("API en línea")
-                    st.caption(f"Modelo cargado: {datos.get('modelo_cargado', False)}")
-                    if not datos.get("modelo_cargado"):
-                        st.warning(datos.get("error", "Modelo no disponible"))
-                    try:
-                        rv = requests.get(f"{API_URL}/version", timeout=15)
-                        if rv.status_code == 200:
-                            v = rv.json()
-                            st.caption(
-                                f"Commit API: {v.get('commit', 'n.d.')} · "
-                                f"modelo: {v.get('modelo_version', 'n.d.')}"
-                            )
-                    except Exception:
-                        pass
-                else:
-                    st.error(f"API respondió {r.status_code}")
-            except Exception as e:
-                st.warning(f"API no alcanzable en {API_URL}")
-                st.caption(f"Detalle: {type(e).__name__}")
+def _visual_p1(modelo, sede_cod, sur_cod):
+    """P1. ¿Qué sedes cubren más área a 40 km? Barras horizontales top 10 + sede + sur."""
+    rk = modelo.ranking_area()
+    top = rk.head(10).copy()
+    extra = rk[rk["cod_dane"].isin([sede_cod, sur_cod]) & ~rk["cod_dane"].isin(top["cod_dane"])]
+    vis = pd.concat([top, extra]).drop_duplicates("cod_dane")
+    vis = vis.sort_values("pct_area")  # barras horizontales: mayor arriba
+    colores, etiquetas = [], []
+    for _, r in vis.iterrows():
+        if r["cod_dane"] == sede_cod:
+            colores.append(AZUL)
+        elif r["cod_dane"] == sur_cod:
+            colores.append(REFERENCIA)
         else:
-            st.info("requests no instalado; no se puede consultar la API.")
-    with col_db:
-        st.markdown("**Base de datos SQL (DuckDB)**")
-        if _REQUESTS_DISPONIBLE:
-            try:
-                r = requests.get(f"{API_URL}/metricas", timeout=30)
-                if r.status_code == 200:
-                    datos = r.json()
-                    fuente = datos.get("fuente")
-                    n_metricas = len(datos.get("metricas", []))
-                    if fuente == "duckdb":
-                        st.success("DuckDB en la nube")
-                    elif fuente == "csv":
-                        st.info("Respaldo CSV (DuckDB no disponible)")
-                    else:
-                        st.warning("Métricas no disponibles")
-                    st.caption(f"Fuente: {fuente or 'n.d.'} · métricas: {n_metricas}")
-                    if datos.get("aviso"):
-                        st.caption(datos["aviso"])
-                else:
-                    st.error(f"API respondió {r.status_code}")
-            except Exception as e:
-                st.warning("No se pudo consultar /metricas")
-                st.caption(f"Detalle: {type(e).__name__}")
-        else:
-            st.info("requests no instalado; no se puede consultar la API.")
+            colores.append(GRIS_CTX)
+        marca = ""
+        if r["cod_dane"] == sede_cod:
+            marca = " ◆ sede"
+        elif r["cod_dane"] == sur_cod:
+            marca = " ▲ ref. sur"
+        etiquetas.append("{} (#{}){}".format(r["sede"], r["puesto"], marca))
+    fig = go.Figure(go.Bar(
+        x=vis["pct_area"] * 100, y=etiquetas, orientation="h",
+        marker_color=colores,
+        text=[fmt_pct(v) for v in vis["pct_area"]], textposition="outside",
+        hovertemplate="%{y}<br>%{x:.1f} % del área<extra></extra>",
+    ))
+    fig.add_vline(x=50, line_dash="dot", line_color=REFERENCIA,
+                  annotation_text="umbral de hipótesis 50 %", annotation_position="top")
+    fig.update_xaxes(title="% del área de fruta y plátano a 40 km",
+                     range=[0, max(60, vis["pct_area"].max() * 100 + 8)])
+    return _barras_figura(fig, alto=360)
 
-    # --- Predicción en vivo desde la API ---
-    st.markdown("#### Probar predicción en vivo")
-    if not _REQUESTS_DISPONIBLE:
-        st.info("requests no instalado; no se puede consultar la API.")
-    elif produccion.empty:
-        st.info("No hay datos históricos para poblar el formulario.")
-    else:
-        productos_api = sorted(produccion["producto"].dropna().unique())
-        if not productos_api:
-            st.info("No hay productos disponibles.")
+
+def _visual_p2(modelo, sede_cod):
+    """P2. Volumen captable entre escenarios históricos (bajo/base/alto)."""
+    ve = cob.volumenes_escenarios(modelo, sede_cod)
+    colores = [GRIS_CTX, AZUL, GRIS_CTX]
+    fig = go.Figure(go.Bar(
+        x=ve["escenario"], y=ve["volumen_t"], marker_color=colores,
+        text=["{}<br>{}".format(fmt_toneladas(v), fmt_pct(p)) for v, p in zip(ve["volumen_t"], ve["pct_vs_base"])],
+        textposition="outside",
+        hovertemplate="%{x}<br>%{y:,.0f} t/año<extra></extra>",
+    ))
+    base_val = ve.loc[ve["escenario"].str.startswith("Base"), "volumen_t"].iloc[0]
+    fig.add_hline(y=base_val, line_dash="dot", line_color=REFERENCIA,
+                  annotation_text="volumen base (100 %)", annotation_position="top left")
+    fig.update_yaxes(title="t/año captables al 20 %")
+    return _barras_figura(fig, alto=360)
+
+
+def _visual_p3(produccion, modelo, sede_cod, sur_cod):
+    """P3. Composición productiva de la sede frente al referente del sur (100 % apiladas)."""
+    comp_sede = cob.composicion_sede(produccion, modelo, sede_cod)
+    comp_sur = cob.composicion_sede(produccion, modelo, sur_cod)
+    serie_sede = cob.agrupar_composicion(comp_sede["toneladas_por_cultivo"])
+    serie_sur = cob.agrupar_composicion(comp_sur["toneladas_por_cultivo"])
+    cultivos = list(dict.fromkeys(list(serie_sede.index) + list(serie_sur.index)))
+    base_colores = [AZUL, "#2E5E8C", "#5B86AD", "#8FB0C9", GRIS_CTX, GRIS_CLARO, "#E4E7EC"]
+    mapa_color, i = {}, 0
+    for c in cultivos:
+        if c == "Piña":
+            mapa_color[c] = "#C44601"  # destaca piña con contraste y etiqueta propia
         else:
-            prod_default = (
-                "Caña de azúcar"
-                if "Caña de azúcar" in productos_api
-                else productos_api[0]
+            mapa_color[c] = base_colores[i % len(base_colores)]
+            i += 1
+    etiquetas = [modelo.nombre(sede_cod), "{} (ref. sur)".format(modelo.nombre(sur_cod))]
+    fig = go.Figure()
+    for c in cultivos:
+        tot_sede = serie_sede.sum() or 1
+        tot_sur = serie_sur.sum() or 1
+        vals = [100 * serie_sede.get(c, 0) / tot_sede, 100 * serie_sur.get(c, 0) / tot_sur]
+        fig.add_trace(go.Bar(
+            x=vals, y=etiquetas, orientation="h", name=c, marker_color=mapa_color[c],
+            text=[c if v >= 8 else "" for v in vals], textposition="inside",
+            hovertemplate="%{y}<br>" + c + ": %{x:.1f} %<extra></extra>",
+        ))
+    fig.update_layout(barmode="stack", template="plotly_white", height=300,
+                      margin=dict(l=8, r=8, t=28, b=8), font=dict(size=12),
+                      legend=dict(orientation="h", y=-0.2, font=dict(size=10)))
+    fig.update_xaxes(title="% de toneladas por cultivo (promedio 2021-2023)", range=[0, 100])
+    return fig, comp_sede, comp_sur
+
+
+def _visual_p4(frec, sede_nombre):
+    """P4. Frecuencia de sedes al variar escenarios de optimización."""
+    freq = frec["frecuencias"]
+    if freq.empty:
+        return None
+    df = freq.sort_values(ascending=True).reset_index()
+    df.columns = ["central", "frecuencia"]
+    colores = [AZUL if c == sede_nombre else GRIS_CTX for c in df["central"]]
+    fig = go.Figure(go.Bar(
+        x=df["frecuencia"], y=df["central"], orientation="h", marker_color=colores,
+        text=df["frecuencia"], textposition="outside",
+        hovertemplate="%{y}: %{x} de " + str(frec["n_resueltos"]) + " escenarios<extra></extra>",
+    ))
+    fig.update_xaxes(title="escenarios en que es central (de {} resueltos)".format(frec["n_resueltos"]))
+    return _barras_figura(fig, alto=320)
+
+
+def _pantalla_resumen_impl():
+    produccion = cargar_produccion_limpia()
+    if produccion.empty:
+        st.error("No se pudo cargar produccion_valle_clean. Verifica data/clean/.")
+        return
+    try:
+        muns = _modelo_cobertura()
+    except Exception as e:
+        st.error("No se pudo construir el modelo de cobertura: {}".format(e))
+        return
+    modelo = cob.ModeloCobertura(muns)
+
+    # --- Filtro: sede entre los 42 municipios, por defecto la de mayor cobertura ---
+    rk = modelo.ranking_area()
+    nombres = list(rk["sede"])
+    cod_por_nombre = dict(zip(rk["sede"], rk["cod_dane"]))
+    sede_default = rk.iloc[0]["sede"]  # mayor cobertura de área, calculada
+    sede_sel = st.sidebar.selectbox(
+        "Sede del resumen (42 municipios):", nombres,
+        index=nombres.index(sede_default), key="resumen_sede",
+    )
+    sede_cod = cod_por_nombre[sede_sel]
+    sur_cod = modelo.mejor_sede(("Sur",))
+    sur_nombre = modelo.nombre(sur_cod)
+    es_referente_sur = (sede_cod == sur_cod)
+
+    pct_sede = modelo.pct_area(sede_cod)
+    pct_sur = modelo.pct_area(sur_cod)
+    vol_sede = modelo.volumen_captable(sede_cod)
+    vol_sur = modelo.volumen_captable(sur_cod)
+    puesto_sede = modelo.puesto(sede_cod)
+
+    # --- Encabezado ---
+    st.title(cob.titulo_resumen(modelo, sede_cod))
+    st.markdown(
+        "**¿Qué municipios conviene priorizar para estudiar una central de fruta y "
+        "plátano, según el área cubierta a 40 km y el volumen captable estimado en "
+        "2021-2023, frente a la mejor sede del sur?**"
+    )
+    st.caption("Base 2021-2023 · Radio 40 km · Captación supuesta 20 %")
+    st.caption(
+        "La distancia es geográfica en línea recta entre centroides (haversine), **no** "
+        "distancia vial. En el resumen el radio y la captación están fijos; pueden "
+        "explorarse en la pantalla 4. Tablero central."
+    )
+    st.caption(
+        "Datos: consolidado agrícola de cultivos permanentes del Valle del Cauca "
+        "(Gobernación del Valle), familia Frutales (incluye plátano). Fecha de los datos: "
+        "cosechas 2014-2023. Fecha de cálculo: al abrir la pantalla. No hay un proceso de "
+        "actualización automática anual; la frecuencia de actualización depende de nuevas "
+        "publicaciones del consolidado."
+    )
+    if es_referente_sur:
+        st.info("La sede seleccionada **es** el referente del sur ({}). Las comparaciones "
+                "contra 'la mejor sede del sur' coinciden con ella misma.".format(sur_nombre))
+
+    # --- Tarjetas: cuatro indicadores de decisión (base 2021-2023) ---
+    st.markdown("### Indicadores de decisión (base 2021-2023)")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.metric("1 · Área cubierta a 40 km", fmt_pct(pct_sede))
+        st.caption("Diferencia frente al referente del sur ({}): {}".format(
+            sur_nombre, fmt_puntos(pct_sede - pct_sur)))
+    with c2:
+        st.metric("2 · Puesto entre los 42 municipios", "#{}".format(puesto_sede))
+        if puesto_sede == 1:
+            seg = rk.iloc[1]
+            st.caption("Ventaja sobre el 2.º ({}): {}".format(
+                seg["sede"], fmt_puntos(pct_sede - seg["pct_area"])))
+        else:
+            lider = rk.iloc[0]
+            st.caption("Distancia al líder ({}): {}".format(
+                lider["sede"], fmt_puntos(pct_sede - lider["pct_area"])))
+        st.caption("Empates: a igualdad exacta de área, orden alfabético; puesto por rango mínimo.")
+    with c3:
+        st.metric("3 · Volumen anual captable (20 %)", fmt_toneladas(vol_sede))
+        st.caption("Referente del sur ({}): {}".format(sur_nombre, fmt_toneladas(vol_sur)))
+    with c4:
+        razon = (vol_sede / vol_sur) if vol_sur else float("nan")
+        st.metric("4 · Razón de volumen vs. sur", "{} veces".format(fmt_razon(razon, 2)))
+        st.caption("{}: {} · {}: {}".format(
+            modelo.nombre(sede_cod), fmt_toneladas(vol_sede), sur_nombre, fmt_toneladas(vol_sur)))
+
+    st.caption(
+        "Estas son **métricas e indicadores de decisión**, no KPI: el proyecto no ha fijado "
+        "meta, umbral ni responsable para ellas. El único umbral es el de la **hipótesis** "
+        "(50 % del área, el doble de capacidad), señalado como tal. No se usan colores de "
+        "estado ni flechas de tendencia: las comparaciones son entre sedes, no en el tiempo. "
+        "Detalle en docs/dashboard/fichas_kpi.md."
+    )
+
+    # --- Cuatro visuales del resumen (cuadrícula 2x2) ---
+    st.markdown("### Respuestas visuales")
+    estab = cargar_estabilidad_opt()
+    frec = cob.frecuencia_centrales(estab)
+
+    fila1a, fila1b = st.columns(2)
+    with fila1a:
+        st.markdown("**P1. ¿Qué sedes cubren más área a 40 km?**")
+        st.caption("% del área de fruta y plátano · base 2021-2023 · top 10 + sede + referente del sur")
+        st.plotly_chart(_visual_p1(modelo, sede_cod, sur_cod), use_container_width=True)
+        seg = rk.iloc[1]
+        dif = abs(pct_sede - seg["pct_area"])
+        if puesto_sede == 1 and dif < 0.02:
+            resp_p1 = ("{} encabeza con {}, pero {} queda a {}: la diferencia es pequeña y "
+                       "conviene tratar a las primeras como candidatas comparables, sin leer "
+                       "significancia estadística.").format(
+                sede_sel, fmt_pct(pct_sede), seg["sede"], fmt_puntos(seg["pct_area"] - pct_sede))
+        else:
+            resp_p1 = "{} ocupa el puesto #{} con {} del área a 40 km.".format(
+                sede_sel, puesto_sede, fmt_pct(pct_sede))
+        st.info(resp_p1)
+    with fila1b:
+        st.markdown("**P2. ¿Cómo cambia el volumen captable entre escenarios históricos?**")
+        st.caption("t/año captables al 20 % · bajo/base/alto · base = 100 %")
+        st.plotly_chart(_visual_p2(modelo, sede_cod), use_container_width=True)
+        ve = cob.volumenes_escenarios(modelo, sede_cod)
+        bajo_p = ve.iloc[0]["pct_vs_base"]; alto_p = ve.iloc[2]["pct_vs_base"]
+        st.info(
+            "Entre el bajo sintético ({}) y el alto sintético ({}) el volumen captable varía "
+            "de forma amplia; conviene estudiar flexibilidad o desarrollo por etapas. El 100 % "
+            "es la definición de la base 2021-2023, no evidencia de que una central opere al "
+            "100 %. Bajo y alto combinan extremos municipales de 2014-2023, de años distintos y "
+            "sin probabilidad asociada.".format(fmt_pct(bajo_p), fmt_pct(alto_p))
+        )
+
+    fila2a, fila2b = st.columns(2)
+    with fila2a:
+        st.markdown("**P3. ¿Cómo difiere la composición productiva frente al referente del sur?**")
+        st.caption("% de toneladas por cultivo · promedio 2021-2023 · piña destacada")
+        fig_p3, comp_sede, comp_sur = _visual_p3(produccion, modelo, sede_cod, sur_cod)
+        st.plotly_chart(fig_p3, use_container_width=True)
+        with st.expander("Producción, superficie y toneladas por hectárea sembrada"):
+            tabla_p3 = pd.DataFrame({
+                "": ["Producción total", "Superficie sembrada", "t por ha sembrada", "Piña (% toneladas)", "t por ha sin piña"],
+                sede_sel: [fmt_toneladas(comp_sede["total_t"]), "{} ha".format(fmt_entero(comp_sede["ha_sembradas"])),
+                           fmt_razon(comp_sede["t_por_ha_sembrada"], 2), fmt_pct(comp_sede["pct_pina_toneladas"]),
+                           fmt_razon(comp_sede["t_por_ha_sin_pina"], 2)],
+                sur_nombre: [fmt_toneladas(comp_sur["total_t"]), "{} ha".format(fmt_entero(comp_sur["ha_sembradas"])),
+                             fmt_razon(comp_sur["t_por_ha_sembrada"], 2), fmt_pct(comp_sur["pct_pina_toneladas"]),
+                             fmt_razon(comp_sur["t_por_ha_sin_pina"], 2)],
+            })
+            st.dataframe(tabla_p3, use_container_width=True, hide_index=True)
+            st.caption("El % de piña es sobre **toneladas**, no área. 't por ha sembrada' es una "
+                       "razón sobre área sembrada, descriptiva, no rendimiento agronómico.")
+        if es_referente_sur:
+            st.info("La sede coincide con el referente del sur: la composición mostrada es la "
+                    "misma a ambos lados.")
+        else:
+            st.info(
+                "La piña pesa {} de las toneladas en {} y {} en {}. Es una descripción de la "
+                "mezcla de cultivos, no una relación causal.".format(
+                    fmt_pct(comp_sede["pct_pina_toneladas"]), sede_sel,
+                    fmt_pct(comp_sur["pct_pina_toneladas"]), sur_nombre)
             )
-            c1, c2, c3 = st.columns([2, 2, 1])
-            prod_sel = c1.selectbox(
-                "Producto",
-                productos_api,
-                index=productos_api.index(prod_default),
-                key="api_producto",
-            )
-            anio_hist = int(
-                produccion.loc[produccion["producto"] == prod_sel, "anio"].max()
-            )
-            hist = produccion[
-                (produccion["producto"] == prod_sel)
-                & (produccion["anio"] == anio_hist)
-            ]
-            codigos = sorted(hist["cod_dane"].astype(str).unique())
-            nombres = (
-                dict(zip(municipios["cod_dane"].astype(str), municipios["municipio"]))
-                if not municipios.empty
-                else {}
-            )
-            etiquetas = [
-                f"{cod} - {nombres.get(cod, '')}".strip() for cod in codigos
-            ]
-            if not etiquetas:
-                st.info("No hay municipios con datos para este producto.")
+    with fila2b:
+        st.markdown("**P4. ¿Qué sedes aparecen al variar los escenarios de optimización?**")
+        st.caption("frecuencia por municipio · {} escenarios de {} · configuración k=5, λ=0,5".format(
+            frec["n_total"], ", ".join(str(a) for a in frec["anios"])))
+        fig_p4 = _visual_p4(frec, sede_sel)
+        if fig_p4 is None:
+            st.info("No hay escenarios de optimización disponibles (data/results/opt/).")
+        else:
+            st.plotly_chart(fig_p4, use_container_width=True)
+            veces = int(frec["frecuencias"].get(sede_sel, 0))
+            if veces > 0:
+                resp_p4 = "{} aparece como central en {} de {} escenarios resueltos.".format(
+                    sede_sel, veces, frec["n_resueltos"])
             else:
-                idx_m = next(
-                    (i for i, cod in enumerate(codigos) if cod == "76113"), 0
-                )
-                mun_sel = c2.selectbox(
-                    "Municipio", etiquetas, index=idx_m, key="api_municipio"
-                )
-                anio_sel = c3.selectbox(
-                    "Año", [2024, 2025, 2026, 2027, 2028], index=0, key="api_anio"
-                )
+                resp_p4 = ("{} no aparece como central en ninguno de los {} escenarios resueltos; "
+                           "no implica que sea inviable.").format(sede_sel, frec["n_resueltos"])
+            st.info(
+                resp_p4 + " Ejecuciones sin solución o no válidas: {}. Son **frecuencias**, no "
+                "probabilidades. Este análisis usa excedentes con consumo (red de tiempos de "
+                "viaje), un alcance distinto del histórico de área de fruta y plátano del resumen. "
+                "El filtro de sede solo cambia el resaltado; no recalcula el universo de "
+                "escenarios.".format(frec["n_sin_solucion"])
+            )
+            st.caption("Asociación mezcla de mercados ↔ sede: describir, no afirmar causa, salvo "
+                       "comparar escenarios con año, oferta y consumo iguales (ver pantalla 3).")
+
+    # --- Secciones complementarias plegadas ---
+    _resumen_detalle_pronostico()
+    _resumen_detalle_api(produccion, modelo)
+
+    # --- Descarga del resumen con filtros, unidades, periodos y supuestos ---
+    _resumen_descarga(modelo, sede_cod, sur_cod, frec)
+
+
+def _resumen_detalle_pronostico():
+    with st.expander("Pronóstico y exposición logística", expanded=False):
+        try:
+            e = cob.exposicion_sin_cana()
+        except Exception as ex:
+            st.info("No se pudo reproducir la exposición sin caña: {}".format(ex))
+            return
+        st.markdown(
+            "**Alcance y horizonte:** error del pronóstico a un año (horizonte 1), años "
+            "{}-{}, sin caña de azúcar (no entra a la central). Red del escenario base: "
+            "{} y satélites.".format(e["anio_min"], e["anio_max"], e["red"])
+        )
+        cc1, cc2, cc3 = st.columns(3)
+        cc1.metric("Exposición sin modelo", "{} M t·min".format(fmt_razon(e["sin_modelo_millones"], 2)))
+        cc2.metric("Exposición con modelo", "{} M t·min".format(fmt_razon(e["modelo_millones"], 2)))
+        cc3.metric("Reducción del modelo", fmt_pct(abs(e["reduccion_modelo_pct"])))
+        st.markdown(
+            "- Referencia ingenua: reducción de {} frente al promedio de cinco años.\n"
+            "- Cobertura de intervalos observada ≈ 76 % frente al 80 % nominal "
+            "(docs/ML_C/limitaciones_pronostico.md).\n"
+            "- Error valorizado a un año sin caña ≈ 25 % por serie producto-municipio y "
+            "≈ 7 % en el total departamental (src/informe/cifras_3_3_y_3_4.py)."
+            .format(fmt_pct(abs(e["reduccion_ingenuo_pct"])))
+        )
+        st.markdown("**Valoración de exposición (reconciliada):**")
+        st.caption(
+            "La diferencia de exposición es un acumulado de cinco años ({} M t·min). "
+            "A {} COP/(t·min), ese acumulado valdría {} COP; **anualizado** (÷ 5 años) da "
+            "{} COP/año ≈ 1.500 millones. Es una **valoración de exposición** con un factor "
+            "supuesto de 250 COP/(t·min), no un ahorro financiero realizado. Multiplicar "
+            "100,08 − 69,69 por 250 sin anualizar NO produce los 1.500 millones.".format(
+                fmt_razon(e["diferencia_total_tmin"] / 1e6, 2), fmt_entero(e["cop_tmin"]),
+                fmt_millones_cop(e["valoracion_acumulada_5anios_cop"]),
+                fmt_millones_cop(e["valoracion_anual_cop"]),
+            )
+        )
+
+
+def _resumen_detalle_api(produccion, modelo):
+    with st.expander("API y base de datos", expanded=False):
+        col_api, col_db = st.columns(2)
+        with col_api:
+            st.markdown("**API REST (predicciones)**")
+            if _REQUESTS_DISPONIBLE:
+                try:
+                    r = requests.get(f"{API_URL}/health", timeout=10)
+                    if r.status_code == 200:
+                        datos = r.json()
+                        st.success("API en línea")
+                        st.caption("Modelo cargado: {}".format(datos.get("modelo_cargado", False)))
+                    else:
+                        st.warning("API respondió {}".format(r.status_code))
+                except Exception as ex:
+                    st.warning("API no alcanzable en {}".format(API_URL))
+                    st.caption("Los resultados locales siguen disponibles. Detalle: {}".format(type(ex).__name__))
+            else:
+                st.info("requests no instalado; se consultan solo los resultados locales.")
+            st.caption("El endpoint /predict devuelve una predicción **LightGBM**; no es el "
+                       "modelo final combinado (promedio ingenuo + LightGBM). Contrato de "
+                       "/predict sin cambios en este PR.")
+        with col_db:
+            st.markdown("**Base de datos (DuckDB)**")
+            if _REQUESTS_DISPONIBLE:
+                try:
+                    r = requests.get(f"{API_URL}/metricas", timeout=20)
+                    if r.status_code == 200:
+                        datos = r.json()
+                        fuente = datos.get("fuente")
+                        st.success("Fuente de métricas: {}".format(fuente or "n.d."))
+                        st.caption("Métricas disponibles: {}".format(len(datos.get("metricas", []))))
+                    else:
+                        st.warning("API respondió {}".format(r.status_code))
+                except Exception as ex:
+                    st.warning("No se pudo consultar /metricas.")
+                    st.caption("El resumen sigue funcionando con los datos locales. Detalle: {}".format(type(ex).__name__))
+            else:
+                st.info("requests no instalado; se consultan solo los resultados locales.")
+
+        # Formulario de predicción existente (se conserva)
+        st.markdown("**Probar predicción en vivo (LightGBM vía /predict)**")
+        if not _REQUESTS_DISPONIBLE:
+            st.info("requests no instalado; no se puede consultar la API.")
+        elif produccion.empty:
+            st.info("No hay datos históricos para poblar el formulario.")
+        else:
+            productos_api = sorted(produccion["producto"].dropna().unique())
+            prod_default = "Caña de azúcar" if "Caña de azúcar" in productos_api else productos_api[0]
+            fc1, fc2, fc3 = st.columns([2, 2, 1])
+            prod_sel = fc1.selectbox("Producto", productos_api, index=productos_api.index(prod_default), key="api_producto")
+            anio_hist = int(produccion.loc[produccion["producto"] == prod_sel, "anio"].max())
+            hist = produccion[(produccion["producto"] == prod_sel) & (produccion["anio"] == anio_hist)]
+            codigos = sorted(hist["cod_dane"].astype(str).unique())
+            nombres_mun = dict(zip(municipios["cod_dane"].astype(str), municipios["municipio"])) if not municipios.empty else {}
+            etiquetas = ["{} - {}".format(cod, nombres_mun.get(cod, "")).strip() for cod in codigos]
+            if etiquetas:
+                idx_m = next((i for i, cod in enumerate(codigos) if cod == "76113"), 0)
+                mun_sel = fc2.selectbox("Municipio", etiquetas, index=idx_m, key="api_municipio")
+                anio_sel = fc3.selectbox("Año", [2024, 2025, 2026, 2027, 2028], index=0, key="api_anio")
                 if st.button("Predecir oferta", key="api_predecir"):
                     cod_sel = codigos[etiquetas.index(mun_sel)]
-                    payload = {
-                        "producto": prod_sel,
-                        "cod_dane": cod_sel,
-                        "horizonte": int(anio_sel) - 2023,
-                        "anio_objetivo": int(anio_sel),
-                    }
+                    payload = {"producto": prod_sel, "cod_dane": cod_sel,
+                               "horizonte": int(anio_sel) - 2023, "anio_objetivo": int(anio_sel)}
                     try:
                         with st.spinner("Consultando la API..."):
-                            r = requests.post(
-                                f"{API_URL}/predict", json=payload, timeout=120
-                            )
+                            r = requests.post(f"{API_URL}/predict", json=payload, timeout=120)
                         if r.status_code == 200:
                             d = r.json()
-                            st.metric(
-                                "Oferta estimada",
-                                f"{d.get('prediccion_t', 0):,.0f} t",
-                            )
-                            st.caption(
-                                f"Modelo {d.get('modelo_version', 'n.d.')} · "
-                                f"commit {d.get('commit', 'n.d.')} · "
-                                f"fuente {d.get('fuente', 'n.d.')} · "
-                                f"horizonte {d.get('horizonte', 'n.d.')}"
-                            )
+                            st.metric("Oferta estimada (LightGBM)", fmt_toneladas(d.get("prediccion_t", 0)))
+                            st.caption("Modelo {} · fuente {}".format(d.get("modelo_version", "n.d."), d.get("fuente", "n.d.")))
                         else:
-                            st.error(f"API {r.status_code}: {r.text[:300]}")
-                    except Exception as e:
-                        st.warning(f"No se pudo consultar la API: {type(e).__name__}")
+                            st.error("API {}: {}".format(r.status_code, r.text[:200]))
+                    except Exception as ex:
+                        st.warning("No se pudo consultar la API: {}".format(type(ex).__name__))
 
-    # --- callout de alcance y calidad ---
-    st.info("""
-    **Lectura rápida:** el modelo reduce la exposición logística entre un 22 % y un 38 % frente a no usar modelo
-    (horizonte 1, 2019-2023). En horizontes largos (h=4, h=5) el ensamble supera al ingenuo; en h=1 y h=2 el
-    ingenuo es ligeramente mejor. Consulte la pantalla 3 para la ubicación óptima y la documentación en
-    `docs/ML_C/metrica_negocio.md` y `docs/ML_C/diagnostico_modelo.md`.
-    """)
 
-    # --- navegación con drill-down ---
-    st.markdown("### Ir a las pantallas de detalle")
-    nav1, nav2, nav3, nav4 = st.columns(4)
-    with nav1:
-        st.markdown("**1. Oferta por producto y municipio**")
-        st.caption("Drill-down: producto → municipios → serie histórica y pronóstico bajo/base/alto (2024-2028).")
-        st.button("Ir a Pantalla 1 - Oferta", key="nav_oferta", help="Selecciona producto y municipio en la barra lateral.")
-    with nav2:
-        st.markdown("**2. Zonas de acopio**")
-        st.caption("Mapa de los 42 municipios coloreados por oferta base, por producto y año.")
-        st.button("Ir a Pantalla 2 - Zonas", key="nav_zonas", help="Filtra por producto y año en la barra lateral.")
-    with nav3:
-        st.markdown("**3. Ubicación de central y satélites**")
-        st.caption("OR-Tools: central + 5 satélites, frontera de Pareto, estabilidad por nivel de oferta (t·min).")
-        st.button("Ir a Pantalla 3 - Ubicacion", key="nav_ubicacion", help="Ajusta parámetros y pulsa Calcular optimización.")
-    with nav4:
-        st.markdown("**4. Tablero central de acopio**")
-        st.caption("Cobertura histórica (promedio 2021-2023) por sede; no reemplaza la pantalla 3.")
-        st.button("Ir a Pantalla 4 - Tablero central", key="nav_tablero", help="Vista embebida del tablero central.")
-
-    # --- descarga filtrada del resumen ---
-    st.markdown("---")
-    st.markdown("### Descargar resumen ejecutivo (CSV)")
-    resumen_rows = []
-    if metrica is not None and not metrica.empty:
-        fila = metrica[metrica["ambito"] == "h1_2019_2023"]
-        for _, r in fila.iterrows():
-            resumen_rows.append({
-                "ambito": r["ambito"],
-                "alternativa": r["alternativa"],
-                "tmin_millones": r["tmin_millones"],
-                "cop_base_miles_millones": r["cop_base"] / 1e9,
-                "delta_vs_sin_modelo_pct": r["delta_vs_sin_modelo_pct"],
-            })
-    df_resumen = pd.DataFrame(resumen_rows)
-    if not df_resumen.empty:
-        st.download_button(
-            "⬇️ Descargar resumen de métrica de negocio (CSV)",
-            data=df_resumen.to_csv(index=False).encode("utf-8-sig"),
-            file_name="resumen_metrica_negocio.csv",
-            mime="text/csv",
-        )
-    else:
-        st.info("No hay métrica de negocio disponible. Ejecuta `python src/ML_C/10_metrica_negocio.py` o `run_all.py --rapido`.")
+def _resumen_descarga(modelo, sede_cod, sur_cod, frec):
+    st.markdown("### Descargar resumen")
+    sede = modelo.nombre(sede_cod); sur = modelo.nombre(sur_cod)
+    ve = cob.volumenes_escenarios(modelo, sede_cod)
+    filas = [
+        {"indicador": "Sede seleccionada", "valor": sede, "unidad": "", "periodo": "", "supuesto": "filtro del usuario"},
+        {"indicador": "Referente del sur", "valor": sur, "unidad": "", "periodo": "", "supuesto": "mayor área del sur"},
+        {"indicador": "Área cubierta a 40 km", "valor": round(100 * modelo.pct_area(sede_cod), 2), "unidad": "% del área",
+         "periodo": "2021-2023", "supuesto": "radio 40 km, distancia haversine entre centroides"},
+        {"indicador": "Puesto entre 42 municipios", "valor": modelo.puesto(sede_cod), "unidad": "puesto",
+         "periodo": "2021-2023", "supuesto": "orden por área; empates por nombre"},
+        {"indicador": "Volumen captable base", "valor": round(modelo.volumen_captable(sede_cod)), "unidad": "t/año",
+         "periodo": "2021-2023", "supuesto": "captación 20 %"},
+        {"indicador": "Volumen captable bajo sintético", "valor": round(ve.iloc[0]["volumen_t"]), "unidad": "t/año",
+         "periodo": "2014-2023", "supuesto": "peor año municipal, años distintos"},
+        {"indicador": "Volumen captable alto sintético", "valor": round(ve.iloc[2]["volumen_t"]), "unidad": "t/año",
+         "periodo": "2014-2023", "supuesto": "mejor año municipal, años distintos"},
+        {"indicador": "Razón de volumen vs. sur", "valor": round(modelo.volumen_captable(sede_cod) / modelo.volumen_captable(sur_cod), 2),
+         "unidad": "veces", "periodo": "2021-2023", "supuesto": "captación 20 %"},
+        {"indicador": "Frecuencia como central (optimización)", "valor": int(frec["frecuencias"].get(sede, 0)),
+         "unidad": "de {} escenarios resueltos".format(frec["n_resueltos"]), "periodo": ", ".join(str(a) for a in frec["anios"]),
+         "supuesto": "k=5, λ=0,5; alcance distinto (excedentes con consumo)"},
+    ]
+    df = pd.DataFrame(filas)
+    st.download_button(
+        "⬇️ Descargar resumen de la sede (CSV)",
+        data=df.to_csv(index=False).encode("utf-8-sig"),
+        file_name="resumen_{}.csv".format(sede_cod),
+        mime="text/csv",
+    )
 
 
 # =============================================================================
@@ -667,12 +887,11 @@ def pantalla_oferta():
 # PANTALLA 2: ZONAS
 # =============================================================================
 def pantalla_zonas():
-    st.title("🗺️ Pantalla 2 - Zonas de Acopio")
+    st.title("🗺️ Pantalla 2 - Oferta municipal pronosticada (mapa)")
     st.markdown("""
-    Mapa de los municipios del Valle del Cauca con su oferta pronosticada por producto y año.
-
-    **Nota:** El agrupamiento en zonas de acopio (`zonas.csv`) depende de la tarea de Alejandro.
-    Mientras tanto, se muestran los municipios individuales coloreados por su oferta base.
+    Mapa de los 42 municipios del Valle del Cauca coloreados por su **oferta pronosticada**
+    por producto y año. El agrupamiento espacial en zonas de acopio está en la pantalla
+    **2b. Zonas de acopio**.
     """)
 
     if oferta.empty or municipios.empty:
@@ -719,7 +938,7 @@ def pantalla_zonas():
 
 
 # =============================================================================
-# PANTALLA 2b: ZONAS DE ACOPIO (Alejandro - tareas #2, #3, #4)
+# PANTALLA 2b: ZONAS DE ACOPIO (vecindad, agrupamiento y volúmenes por escenario)
 # =============================================================================
 def _color_zona(zona, zonas_lista):
     paleta = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
@@ -732,11 +951,11 @@ def _color_zona(zona, zonas_lista):
 
 
 def pantalla_zonas_acopio():
-    st.title("🧭 Pantalla 2b - Zonas de Acopio (vecindad + agrupamiento espacial)")
+    st.title("🧭 Pantalla 2b - Zonas de acopio por agrupamiento espacial")
     st.markdown("""
     Zonas de acopio espacialmente conexas (contigüidad Queen + Ward con restricción
     de conectividad). Los **centros de zona son referencias** (tiempos ponderados por
-    oferta), no la ubicación óptima del modelo de optimización de Samuel.
+    oferta), no la ubicación óptima: esa la calcula la **optimización de la pantalla 3**.
     """)
 
     zonas_df = cargar_zonas()
@@ -850,7 +1069,7 @@ def pantalla_ubicacion():
     st.title("📍 Pantalla 3 - Ubicacion de Central y Acopios Satelite (logística)")
     st.markdown("""
     Minimiza el **costo logístico** (toneladas × minutos) de ubicar una central y sus
-    acopios satélite, usando los excedentes proyectados del adaptador de Alejandro y
+    acopios satélite, usando los excedentes proyectados del módulo de escenarios y
     OR-Tools con **flujo satélite→central explícito**.
     """)
     st.caption(

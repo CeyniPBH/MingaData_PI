@@ -488,7 +488,12 @@ function pintar() {
   };
   const zs = [zona(mejor(["Centro", "Norte"]), "Centro-norte", "var(--accent)"), zona(mejor(["Sur"]), "Sur", "var(--dot-off)")];
   $("frase").textContent = `La mejor sede del centro-norte frente a la mejor del sur, a ${st.radio} km.`;
-  $("tComp").textContent = `El centro-norte alcanza ${fmt(zs[0].ha / (zs[1].ha || 1), 1)} veces el área del sur`;
+  {
+    const nCN = M[mejor(["Centro", "Norte"])].n, nSur = M[mejor(["Sur"])].n;
+    const rArea = zs[0].ha / (zs[1].ha || 1), rVol = zs[0].tn / (zs[1].tn || 1);
+    const cierre = rVol >= 2 ? "alcanza al menos el doble" : "no alcanza el doble";
+    $("tComp").textContent = `${nCN} alcanza ${fmt(rArea, 1)} veces el área de ${nSur} y presenta ${fmt(rVol, 1)} veces su volumen captable: ${cierre}`;
+  }
   const filas = (id, val, txt, extra) => {
     const caja = $(id); caja.replaceChildren();
     const mx = Math.max(...zs.map(z => val(z) + (extra ? extra(z) : 0)), 1);
