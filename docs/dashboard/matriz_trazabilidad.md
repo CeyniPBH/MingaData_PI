@@ -1,6 +1,6 @@
 # Matriz de trazabilidad: de los datos a la decisión
 
-Este documento aplica la matriz de correspondencia de la Sesión 4 del curso Visualización y Comunicación de Datos a las dos preguntas de negocio del proyecto y a la hipótesis que las une. Cada fila conecta la pregunta con la decisión que apoya, con la evidencia que la responde y con la forma en que se muestra en el tablero (pantalla 4. Tablero central). La versión resumida está en la sección 5.2 del informe; aquí va el detalle de los cálculos.
+Este documento aplica la matriz de correspondencia de la Sesión 4 del curso Visualización y Comunicación de Datos a las dos preguntas de negocio del proyecto y a la hipótesis que las une. Cada fila conecta la pregunta con la decisión que apoya, con la evidencia que la responde y con la forma en que se muestra en el tablero (pantalla 4. Cobertura y capacidad). La versión resumida está en la sección 5.2 del informe; aquí va el detalle de los cálculos.
 
 Cliente: Secretaría de Agricultura del Valle del Cauca. Usuarios del tablero: los profesionales de planeación que formulan proyectos de inversión y el secretario o secretaria que los aprueba.
 

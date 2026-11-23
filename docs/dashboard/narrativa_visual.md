@@ -15,7 +15,7 @@ Cada pantalla responde una pregunta de negocio con un **título declarativo** (l
 **Contenido:**
 - KPIs principales: productos modelados, municipios cubiertos, horizonte de pronóstico, años de historial, exposición sin modelo vs con modelo (t·min y COP), reducción de exposición.
 - Callout de alcance: "El tablero soporta decisiones de planificación (volumen, ubicación, capacidad). No es un sistema de trading ni de precios."
-- Tarjetas de navegación con drill-down: "Oferta por producto y municipio", "Zonas de acopio", "Ubicación de central y satélites", "Tablero central de cobertura".
+- Tarjetas de navegación con drill-down: "Oferta por producto y municipio", "Zonas de acopio", "Ubicación de central y satélites", "Cobertura y capacidad".
 - Descarga del resumen en CSV.
 
 **Unidades:** toneladas (t), millones de toneladas × minutos (M t·min), miles de millones de COP, años.
@@ -88,9 +88,9 @@ Cada pantalla responde una pregunta de negocio con un **título declarativo** (l
 
 **Unidades:** t·min en costos, toneladas en volumen.
 
-## Pantalla 4 — Tablero central de acopio
+## Pantalla 4 — Cobertura y capacidad
 
-**Título declarativo:** "Pantalla 4 - Tablero central de Acopio (HTML)"
+**Título principal (en el HTML embebido):** "Cobertura y capacidad de una central de acopio de fruta y plátano"
 
 **Subtítulo:** "Vista de cobertura histórica (promedio 2021-2023): qué área y producción alcanza cada sede. No reemplaza la pantalla 3, que minimiza el costo logístico con el pronóstico."
 

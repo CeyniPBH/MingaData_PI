@@ -106,8 +106,8 @@ def main():
     check(len(datos["dots"]) == 701, "El mapa conserva los puntos de hectareas")
     check("NaN" not in html, "El HTML no contiene valores NaN")
     check(
-        "Vista de cobertura" in html,
-        "El pie del tablero explica el alcance de la vista",
+        "Supuestos y alcance" in html and "optimización de la pantalla 3" in html,
+        "El pie del tablero explica el alcance de la vista en 'Supuestos y alcance'",
     )
     ids_csv = set(series)
     ids_html = {m["id"] for m in datos["muns"]}

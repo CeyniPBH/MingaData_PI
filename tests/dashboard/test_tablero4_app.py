@@ -24,7 +24,7 @@ from streamlit.testing.v1 import AppTest  # noqa: E402
 def _ir_a_tablero():
     at = AppTest.from_file(APP, default_timeout=240)
     at.run()
-    at.sidebar.radio[0].set_value("4. Tablero central").run()
+    at.sidebar.radio[0].set_value("4. Cobertura y capacidad").run()
     return at
 
 
@@ -73,7 +73,7 @@ def test_persistencia_al_navegar():
     cap.set_value(60000).run()
     # Navegar a otra pantalla y volver
     at.sidebar.radio[0].set_value("1. Oferta").run()
-    at.sidebar.radio[0].set_value("4. Tablero central").run()
+    at.sidebar.radio[0].set_value("4. Cobertura y capacidad").run()
     assert at.session_state["t4_sede"] == "Vijes"
     assert at.session_state["t4_capacidad"] == 60000
 
@@ -116,7 +116,7 @@ def test_no_ejecuta_optimizador():
          mock.patch.object(modelo_real, "calcular_estabilidad") as m_est:
         at = AppTest.from_file(APP, default_timeout=240)
         at.run()
-        at.sidebar.radio[0].set_value("4. Tablero central").run()
+        at.sidebar.radio[0].set_value("4. Cobertura y capacidad").run()
         sede = [s for s in at.sidebar.selectbox if s.label == "Municipio sede"][0]
         sede.set_value("Vijes").run()
         assert len(at.exception) == 0

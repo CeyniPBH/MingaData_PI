@@ -248,6 +248,34 @@ Ajustes solo de presentación; no cambian cálculos, datos, filtros ni otras pan
   ventana más estrecha, Bugalagrande/Vijes/otra sede) no se realizó por falta de navegador
   utilizable en el entorno. No se declara hecha. Procedimiento en `capturas/README.md`.
 
+## Renombre y textos de la pantalla 4
+
+Ajuste solo de nombres y textos; no cambia cálculos, claves internas, estado de filtros ni
+navegación.
+
+- **Nombre en la navegación:** "4. Tablero central" → **"4. Cobertura y capacidad"**. Se
+  actualizaron la opción del selector, las comparaciones de ruteo y las referencias visibles
+  en las pantallas 0 y 3. Las claves internas de estado (`t4_*`), la caché y los cálculos no
+  cambian.
+- **Título principal** (en el HTML embebido, sin cambios): "Cobertura y capacidad de una
+  central de acopio de fruta y plátano".
+- **Introducción** reemplazada por una sola frase: "Explora el área agrícola, el volumen
+  captable y la utilización estimada de una central según la sede y los parámetros
+  seleccionados", seguida de la línea de contexto "Base histórica: promedio 2021-2023".
+- **Una sola introducción:** la intro vive únicamente en el HTML; en Streamlit solo queda un
+  recordatorio breve ("Los controles de esta vista están en la barra lateral"), sin duplicar
+  título ni introducción.
+- **Aclaraciones en su lugar:** la sección del pie pasó de "Supuestos" a **"Supuestos y
+  alcance"** e incluye la diferencia con la optimización de la pantalla 3 y los periodos de
+  los escenarios bajo y alto (peor/mejor año municipal 2014-2023). La advertencia de que el
+  "recuperable" es una referencia original no recalculada desde el CSV se conserva en su
+  propio detalle. Estas explicaciones no están en la introducción.
+
+**Impacto para el informe:** las Figuras 9 y 10 (capturas de esta pantalla) y el texto que la
+nombra "Tablero central" deben citar el nuevo nombre "Cobertura y capacidad". No se tocó
+`src/informe/` ni `docs/informe/`; el ajuste del informe queda fuera de este PR y se registra
+aquí y en `docs/dashboard/capturas/README.md`.
+
 ## Documentado por separado (no implementado en este PR)
 
 Estas mejoras se registran como pendientes y **no** se implementan aquí:

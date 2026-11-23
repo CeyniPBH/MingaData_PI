@@ -8,7 +8,7 @@ Pantallas:
 2. Zonas: mapa con municipios y oferta por producto/anio
 2b. Zonas de acopio: poligonos de zona, centros y volumenes por escenario
 3. Ubicacion: selector de escenario, mapa central+satelites, frontera de Pareto, tabla de estabilidad
-4. Tablero central: tablero visual de la central de acopio (mapa de puntos y respuestas)
+4. Cobertura y capacidad: tablero visual de cobertura de área y capacidad (mapa de puntos y respuestas)
 
 Ejecutar: streamlit run src/dashboard/app.py
 """
@@ -394,7 +394,7 @@ st.sidebar.markdown("Valle del Cauca - Proyecto Integrador 1")
 # 1. Selector de pantalla (siempre primero)
 pantalla = st.sidebar.radio(
     "Seleccionar pantalla:",
-    ["0. Resumen", "1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion", "4. Tablero central"],
+    ["0. Resumen", "1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion", "4. Cobertura y capacidad"],
     index=0,
 )
 
@@ -407,7 +407,7 @@ if pantalla == "0. Resumen":
     _resumen_sede_sidebar()
     ano_seleccionado = anos_disponibles[0]
     escenario = "base"
-elif pantalla == "4. Tablero central":
+elif pantalla == "4. Cobertura y capacidad":
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de esta vista")
     _tablero_controles_sidebar()
@@ -427,7 +427,7 @@ else:
 
 # 3. Información complementaria (estado de los datos, notas de la vista)
 st.sidebar.markdown("---")
-if pantalla in ("0. Resumen", "4. Tablero central"):
+if pantalla in ("0. Resumen", "4. Cobertura y capacidad"):
     st.sidebar.caption("Vista resumen o histórica 2021-2023. No usa los filtros de pronóstico.")
 st.sidebar.markdown("### Estado de los datos")
 st.sidebar.info(f"""
@@ -687,7 +687,7 @@ def _pantalla_resumen_impl():
     st.caption(
         "La distancia es geográfica en línea recta entre centroides (haversine), **no** "
         "distancia vial. En el resumen el radio y la captación están fijos; pueden "
-        "explorarse en la pantalla 4. Tablero central."
+        "explorarse en la pantalla 4. Cobertura y capacidad."
     )
     st.caption(
         "Datos: consolidado agrícola de cultivos permanentes del Valle del Cauca "
@@ -1366,7 +1366,7 @@ def _pantalla_ubicacion_impl():
         "Configura el análisis en la barra lateral y pulsa **Calcular ubicación**."
     )
     st.caption(
-        "Usa el pronóstico seleccionado. Es distinta de la '4. Tablero central', que mide "
+        "Usa el pronóstico seleccionado. Es distinta de la '4. Cobertura y capacidad', que mide "
         "cobertura de área con estadísticas históricas; sus escenarios no son equivalentes."
     )
 
@@ -1740,13 +1740,9 @@ def pantalla_tablero_central():
         st.error("No se pudo cargar el tablero central: {}".format(e))
         return
 
-    st.caption(
-        "Herramienta de exploración de cobertura: muestra cuánta área y producción "
-        "alcanza cada sede con datos históricos (promedio 2021-2023). Los controles están "
-        "en la barra lateral. No reemplaza la pantalla 3, que minimiza el costo logístico "
-        "con el pronóstico seleccionado. El indicador 'recuperable' es una referencia del "
-        "análisis original y no se recalcula desde el CSV."
-    )
+    # El título principal y la introducción viven en el HTML embebido (un solo título y una
+    # sola introducción). Aquí solo se recuerda dónde están los controles, sin duplicarlos.
+    st.caption("Los controles de esta vista están en la barra lateral.")
     # components.html permite desplazamiento vertical interno. Altura ajustada tras mover los
     # controles a la barra lateral (fila de controles retirada del HTML). scrolling=True evita
     # recortes si el contenido supera la altura en pantallas pequeñas.
@@ -1766,7 +1762,7 @@ elif pantalla == "2b. Zonas de acopio":
     pantalla_zonas_acopio()
 elif pantalla == "3. Ubicacion":
     pantalla_ubicacion()
-elif pantalla == "4. Tablero central":
+elif pantalla == "4. Cobertura y capacidad":
     pantalla_tablero_central()
 
 # =============================================================================

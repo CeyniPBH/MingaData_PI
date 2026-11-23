@@ -37,7 +37,7 @@ ranking incluye la sede seleccionada con su puesto real. Falta la **revisión vi
    pequeños sigan consultables por tooltip (nombre, % y toneladas); y que los porcentajes y
    toneladas no cambien. Guardar como `resumen_1440.png` y `resumen_p3_composicion.png`.
 
-4. **Pantalla 4. Tablero central (exploración):** en la **barra lateral**, fijar sede
+4. **Pantalla 4. Cobertura y capacidad (exploración):** en la **barra lateral**, fijar sede
    Bugalagrande, radio 40 km, captación 20 %, capacidad 100.000 t/año y escenario base.
    Verificar que haya un único juego de controles (en la barra lateral), que el tablero
    muestre la línea de contexto con esa configuración y que el mapa, la superficie/

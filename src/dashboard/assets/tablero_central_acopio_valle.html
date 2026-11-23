@@ -39,6 +39,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14p
 
 .encab h1{font-family:var(--display);font-weight:700;font-size:clamp(20px,2.3vw,28px);line-height:1.15;margin:0;text-wrap:balance}
 .encab p{margin:4px 0 0;font-size:14px;color:var(--muted);max-width:70ch}
+.encab p.ctx-hist{margin-top:2px;font-size:12.5px;font-weight:600;letter-spacing:.02em}
 
 /* Línea compacta de contexto: muestra la configuración activa, sin controles. */
 .contexto{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px}
@@ -133,7 +134,8 @@ svg#mapa.arrastra,svg#mapa.arrastra .mun{cursor:grabbing}
 
   <header class="encab">
     <h1>Cobertura y capacidad de una central de acopio de fruta y plátano</h1>
-    <p>Explora municipios sede, cobertura territorial y utilización estimada según la capacidad y la captación seleccionadas.</p>
+    <p>Explora el área agrícola, el volumen captable y la utilización estimada de una central según la sede y los parámetros seleccionados.</p>
+    <p class="ctx-hist">Base histórica: promedio 2021-2023</p>
   </header>
 
   <section class="contexto" id="contexto" aria-label="Configuración activa">
@@ -198,11 +200,12 @@ svg#mapa.arrastra,svg#mapa.arrastra .mun{cursor:grabbing}
 
   <footer class="pie">
     <span>Consolidado agrícola de cultivos permanentes del Valle del Cauca, promedio 2021-2023. Fruta y plátano. Cálculos de Minga Data.</span>
-    <span>Vista de cobertura: maximiza área alcanzada. La ubicación óptima por costo logístico se calcula en la Pantalla 3.</span>
     <details id="supuestos">
-      <summary>Supuestos</summary>
+      <summary>Supuestos y alcance</summary>
       <div class="panel">
         <ul>
+          <li><b>Alcance:</b> esta vista mide la cobertura de área alcanzada por cada sede con estadísticas históricas (promedio 2021-2023). Es distinta de la optimización de la pantalla 3, que ubica la central y los acopios minimizando el costo logístico (t·min) con el pronóstico seleccionado; sus escenarios no son equivalentes.</li>
+          <li>Escenario bajo y alto: el peor y el mejor año de cada municipio entre 2014 y 2023, que pueden corresponder a años diferentes. Son provisionales.</li>
           <li>Cada punto representa alrededor de 100 ha sembradas, ubicado al azar dentro de su municipio; su posición es una referencia visual y no se regenera con el CSV.</li>
           <li>Mapa: rueda para acercar, arrastre para mover, doble clic para ver todo.</li>
           <li>La cercanía se mide entre municipios y en línea recta.</li>
@@ -210,7 +213,6 @@ svg#mapa.arrastra,svg#mapa.arrastra .mun{cursor:grabbing}
           <li>La captación es un supuesto del equipo.</li>
           <li>Datos recalculados desde produccion_valle_clean.csv: ha sembradas promedio 2021-2023 y producción 2014-2023.</li>
           <li>Recuperable: referencia del análisis original; no se recalcula desde el CSV. Úsalo como orden de magnitud, no como cifra sincronizada.</li>
-          <li>Escenario bajo y alto: el peor y el mejor año de cada municipio entre 2014 y 2023. Son provisionales.</li>
           <li>No se incluyen costos ni precios.</li>
         </ul>
       </div>

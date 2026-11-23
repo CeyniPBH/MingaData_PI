@@ -92,7 +92,7 @@ def test_navegacion_conserva_pantallas():
     assert radios, "No hay radio de navegación"
     opciones = radios[0].options
     for esperado in ["0. Resumen", "1. Oferta", "2. Zonas", "2b. Zonas de acopio",
-                     "3. Ubicacion", "4. Tablero central"]:
+                     "3. Ubicacion", "4. Cobertura y capacidad"]:
         assert esperado in opciones
 
 
