@@ -571,35 +571,55 @@ def _visual_p2(modelo, sede_cod):
 
 
 def _visual_p3(produccion, modelo, sede_cod, sur_cod):
-    """P3. Composición productiva de la sede frente al referente del sur (100 % apiladas)."""
+    """P3. Composición de la producción por cultivo (100 % apiladas, sede vs. referente del sur)."""
     comp_sede = cob.composicion_sede(produccion, modelo, sede_cod)
     comp_sur = cob.composicion_sede(produccion, modelo, sur_cod)
     serie_sede = cob.agrupar_composicion(comp_sede["toneladas_por_cultivo"])
     serie_sur = cob.agrupar_composicion(comp_sur["toneladas_por_cultivo"])
     cultivos = list(dict.fromkeys(list(serie_sede.index) + list(serie_sur.index)))
-    base_colores = [AZUL, "#2E5E8C", "#5B86AD", "#8FB0C9", GRIS_CTX, GRIS_CLARO, "#E4E7EC"]
+
+    # Color consistente por cultivo entre ambas barras; piña con un único color de énfasis.
+    # Para cada color de relleno se fija el color de texto (blanco u oscuro) con buen
+    # contraste en tema claro y oscuro.
+    rellenos = [AZUL, "#2E5E8C", "#5B86AD", "#8FB0C9", "#B8BEC8", "#D0D5DD", "#E4E7EC"]
+    texto_sobre = {AZUL: "#FFFFFF", "#2E5E8C": "#FFFFFF", "#5B86AD": "#FFFFFF",
+                   "#8FB0C9": "#18212D", "#B8BEC8": "#18212D", "#D0D5DD": "#18212D",
+                   "#E4E7EC": "#18212D", "#C44601": "#FFFFFF"}
     mapa_color, i = {}, 0
     for c in cultivos:
         if c == "Piña":
-            mapa_color[c] = "#C44601"  # destaca piña con contraste y etiqueta propia
+            mapa_color[c] = "#C44601"
         else:
-            mapa_color[c] = base_colores[i % len(base_colores)]
+            mapa_color[c] = rellenos[i % len(rellenos)]
             i += 1
-    etiquetas = [modelo.nombre(sede_cod), "{} (ref. sur)".format(modelo.nombre(sur_cod))]
+
+    etiquetas = [modelo.nombre(sede_cod), "{} · referente del sur".format(modelo.nombre(sur_cod))]
+    tot_sede = float(serie_sede.sum()) or 1.0
+    tot_sur = float(serie_sur.sum()) or 1.0
     fig = go.Figure()
     for c in cultivos:
-        tot_sede = serie_sede.sum() or 1
-        tot_sur = serie_sur.sum() or 1
-        vals = [100 * serie_sede.get(c, 0) / tot_sede, 100 * serie_sur.get(c, 0) / tot_sur]
+        ton = [float(serie_sede.get(c, 0.0)), float(serie_sur.get(c, 0.0))]
+        vals = [100 * ton[0] / tot_sede, 100 * ton[1] / tot_sur]
+        # Etiqueta interior solo si cabe horizontalmente (umbral prudente); nunca girada.
+        textos = [c if v >= 12 else "" for v in vals]
         fig.add_trace(go.Bar(
             x=vals, y=etiquetas, orientation="h", name=c, marker_color=mapa_color[c],
-            text=[c if v >= 8 else "" for v in vals], textposition="inside",
-            hovertemplate="%{y}<br>" + c + ": %{x:.1f} %<extra></extra>",
+            text=textos, textposition="inside", insidetextanchor="middle",
+            textangle=0, constraintext="inside", cliponaxis=False,
+            insidetextfont=dict(color=texto_sobre.get(mapa_color[c], "#18212D"), size=12),
+            customdata=[[c, ton[0]], [c, ton[1]]],
+            hovertemplate="%{y}<br>%{customdata[0]}: %{x:.1f} % · %{customdata[1]:,.0f} t<extra></extra>",
         ))
-    fig.update_layout(barmode="stack", template="plotly_white", height=300,
-                      margin=dict(l=8, r=8, t=28, b=8), font=dict(size=12),
-                      legend=dict(orientation="h", y=-0.2, font=dict(size=10)))
-    fig.update_xaxes(title="% de toneladas por cultivo (promedio 2021-2023)", range=[0, 100])
+    fig.update_layout(
+        barmode="stack", template="plotly_white",
+        height=360, margin=dict(l=8, r=8, t=8, b=96),
+        font=dict(size=12),
+        legend=dict(orientation="h", yanchor="top", y=-0.28, x=0, xanchor="left",
+                    traceorder="normal", font=dict(size=11), title_text=""),
+        bargap=0.35,
+    )
+    fig.update_xaxes(range=[0, 100], ticksuffix=" %", dtick=25, title_text="")
+    fig.update_yaxes(title_text="")
     return fig, comp_sede, comp_sur
 
 
@@ -654,12 +674,15 @@ def _pantalla_resumen_impl():
     puesto_sede = modelo.puesto(sede_cod)
 
     # --- Encabezado ---
-    st.title(cob.titulo_resumen(modelo, sede_cod))
+    # Título principal fijo, orientado al propósito del tablero (mayor jerarquía).
+    st.title("Selección de municipios y estimación de volumen para una central de acopio")
     st.markdown(
-        "**¿Qué municipios conviene priorizar para estudiar una central de fruta y "
-        "plátano, según el área cubierta a 40 km y el volumen captable estimado en "
-        "2021-2023, frente a la mejor sede del sur?**"
+        "Compara cobertura agrícola, volumen captable y alternativas de ubicación para "
+        "priorizar municipios del Valle del Cauca."
     )
+    # Hallazgo dinámico de la sede seleccionada, como línea secundaria (menor jerarquía).
+    st.markdown("###### {}".format(cob.titulo_resumen(modelo, sede_cod)))
+    # Línea compacta de contexto: periodo, radio y captación.
     st.caption("Base 2021-2023 · Radio 40 km · Captación supuesta 20 %")
     st.caption(
         "La distancia es geográfica en línea recta entre centroides (haversine), **no** "
@@ -749,10 +772,19 @@ def _pantalla_resumen_impl():
 
     fila2a, fila2b = st.columns(2)
     with fila2a:
-        st.markdown("**P3. ¿Cómo difiere la composición productiva frente al referente del sur?**")
-        st.caption("% de toneladas por cultivo · promedio 2021-2023 · piña destacada")
+        st.markdown("**Composición de la producción por cultivo**")
+        st.caption("Participación en toneladas · Promedio 2021-2023")
+        st.caption("Barra superior: {} (sede seleccionada). Barra inferior: {} (referente del sur).".format(
+            sede_sel, sur_nombre))
         fig_p3, comp_sede, comp_sur = _visual_p3(produccion, modelo, sede_cod, sur_cod)
-        st.plotly_chart(fig_p3, use_container_width=True)
+        st.plotly_chart(
+            fig_p3, use_container_width=True,
+            config={"displaylogo": False,
+                    "modeBarButtonsToRemove": [
+                        "zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d",
+                        "autoScale2d", "resetScale2d", "toggleSpikelines",
+                        "hoverClosestCartesian", "hoverCompareCartesian"]},
+        )
         with st.expander("Producción, superficie y toneladas por hectárea sembrada"):
             tabla_p3 = pd.DataFrame({
                 "": ["Producción total", "Superficie sembrada", "t por ha sembrada", "Piña (% toneladas)", "t por ha sin piña"],

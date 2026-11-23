@@ -26,9 +26,16 @@ ranking incluye la sede seleccionada con su puesto real. Falta la **revisión vi
 2. Abrir `http://localhost:8501` con la ventana del navegador a **1440 px de ancho** y zoom
    **100 %** (1440 × 900 recomendado).
 
-3. **Resumen (pantalla 0):** sede por defecto (Bugalagrande). Verificar que se lean los
-   cuatro indicadores, los cuatro gráficos (cuadrícula 2×2) y las respuestas. Guardar como
-   `resumen_1440.png`.
+3. **Resumen (pantalla 0):** sede por defecto (Bugalagrande). Verificar que el título
+   principal fijo ("Selección de municipios y estimación de volumen para una central de
+   acopio") y su subtítulo expliquen el propósito, con el hallazgo dinámico de la sede como
+   línea secundaria. Que se lean los cuatro indicadores, los cuatro gráficos (cuadrícula 2×2)
+   y las respuestas. En la gráfica **P3 "Composición de la producción por cultivo"** comprobar
+   a zoom 100 %, con Bugalagrande vs. Vijes, otra sede de distinta composición y Vijes
+   seleccionado, en 1440×900 y en una ventana más estrecha: que título, barras, etiquetas, eje
+   y leyenda no se superpongan; que se vea el 100 % del eje con sus marcas; que los segmentos
+   pequeños sigan consultables por tooltip (nombre, % y toneladas); y que los porcentajes y
+   toneladas no cambien. Guardar como `resumen_1440.png` y `resumen_p3_composicion.png`.
 
 4. **Pantalla 4. Tablero central (exploración):** en la **barra lateral**, fijar sede
    Bugalagrande, radio 40 km, captación 20 %, capacidad 100.000 t/año y escenario base.

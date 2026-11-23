@@ -20,18 +20,32 @@ pytest.importorskip("streamlit.testing.v1")
 from streamlit.testing.v1 import AppTest  # noqa: E402
 
 
+TITULO_FIJO = "Selección de municipios y estimación de volumen para una central de acopio"
+
+
 def _run():
     at = AppTest.from_file(APP, default_timeout=240)
     at.run()
     return at
 
 
+def _hallazgo(at):
+    """Línea secundaria con el hallazgo dinámico de la sede (encabezado ######)."""
+    for m in at.markdown:
+        if m.value.startswith("###### ") and "cubre" in m.value:
+            return m.value
+    return ""
+
+
 def test_resumen_inicial_responde_sin_tocar_controles():
     at = _run()
     assert len(at.exception) == 0
-    # Título dinámico de la sede por defecto (mayor cobertura = Bugalagrande)
-    assert "Bugalagrande" in at.title[0].value
-    assert "52,1 %" in at.title[0].value
+    # El título principal es fijo y orientado al propósito.
+    assert at.title[0].value == TITULO_FIJO
+    # El hallazgo dinámico de la sede por defecto (mayor cobertura = Bugalagrande) es secundario.
+    hallazgo = _hallazgo(at)
+    assert "Bugalagrande" in hallazgo
+    assert "52,1 %" in hallazgo
     etiquetas = [m.label for m in at.metric]
     assert any("Área cubierta a 40 km" in e for e in etiquetas)
     assert any("Puesto entre los 42 municipios" in e for e in etiquetas)
@@ -52,7 +66,8 @@ def test_cambiar_sede_no_ejecuta_optimizador():
         assert sb, "No se encontró el filtro de sede del resumen"
         sb[0].set_value("Vijes").run()
         assert len(at.exception) == 0
-        assert "Vijes" in at.title[0].value
+        assert at.title[0].value == TITULO_FIJO
+        assert "Vijes" in _hallazgo(at)
         m_res.assert_not_called()
         m_est.assert_not_called()
         m_par.assert_not_called()
@@ -67,7 +82,8 @@ def test_resumen_funciona_si_falla_la_api():
         at.run()
         # El resumen sigue respondiendo la pregunta pese a la API inaccesible
         assert len(at.exception) == 0
-        assert "cubre" in at.title[0].value
+        assert at.title[0].value == TITULO_FIJO
+        assert "cubre" in _hallazgo(at)
 
 
 def test_navegacion_conserva_pantallas():
@@ -86,7 +102,7 @@ def test_sede_fuera_top10_y_sin_selecciones():
     sb = [s for s in at.sidebar.selectbox if s.label.startswith("Sede del resumen")][0]
     sb.set_value("Cali").run()
     assert len(at.exception) == 0
-    assert "Cali" in at.title[0].value
+    assert "Cali" in _hallazgo(at)
     # Vijes: sin selecciones en el optimizador; la respuesta no debe heredar otra sede
     sb.set_value("Vijes").run()
     assert len(at.exception) == 0

@@ -218,6 +218,36 @@ Cambio limitado a la experiencia de usuario de la pantalla 3 en `src/dashboard/a
   gap 0,0) y, por tanto, resultados equivalentes (p. ej. volumen considerado 836.034 t,
   central Bugalagrande, estado OPTIMAL).
 
+## Presentación de la pantalla 0 (encabezado y gráfica P3)
+
+Ajustes solo de presentación; no cambian cálculos, datos, filtros ni otras pantallas.
+
+- **Encabezado orientado al propósito (§1):** el título más grande es fijo —"Selección de
+  municipios y estimación de volumen para una central de acopio"— con el subtítulo "Compara
+  cobertura agrícola, volumen captable y alternativas de ubicación para priorizar municipios
+  del Valle del Cauca". El hallazgo dinámico de la sede ("[Sede] cubre X % … Y t/año captables
+  al 20 %") pasa a una línea secundaria de menor jerarquía (encabezado `######`), sin competir
+  con el título ni afirmar dimensionamiento definitivo. Se retiró la pregunta larga que
+  duplicaba la explicación; el periodo, radio y captación siguen en una línea compacta de
+  contexto.
+- **Gráfica P3 de composición (§2):** título "Composición de la producción por cultivo" y
+  subtítulo "Participación en toneladas · Promedio 2021-2023"; se identifican la sede
+  seleccionada (barra superior) y el referente del sur (barra inferior). Eje X fijo 0–100 %
+  con marcas cada 25 %; se eliminó el título largo del eje (la unidad está en el subtítulo y
+  las marcas). La leyenda va debajo del gráfico, en su propio espacio, con margen inferior
+  reservado (96 px) y orden coherente con los segmentos. Etiquetas interiores solo cuando
+  caben, nunca giradas ni recortadas; los segmentos pequeños se consultan por tooltip (nombre,
+  porcentaje y toneladas). Color consistente por cultivo entre ambas barras, con la piña en un
+  único color de énfasis y color de texto fijado para contraste en tema claro y oscuro. Altura
+  aumentada a 360 px y barra de herramientas reducida a acciones útiles. El detalle de
+  producción, superficie y t/ha sembrada sigue debajo del gráfico. Los porcentajes y toneladas
+  no cambian (piña 0,6 % Bugalagrande / 51,8 % Vijes; cada barra suma 100 %).
+- **Validación visual (§3): pendiente.** El spec de la figura se verificó por programa (eje
+  0–100 con marcas, leyenda separada, sin rotación, valores intactos, tooltip con t) y el
+  encabezado con AppTest, pero la revisión visual en navegador a zoom 100 % (1440×900 y una
+  ventana más estrecha, Bugalagrande/Vijes/otra sede) no se realizó por falta de navegador
+  utilizable en el entorno. No se declara hecha. Procedimiento en `capturas/README.md`.
+
 ## Documentado por separado (no implementado en este PR)
 
 Estas mejoras se registran como pendientes y **no** se implementan aquí:
