@@ -166,6 +166,58 @@ lateral nativa, manteniendo el tablero HTML/CSS/JS para visualizar los resultado
   con Streamlit 1.67; `st.iframe` espera una URL, no HTML). Altura ajustada a 1320 px tras
   quitar la fila de controles.
 
+## UX de la pantalla 3 (Ubicación) para público no experto
+
+Cambio limitado a la experiencia de usuario de la pantalla 3 en `src/dashboard/app.py`
+(y sus pruebas). **No** se tocaron fórmulas, restricciones, datos ni resultados del modelo
+(`src/optimizacion/`, `src/arendonc2/`), ni otras pantallas.
+
+- **Decisiones vs. parámetros técnicos (§1):** se retiraron de la interfaz el límite de
+  tiempo, la brecha solicitada y cualquier ajuste del motor/tolerancias. Sus valores
+  predeterminados quedan en un único lugar (`OPT_TIEMPO_LIMITE_S=120`,
+  `OPT_GAP_RELATIVO=0.0`, `OPT_K_ZONAS=5`), con los mismos valores de antes. El respaldo
+  entre motores (SCIP/CBC) no se alteró. Los valores efectivos se documentan y quedan en el
+  desplegable "Detalles técnicos del cálculo" de cada resultado.
+- **Controles de negocio (§2):** en la barra lateral, bajo "Filtros de esta vista", antes de
+  "Estado de los datos": Año del análisis, Escenario de producción, Escenario de consumo
+  local, Distribución entre mercado nacional y exportación, Organización de los acopios
+  (Libre/Por zonas), Número de acopios (solo en modo Libre; en Por zonas se muestra el número
+  fijado por las zonas) y Prioridad del transporte. "λ" se renombró a "Prioridad del
+  transporte" con extremos "Hacia los destinos" (0) y "Recolección y traslado a la central"
+  (1); la correspondencia matemática (objetivo λ·A+(1−λ)·B) no cambió. Se conservan opciones,
+  rango, paso y valores iniciales (base/base/80_20/libre, k=5, prioridad 0,5).
+- **Cálculo explícito (§3):** botón "Calcular ubicación". Cambiar controles no ejecuta
+  cálculos; si la configuración cambia tras calcular, se muestra "La configuración cambió.
+  Calcula nuevamente para actualizar los resultados" y se retira el resultado anterior. La
+  configuración con la que se obtuvo cada resultado queda visible.
+- **Resultado a ancho completo (§4):** municipio recomendado y estado → configuración en una
+  línea → indicadores (volumen considerado, cobertura de datos, acopios abiertos) → mapa →
+  transporte por tramos → alternativas/comparación/estabilidad bajo demanda → detalles
+  técnicos plegados. Las limitaciones (cobertura parcial, exclusión de productos pendientes,
+  ausencia de capacidades respaldadas) quedan visibles, no escondidas en el diagnóstico.
+- **Estados en lenguaje claro (§5):** OPTIMAL → "Solución óptima del modelo"; FEASIBLE →
+  "Solución válida; podría existir una mejor"; INFEASIBLE → "No existe una solución que
+  cumpla las restricciones de esta configuración"; sin solución → "El cálculo terminó sin
+  encontrar una solución" (distinto de inviabilidad). Errores muestran mensaje comprensible
+  con detalle técnico, sin convertirse en resultado vacío ni éxito. Solo se muestran central,
+  asignaciones y métricas cuando hay solución válida. "Diagnóstico del solver" pasó a
+  "Detalles técnicos del cálculo"; la brecha solo se muestra si hay dato (no se muestra
+  brecha 0 cuando falta).
+- **Gráficas comprensibles (§6, §7):** la unidad t·min se explica; los tramos
+  (municipio→acopio, acopio→central, central→destinos) se nombran. La gráfica de alternativas
+  conserva los ejes A y B pero rotulados "Recolección y traslado a la central (millones de
+  t·min)" y "Transporte desde la central a destinos (millones de t·min)", con valores
+  convertidos a millones; título "Alternativas de ubicación y transporte"; puntos como
+  "no dominadas encontradas"; tooltip con central, ambos componentes con unidades, prioridad
+  en lenguaje claro y estado. La notación λ/A/B/Z queda solo en los detalles técnicos. Los
+  análisis se ejecutan bajo demanda con botones "Explorar alternativas", "Comparar libre y
+  por zonas" y "Evaluar estabilidad"; se aclara que la frecuencia entre escenarios no es una
+  probabilidad.
+- **Equivalencia (§8):** la configuración por defecto produce el mismo `id_escenario`
+  (`2024_Obase_Cbase_M80_20`), los mismos argumentos del modelo (k=5, λ=0,5, tiempo 120 s,
+  gap 0,0) y, por tanto, resultados equivalentes (p. ej. volumen considerado 836.034 t,
+  central Bugalagrande, estado OPTIMAL).
+
 ## Documentado por separado (no implementado en este PR)
 
 Estas mejoras se registran como pendientes y **no** se implementan aquí:

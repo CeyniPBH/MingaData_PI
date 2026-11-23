@@ -38,6 +38,15 @@ ranking incluye la sede seleccionada con su puesto real. Falta la **revisión vi
    recortes ni espacio vacío excesivo, con desplazamiento vertical solo si hace falta.
    Guardar como `pantalla4_exploracion_1440.png`.
 
+5. **Pantalla 3. Ubicación:** en la **barra lateral**, "Filtros de esta vista" con Año,
+   Escenario de producción, Escenario de consumo local, Distribución nacional/exportación,
+   Organización de los acopios y Prioridad del transporte (no debe haber controles técnicos
+   del solver). Pulsar "Calcular ubicación". Verificar que el resultado use el ancho completo
+   (municipio recomendado y estado, configuración, indicadores, mapa, transporte por tramos,
+   alternativas/comparación/estabilidad, detalles técnicos al final), sin columnas estrechas
+   ni etiquetas recortadas, y que los textos de estado y gráficas sean comprensibles. Guardar
+   como `pantalla3_ubicacion_1440.png`.
+
 ## Figuras del informe afectadas por el rediseño de la pantalla 4
 
 La pantalla 4 pasó de una presentación guiada por preguntas e hipótesis a una herramienta de

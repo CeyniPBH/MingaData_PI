@@ -311,6 +311,80 @@ def _tablero_controles_sidebar():
 
 
 # =============================================================================
+# PANTALLA 3 - CONFIGURACIÓN (controles de negocio en la barra lateral)
+# =============================================================================
+# Parámetros técnicos del motor de optimización: NO se exponen en la interfaz. Se definen
+# aquí, en un único lugar, con los valores predeterminados vigentes. El mecanismo de
+# respaldo entre motores (SCIP/CBC) vive en src/optimizacion/modelo_real.py y no se altera.
+OPT_TIEMPO_LIMITE_S = 120   # límite de tiempo por resolución (s)
+OPT_GAP_RELATIVO = 0.0      # brecha relativa objetivo (0 = exigir sin brecha)
+OPT_K_ZONAS = 5             # en modo "zonas": un acopio por cada una de las 5 zonas
+
+# Claves de negocio de la pantalla 3 (reutilizan los keys opt_* históricos).
+U_ANIO = "opt_anio"
+U_OFERTA = "opt_oferta"
+U_CONSUMO = "opt_consumo"
+U_MEZCLA = "opt_mezcla"
+U_MODO = "opt_modo"
+U_K = "opt_k_libre"
+U_PRIORIDAD = "opt_lambda"
+
+_MEZCLA_ETIQUETAS = {
+    "80_20": "80 % nacional / 20 % exportación",
+    "50_50": "50 % nacional / 50 % exportación",
+    "20_80": "20 % nacional / 80 % exportación",
+}
+
+
+def _ubicacion_controles_sidebar(anios):
+    """Controles de negocio de la pantalla 3 en la barra lateral, con nombres claros.
+    No expone parámetros técnicos del solver. Conserva opciones y valores iniciales."""
+    # Valores iniciales (idénticos a los anteriores): base/base/80_20/libre, k=5, prioridad 0,5.
+    st.session_state.setdefault(U_K, 5)
+    st.session_state.setdefault(U_PRIORIDAD, 0.5)
+    st.sidebar.selectbox(
+        "Año del análisis", anios, key=U_ANIO,
+        help="Año para el que se evalúa la ubicación de la central y los acopios.")
+    st.sidebar.selectbox(
+        "Escenario de producción", ["base", "bajo", "alto"], key=U_OFERTA,
+        help="Permite explorar una oferta agrícola baja, base o alta. Son escenarios del "
+             "modelo, no resultados garantizados.")
+    st.sidebar.selectbox(
+        "Escenario de consumo local", ["base", "bajo", "alto"], key=U_CONSUMO,
+        help="Cambia la estimación de consumo local y, por tanto, el excedente disponible "
+             "para transportar. No es la producción total, sino el excedente conocido.")
+    st.sidebar.selectbox(
+        "Distribución entre mercado nacional y exportación",
+        ["80_20", "50_50", "20_80"], key=U_MEZCLA,
+        format_func=lambda v: _MEZCLA_ETIQUETAS.get(v, v),
+        help="Indica qué proporción del volumen se dirige a cada mercado. Son escenarios de "
+             "sensibilidad, no participaciones comerciales verificadas.")
+    st.sidebar.radio(
+        "Organización de los acopios", ["libre", "zonas"], key=U_MODO, horizontal=True,
+        format_func=lambda v: "Libre" if v == "libre" else "Por zonas",
+        help="Libre: el modelo elige ubicaciones sin exigir un acopio por zona. "
+             "Por zonas: ubica un acopio por zona y asigna cada municipio dentro de su zona.")
+    if st.session_state.get(U_MODO, "libre") == "libre":
+        st.sidebar.slider("Número de acopios", 3, 8, key=U_K,
+                          help="Cantidad de acopios satélite que abrirá el modelo (modo Libre).")
+    else:
+        st.sidebar.caption("Número de acopios: **{}** (uno por zona, determinado por las "
+                           "zonas).".format(OPT_K_ZONAS))
+    st.sidebar.select_slider(
+        "Prioridad del transporte",
+        options=[round(x / 10, 1) for x in range(0, 11)], key=U_PRIORIDAD,
+        format_func=lambda v: ("Hacia los destinos" if v == 0.0
+                               else "Recolección y traslado a la central" if v == 1.0
+                               else "Equilibrado" if v == 0.5 else "{:.1f}".format(v)),
+        help="Define qué parte del transporte pesa más al comparar ubicaciones. Puede cambiar "
+             "la ubicación recomendada. No representa porcentajes de producción ni la "
+             "distribución nacional/exportación. Extremo izquierdo (0): prioridad al transporte "
+             "de la central a los destinos. Extremo derecho (1): prioridad a recolección y "
+             "traslado a la central. 0,5: igual peso.")
+    st.sidebar.caption("Ajusta los controles y pulsa **Calcular ubicación** en la pantalla.")
+
+
+# =============================================================================
 # SIDEBAR - NAVEGACION
 # =============================================================================
 st.sidebar.title("🌱 MingaData")
@@ -337,6 +411,12 @@ elif pantalla == "4. Tablero central":
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de esta vista")
     _tablero_controles_sidebar()
+    ano_seleccionado = anos_disponibles[0]
+    escenario = "base"
+elif pantalla == "3. Ubicacion":
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Filtros de esta vista")
+    _ubicacion_controles_sidebar(anos_disponibles)
     ano_seleccionado = anos_disponibles[0]
     escenario = "base"
 else:
@@ -1169,284 +1249,426 @@ def pantalla_zonas_acopio():
 # PANTALLA 3: UBICACION
 # =============================================================================
 def pantalla_ubicacion():
-    st.title("📍 Pantalla 3 - Ubicacion de Central y Acopios Satelite (logística)")
-    st.markdown("""
-    Minimiza el **costo logístico** (toneladas × minutos) de ubicar una central y sus
-    acopios satélite, usando los excedentes proyectados del módulo de escenarios y
-    OR-Tools con **flujo satélite→central explícito**.
-    """)
+    _pantalla_ubicacion_impl()
+
+
+# =============================================================================
+# PANTALLA 3: UBICACIÓN — ayuda de presentación en lenguaje claro
+# =============================================================================
+_ESTADO_TITULO = {
+    "OPTIMAL": "Solución óptima del modelo",
+    "FEASIBLE": "Solución válida; podría existir una mejor",
+    "INFEASIBLE": "No existe una solución que cumpla las restricciones de esta configuración",
+}
+_ESTADO_AYUDA = {
+    "OPTIMAL": ("El motor reporta una solución óptima para los datos, restricciones y "
+                "criterios seleccionados, dentro de sus tolerancias numéricas. No garantiza "
+                "que sea la mejor decisión bajo condiciones no modeladas."),
+    "FEASIBLE": ("Se encontró una solución que cumple las restricciones, pero no se confirmó "
+                 "que sea óptima."),
+    "INFEASIBLE": ("Con esta configuración no hay forma de cumplir todas las restricciones del "
+                   "modelo."),
+}
+
+
+def _mezcla_texto(valor):
+    return _MEZCLA_ETIQUETAS.get(valor, valor)
+
+
+def _prioridad_texto(lam):
+    if lam == 0.0:
+        return "hacia los destinos"
+    if lam == 1.0:
+        return "recolección y traslado a la central"
+    if lam == 0.5:
+        return "equilibrada entre ambos tramos"
+    return "{:.1f} (0 = hacia destinos, 1 = recolección y traslado a la central)".format(lam)
+
+
+def _config_ubicacion_texto(cfg):
+    return ("Año {anio} · producción {oferta} · consumo local {consumo} · {mezcla} · "
+            "acopios {modo} (k={k}) · prioridad del transporte {prio}").format(
+        anio=cfg["anio"], oferta=cfg["oferta"], consumo=cfg["consumo"],
+        mezcla=_mezcla_texto(cfg["mezcla"]), modo=("Libre" if cfg["modo"] == "libre" else "Por zonas"),
+        k=cfg["k"], prio=_prioridad_texto(cfg["lam"]))
+
+
+def _detalles_tecnicos_ubicacion(diag, tiempo_limite_s, gap_relativo):
+    """Desplegable 'Detalles técnicos del cálculo'. Muestra brecha solo si hay dato."""
+    with st.expander("Detalles técnicos del cálculo", expanded=False):
+        filas = {
+            "estado original del motor": diag.get("status"),
+            "motor utilizado": diag.get("solver"),
+            "tiempo (s)": diag.get("tiempo_s"),
+            "objetivo (t·min)": round(diag["objetivo"], 2) if diag.get("objetivo") is not None else None,
+            "mejor cota (t·min)": round(diag["mejor_cota"], 2) if diag.get("mejor_cota") is not None else None,
+        }
+        if diag.get("gap_efectivo") is not None:
+            filas["brecha efectiva"] = diag.get("gap_efectivo")
+            if diag.get("gap_efectivo_formula"):
+                filas["brecha (fórmula)"] = diag.get("gap_efectivo_formula")
+        else:
+            filas["brecha efectiva"] = "no disponible"
+        if diag.get("gap_solicitado") is not None:
+            filas["brecha solicitada"] = diag.get("gap_solicitado")
+        if diag.get("gap_aceptado") is not None:
+            filas["brecha aceptada por el motor"] = diag.get("gap_aceptado")
+        if diag.get("gap_detalle"):
+            filas["detalle de la brecha"] = diag.get("gap_detalle")
+        st.write(filas)
+        st.caption(
+            "Parámetros técnicos efectivos (fijos, no configurables en la interfaz): límite de "
+            "tiempo {} s, brecha relativa solicitada {}. Solicitar brecha 0 exige buscar una "
+            "solución sin brecha, pero no equivale a haber demostrado optimalidad; la calidad "
+            "se informa con el estado, la mejor cota y la brecha efectiva. Notación interna: "
+            "A = recolección + traslado a la central, B = central→destinos, "
+            "objetivo = λ·A + (1−λ)·B.".format(tiempo_limite_s, gap_relativo)
+        )
+
+
+def _pantalla_ubicacion_impl():
+    st.title("📍 Pantalla 3 — Dónde ubicar la central y sus acopios")
+    st.markdown(
+        "Busca **dónde conviene ubicar la central y los acopios** para que el producto "
+        "recorra el menor tiempo de transporte posible, según los excedentes estimados. "
+        "Configura el análisis en la barra lateral y pulsa **Calcular ubicación**."
+    )
     st.caption(
-        "Optimización logística con el pronóstico seleccionado. Es distinta de la "
-        "'4. Tablero central', que mide cobertura de área con estadísticas históricas; "
-        "sus escenarios no son equivalentes."
+        "Usa el pronóstico seleccionado. Es distinta de la '4. Tablero central', que mide "
+        "cobertura de área con estadísticas históricas; sus escenarios no son equivalentes."
     )
 
     municipios, destinos, matriz_tiempos = cargar_datos_reales()
     try:
         construir_matriz_tiempos_dict(matriz_tiempos, municipios, destinos)
     except ValueError as e:
-        st.error("Matriz de tiempos inválida: {}".format(e))
+        st.error("No se pudo preparar la matriz de tiempos: {}".format(e))
         return
 
-    # --- controles del escenario ---
-    st.markdown("### Parámetros")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        ano_sel = st.selectbox("Año:", anos_disponibles, index=0, key="opt_anio")
-        oferta_sel = st.selectbox("Oferta:", ["base", "bajo", "alto"], index=0, key="opt_oferta")
-    with c2:
-        consumo_sel = st.selectbox("Consumo:", ["base", "bajo", "alto"], index=0, key="opt_consumo")
-        mezcla_sel = st.selectbox("Mezcla nacional/exportación:", ["80_20", "50_50", "20_80"],
-                                  index=0, key="opt_mezcla")
-    with c3:
-        modo_sel = st.selectbox("Configuración territorial:", ["libre", "zonas"],
-                                index=0, key="opt_modo",
-                                help="libre: 5 satélites sin restricción de zona. "
-                                     "zonas: un satélite por cada una de las 5 zonas.")
-        lam = st.slider("λ (peso de A = recolección+satélite-central):", 0.0, 1.0, 0.5, 0.1,
-                        key="opt_lambda")
+    # --- leer decisiones de negocio (barra lateral) ---
+    ano_sel = st.session_state.get(U_ANIO, anos_disponibles[0])
+    oferta_sel = st.session_state.get(U_OFERTA, "base")
+    consumo_sel = st.session_state.get(U_CONSUMO, "base")
+    mezcla_sel = st.session_state.get(U_MEZCLA, "80_20")
+    modo_sel = st.session_state.get(U_MODO, "libre")
+    lam = float(st.session_state.get(U_PRIORIDAD, 0.5))
+    k_satelites = int(st.session_state.get(U_K, 5)) if modo_sel == "libre" else OPT_K_ZONAS
+    # Parámetros técnicos fijos (un único lugar de configuración).
+    tiempo_limite_s = OPT_TIEMPO_LIMITE_S
+    gap_relativo = OPT_GAP_RELATIVO
 
-    with st.expander("Parámetros del solver (avanzado)"):
-        cs1, cs2 = st.columns(2)
-        gap_relativo = cs1.number_input("Brecha relativa objetivo (0 = sin brecha):",
-                                        min_value=0.0, max_value=0.2, value=0.0, step=0.005,
-                                        format="%.3f", key="opt_gap")
-        tiempo_limite_s = cs2.number_input("Límite de tiempo por solve (s):",
-                                           min_value=10, max_value=600, value=120, step=10,
-                                           key="opt_tlim")
-        st.caption("El límite de tiempo NO se reduce por defecto para aparentar velocidad. "
-                   "Solicitar gap 0 exige buscar una solución sin brecha, pero el límite de "
-                   "tiempo puede impedir alcanzarla; la calidad se informa con el estado del "
-                   "solver, la mejor cota y la brecha efectiva.")
-
-    k_satelites = 5
     id_escenario = "{}_O{}_C{}_M{}".format(ano_sel, oferta_sel, consumo_sel, mezcla_sel)
-    st.caption("Capacidades: la versión base **no** impone capacidad mínima ni máxima por "
-               "acopio (no hay valores respaldados). Se usan 5 satélites.")
+    cfg_actual = {
+        "anio": ano_sel, "oferta": oferta_sel, "consumo": consumo_sel, "mezcla": mezcla_sel,
+        "modo": modo_sel, "k": k_satelites, "lam": lam,
+    }
 
     # paquete (barato, para mostrar cobertura y volumen sin resolver el MIP)
     try:
         paquete = preparar_para_solver(id_escenario, ano_sel)
     except Exception as e:
-        st.error("No se pudo cargar el escenario {}: {}".format(id_escenario, e))
-        st.info("Corre: python src/arendonc2/ejecutar_todo.py")
+        st.error("No se pudo cargar el escenario seleccionado: {}".format(e))
+        st.info("Genera los insumos con: python src/arendonc2/ejecutar_todo.py")
         return
 
-    vol_conocido = float(paquete.excedente_municipio["excedente_t"].sum())
-    mcol1, mcol2, mcol3 = st.columns(3)
-    mcol1.metric("Volumen conocido (t)", "{:,.0f}".format(vol_conocido))
-    mcol2.metric("Cobertura de consumo", "{:.2f}%".format(paquete.cobertura_oferta_pct))
-    mcol3.metric("N° de satélites", k_satelites)
-    if paquete.cobertura_parcial:
-        st.warning(
-            "⚠️ **Cobertura parcial:** {:.2f}% de la oferta tiene consumo FAOSTAT definido. "
-            "Productos sin equivalencia de unidad (café, caña panelera, flores…) quedan con "
-            "excedente desconocido y NO aportan volumen a la optimización."
-            .format(paquete.cobertura_oferta_pct)
-        )
-
-    # --- botón explícito de cálculo ---
-    st.markdown("### Cálculo")
-    st.caption("La optimización se ejecuta sólo al pulsar el botón. Los resultados se "
-               "cachean por escenario, año, modo, k, λ, pesos y parámetros del solver, "
-               "y se invalidan si cambian los datos.")
-    calcular = st.button("▶️ Calcular optimización", type="primary", key="opt_run")
-
+    # --- botón explícito de cálculo + detección de configuración obsoleta ---
+    st.markdown("### Ejecutar el análisis")
+    st.caption("El cálculo se ejecuta solo al pulsar el botón. Los resultados se guardan en "
+               "caché por configuración y se recalculan si cambian los datos.")
     firma = (id_escenario, ano_sel, modo_sel, k_satelites, lam, gap_relativo, tiempo_limite_s)
+    calcular = st.button("Calcular ubicación", type="primary", key="opt_run")
     if calcular:
         st.session_state["opt_firma"] = firma
-    if st.session_state.get("opt_firma") != firma:
-        st.info("Ajusta los parámetros y pulsa **Calcular optimización** para resolver.")
+        st.session_state["opt_cfg_mostrada"] = cfg_actual
+
+    firma_guardada = st.session_state.get("opt_firma")
+    if firma_guardada is None:
+        st.info("Ajusta los controles en la barra lateral y pulsa **Calcular ubicación**.")
+        return
+    if firma_guardada != firma:
+        st.warning("La configuración cambió. Calcula nuevamente para actualizar los resultados.")
+        cfg_prev = st.session_state.get("opt_cfg_mostrada")
+        if cfg_prev:
+            st.caption("Último resultado calculado con: {}".format(_config_ubicacion_texto(cfg_prev)))
         return
 
+    cfg_res = st.session_state.get("opt_cfg_mostrada", cfg_actual)
     huella = _huella_datos()
     mun_a_zona = dict(zip(paquete.zonas["cod_dane"], paquete.zonas["zona"]))
 
-    # --- resolver (cacheado, sólo resultado serializable) ---
+    # --- resolver (cacheado, solo resultado serializable) ---
     try:
-        with st.spinner("Resolviendo (modo {})…".format(modo_sel)):
+        with st.spinner("Calculando la ubicación…"):
             res = opt_resolver_cache(id_escenario, ano_sel, modo_sel, k_satelites, lam,
                                      None, None, int(tiempo_limite_s), float(gap_relativo), huella)
     except ValueError as e:
-        st.error("Error en la configuración/solución: {}".format(e))
+        st.error("No se pudo calcular la ubicación con esta configuración.")
+        with st.expander("Detalles técnicos del error"):
+            st.write(str(e))
+        return
+    except Exception as e:  # noqa: BLE001 - mostrar error comprensible, no resultado vacío
+        st.error("Ocurrió un error durante el cálculo.")
+        with st.expander("Detalles técnicos del error"):
+            st.write("{}: {}".format(type(e).__name__, e))
         return
 
-    if res["status"] not in ("OPTIMAL", "FEASIBLE"):
-        st.error("El solver no encontró solución (estado: {}).".format(res["status"]))
-        diag = res.get("diagnostico", {})
-        if diag:
-            st.json(diag)
+    estado = res["status"]
+    diag = res.get("diagnostico", {})
+
+    # ===== Estados sin solución o con error: no mostrar recomendación =====
+    if estado == "INFEASIBLE":
+        st.error("**{}**".format(_ESTADO_TITULO["INFEASIBLE"]))
+        st.caption(_ESTADO_AYUDA["INFEASIBLE"])
+        _detalles_tecnicos_ubicacion(diag, tiempo_limite_s, gap_relativo)
         return
-    if res["status"] == "FEASIBLE":
-        st.info("Solución **factible** (no certificada óptima dentro del límite/brecha). "
-                "No se presenta como óptima.")
+    if estado not in ("OPTIMAL", "FEASIBLE"):
+        st.error("**El cálculo terminó sin encontrar una solución.**")
+        st.caption("No es lo mismo que una inviabilidad demostrada: el motor no reportó una "
+                   "solución válida con esta configuración. Estado del motor: {}.".format(estado))
+        _detalles_tecnicos_ubicacion(diag, tiempo_limite_s, gap_relativo)
+        return
 
-    # --- diagnóstico del solver ---
-    diag = res["diagnostico"]
-    with st.expander("Diagnóstico del solver", expanded=False):
-        st.write({
-            "solver": diag["solver"],
-            "estado": diag["status"],
-            "objetivo (t·min)": round(diag.get("objetivo", float("nan")), 2),
-            "mejor_cota (t·min)": round(diag["mejor_cota"], 2) if diag.get("mejor_cota") is not None else None,
-            "brecha_efectiva": diag.get("gap_efectivo"),
-            "brecha_formula": diag.get("gap_efectivo_formula"),
-            "tiempo_s": diag.get("tiempo_s"),
-            "gap_solicitado": diag.get("gap_solicitado"),
-            "gap_aceptado_por_solver": diag.get("gap_aceptado"),
-            "detalle_gap": diag.get("gap_detalle"),
-        })
-
+    # ===== Hay solución válida =====
     central_cod = res["central"]
     central_nombre = res["central_nombre"]
     central_zona = res["central_zona"]
+    satelites_info = res["satelites"]
+    sat_cods = [s["cod_dane"] for s in satelites_info]
+
+    # 1. Municipio recomendado + estado del cálculo (ancho completo)
+    st.markdown("## {}".format(central_nombre))
+    if estado == "OPTIMAL":
+        st.success("**{}**".format(_ESTADO_TITULO["OPTIMAL"]))
+    else:
+        st.info("**{}**".format(_ESTADO_TITULO["FEASIBLE"]))
+    st.caption(_ESTADO_AYUDA[estado])
+
+    # 2. Configuración utilizada (línea breve, siempre visible)
+    st.caption("Configuración del resultado: {}".format(_config_ubicacion_texto(cfg_res)))
+
+    # 3. Indicadores
+    vol_conocido = float(paquete.excedente_municipio["excedente_t"].sum())
+    i1, i2, i3 = st.columns(3)
+    i1.metric("Volumen considerado", "{:,.0f} t".format(vol_conocido))
+    i2.metric("Cobertura de datos de consumo", "{:.1f}%".format(paquete.cobertura_oferta_pct))
+    i3.metric("Acopios abiertos", "{}".format(len(sat_cods)))
+
+    # Limitaciones visibles (no escondidas en el diagnóstico técnico)
+    if paquete.cobertura_parcial:
+        st.warning(
+            "⚠️ **Cobertura parcial de datos:** {:.1f}% de la oferta tiene consumo FAOSTAT "
+            "definido. Los productos sin equivalencia de unidad (café, caña panelera, flores…) "
+            "quedan con excedente desconocido y **no** aportan volumen a esta optimización."
+            .format(paquete.cobertura_oferta_pct)
+        )
+    st.caption("El modelo no impone capacidades físicas mínimas ni máximas por acopio (no hay "
+               "valores respaldados): los volúmenes son excedentes estimados, no capacidades "
+               "instaladas.")
+
+    # 4. Mapa de la red (ancho completo)
+    st.markdown("### Mapa de la red")
+    st.caption("🔴 central · 🟠 acopios · 🔵 municipios y destinos. Líneas grises: "
+               "municipio → acopio. Líneas rojas: acopio → central.")
     central_lat = municipios[municipios["cod_dane"] == central_cod]["lat"].iloc[0]
     central_lon = municipios[municipios["cod_dane"] == central_cod]["lon"].iloc[0]
-    satelites_info = res["satelites"]
+    m = folium.Map(location=[central_lat, central_lon], zoom_start=8, tiles="OpenStreetMap")
+    oferta_mun = {r["cod_dane"]: float(r["excedente_t"]) for _, r in paquete.excedente_municipio.iterrows()}
+    coord_map = {r["cod_dane"]: (r["lat"], r["lon"]) for _, r in municipios.iterrows()}
+    for _, row in municipios.iterrows():
+        cod, nom = row["cod_dane"], row["municipio"]
+        ofe = oferta_mun.get(cod, 0.0)
+        if cod == central_cod:
+            color, radius, tipo = "red", 12, "CENTRAL"
+        elif cod in sat_cods:
+            color, radius, tipo = "orange", 9, "ACOPIO"
+        else:
+            color, radius, tipo = "blue", 5, ""
+        popup = "<b>{} {}</b> ({})<br>Zona: {}<br>Excedente: {:,.0f} t".format(
+            tipo, nom, cod, mun_a_zona.get(cod, "?"), ofe)
+        folium.CircleMarker(location=[row["lat"], row["lon"]], radius=radius,
+                            popup=folium.Popup(popup, max_width=220), color="black",
+                            weight=1, fill=True, fillColor=color, fillOpacity=0.8).add_to(m)
+    for muni_cod, sat_cod in res["asignaciones_municipio_satelite"]:
+        if muni_cod in coord_map and sat_cod in coord_map:
+            folium.PolyLine([coord_map[muni_cod], coord_map[sat_cod]],
+                            color="gray", weight=1, opacity=0.3).add_to(m)
+    for sat_cod, cen_cod in res["asignaciones_satelite_central"]:
+        if sat_cod in coord_map and cen_cod in coord_map:
+            folium.PolyLine([coord_map[sat_cod], coord_map[cen_cod]],
+                            color="red", weight=2, opacity=0.7).add_to(m)
+    for _, drow in destinos.iterrows():
+        folium.Marker(location=[drow["lat"], drow["lon"]],
+                      popup=folium.Popup("<b>{}</b><br>({})".format(drow["nombre"], drow["id_destino"]), max_width=200),
+                      icon=folium.Icon(color="blue", icon="info-sign")).add_to(m)
+    st_folium(m, width=None, height=520, key="mapa_ubicacion", use_container_width=True)
 
-    st.markdown("### Mapa de ubicación (modo {}, estado {})".format(modo_sel, res["status"]))
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        m = folium.Map(location=[central_lat, central_lon], zoom_start=8, tiles="OpenStreetMap")
-        oferta_mun = {r["cod_dane"]: float(r["excedente_t"])
-                      for _, r in paquete.excedente_municipio.iterrows()}
-        coord_map = {r["cod_dane"]: (r["lat"], r["lon"]) for _, r in municipios.iterrows()}
-        sat_cods = [s["cod_dane"] for s in satelites_info]
-        for _, row in municipios.iterrows():
-            cod, nom = row["cod_dane"], row["municipio"]
-            ofe = oferta_mun.get(cod, 0.0)
-            if cod == central_cod:
-                color, radius, tipo = "red", 12, "CENTRAL"
-            elif cod in sat_cods:
-                color, radius, tipo = "orange", 9, "SATÉLITE"
+    st.markdown("**Acopios seleccionados:** " + ", ".join(
+        "{} (zona {}{})".format(s["nombre"], s["zona"], ", centro ref." if s["es_centro"] else "")
+        for s in satelites_info))
+
+    # 5. Transporte por tramos
+    st.markdown("### Transporte por tramos")
+    st.caption(
+        "Los tramos son: **municipio → acopio**, **acopio → central** y **central → destinos**. "
+        "La unidad **t·min** combina el volumen transportado y el tiempo de traslado: para un "
+        "mismo volumen y alcance, un valor menor representa menos exposición al transporte. "
+        "No equivale a pesos ni a la duración de un viaje."
+    )
+    tramos = pd.DataFrame([
+        {"Tramo": "Municipio → acopio", "Transporte (t·min)": res["costo_recoleccion"]},
+        {"Tramo": "Acopio → central", "Transporte (t·min)": res["costo_satelite_central"]},
+        {"Tramo": "Central → destinos", "Transporte (t·min)": res["costo_central_destinos"]},
+    ])
+    fig_tr = go.Figure(go.Bar(
+        x=tramos["Transporte (t·min)"], y=tramos["Tramo"], orientation="h",
+        marker_color=["#5B86AD", "#2E5E8C", "#C44601"],
+        text=[fmt_entero(v) for v in tramos["Transporte (t·min)"]], textposition="outside",
+        hovertemplate="%{y}<br>%{x:,.0f} t·min<extra></extra>",
+    ))
+    fig_tr.update_layout(template="plotly_white", height=260, margin=dict(l=8, r=8, t=10, b=8),
+                         xaxis_title="Transporte (t·min)", showlegend=False)
+    st.plotly_chart(fig_tr, use_container_width=True)
+    recol = res["costo_recoleccion"] + res["costo_satelite_central"]
+    st.caption(
+        "**Recolección y traslado a la central** (municipio→acopio + acopio→central): "
+        "{} t·min. **Transporte a destinos** (central→destinos): {} t·min. Al comparar "
+        "ubicaciones, el modelo pondera ambos según la **prioridad del transporte** elegida "
+        "({}).".format(fmt_entero(recol), fmt_entero(res["costo_central_destinos"]),
+                        _prioridad_texto(lam))
+    )
+
+    # 6. Alternativas, comparación y estabilidad (bajo demanda)
+    st.markdown("### Explorar alternativas y comparaciones")
+    st.caption("Estos análisis se ejecutan solo cuando pulsas su botón.")
+    _ubicacion_alternativas(id_escenario, ano_sel, modo_sel, k_satelites, lam,
+                            consumo_sel, mezcla_sel, tiempo_limite_s, gap_relativo, huella)
+
+    # 7. Detalles técnicos plegados al final
+    _detalles_tecnicos_ubicacion(diag, tiempo_limite_s, gap_relativo)
+
+
+def _ubicacion_alternativas(id_escenario, ano_sel, modo_sel, k_satelites, lam,
+                            consumo_sel, mezcla_sel, tiempo_limite_s, gap_relativo, huella):
+    # --- Alternativas de ubicación y transporte (barrido de prioridad) ---
+    with st.expander("Alternativas de ubicación y transporte", expanded=False):
+        if st.button("Explorar alternativas", key="opt_pareto_btn"):
+            st.session_state["opt_pareto_on"] = True
+        if st.session_state.get("opt_pareto_on"):
+            df_pareto = opt_pareto_cache(id_escenario, ano_sel, modo_sel, k_satelites,
+                                         int(tiempo_limite_s), float(gap_relativo), huella)
+            if df_pareto.empty:
+                st.info("No se obtuvieron soluciones para el barrido de prioridad.")
             else:
-                color, radius, tipo = "blue", 5, ""
-            popup = "<b>{} {}</b> ({})<br>Zona: {}<br>Excedente: {:,.0f} t".format(
-                tipo, nom, cod, mun_a_zona.get(cod, "?"), ofe)
-            folium.CircleMarker(location=[row["lat"], row["lon"]], radius=radius,
-                                popup=folium.Popup(popup, max_width=220), color="black",
-                                weight=1, fill=True, fillColor=color, fillOpacity=0.8).add_to(m)
-        for muni_cod, sat_cod in res["asignaciones_municipio_satelite"]:
-            if muni_cod in coord_map and sat_cod in coord_map:
-                folium.PolyLine([coord_map[muni_cod], coord_map[sat_cod]],
-                                color="gray", weight=1, opacity=0.3).add_to(m)
-        for sat_cod, cen_cod in res["asignaciones_satelite_central"]:
-            if sat_cod in coord_map and cen_cod in coord_map:
-                folium.PolyLine([coord_map[sat_cod], coord_map[cen_cod]],
-                                color="red", weight=2, opacity=0.7).add_to(m)
-        for _, drow in destinos.iterrows():
-            folium.Marker(location=[drow["lat"], drow["lon"]],
-                          popup=folium.Popup("<b>{}</b><br>({})".format(drow["nombre"], drow["id_destino"]), max_width=200),
-                          icon=folium.Icon(color="blue", icon="info-sign")).add_to(m)
-        st_folium(m, width=700, height=500, key="mapa_ubicacion")
-
-    with col2:
-        st.markdown("### Resultado ({})".format(res["status"]))
-        st.metric("Central", central_nombre)
-        st.metric("Zona de la central", central_zona)
-        st.metric("Código DANE", central_cod)
-        st.markdown("**Satélites:**")
-        for i, s in enumerate(satelites_info):
-            st.write("{}. {} (zona {}{})".format(
-                i + 1, s["nombre"], s["zona"], ", centro ref." if s["es_centro"] else ""))
-        st.markdown("---")
-        st.markdown("### Costos (t·min)")
-        st.metric("A1 recolección (muni→sat)", "{:,.0f}".format(res["costo_recoleccion"]))
-        st.metric("A2 satélite→central", "{:,.0f}".format(res["costo_satelite_central"]))
-        st.metric("B central→destinos", "{:,.0f}".format(res["costo_central_destinos"]))
-        st.markdown("—")
-        st.metric("A = A1 + A2", "{:,.0f}".format(res["A"]))
-        st.metric("B", "{:,.0f}".format(res["B"]))
-        st.metric("Objetivo = λ·A + (1-λ)·B", "{:,.0f}".format(res["costo_total"]))
-        st.caption("Objetivo del solver: {:,.0f}".format(res["objetivo_solver"]))
-        st.markdown("---")
-        st.write("Año: {} | Oferta: {} | Consumo: {}".format(ano_sel, oferta_sel, consumo_sel))
-        st.write("Mezcla: {} ({:.0%}/{:.0%})".format(mezcla_sel, res["pct_nacional"], res["pct_exportacion"]))
-        st.write("Modo: {} | k: {} | λ: {}".format(modo_sel, k_satelites, lam))
-
-    st.markdown("---")
-
-    # --- comparación libre vs zonas (bajo demanda, cacheada) ---
-    st.markdown("### Comparación de configuraciones (mismas entradas)")
-    st.markdown("Mismo año, oferta, consumo, mezcla, λ y k=5; libre vs un satélite por zona.")
-    comp = opt_comparacion_cache(id_escenario, ano_sel, k_satelites, lam,
-                                 int(tiempo_limite_s), float(gap_relativo), huella)
-    filas_comp = []
-    for modo, r in comp.items():
-        if r["status"] in ("OPTIMAL", "FEASIBLE"):
-            d = r.get("diagnostico", {})
-            filas_comp.append({
-                "modo": modo, "estado": r["status"],
-                "central": "{} ({})".format(r["central_nombre"], r["central_zona"]),
-                "A1 recolección": r["costo_recoleccion"], "A2 sat→central": r["costo_satelite_central"],
-                "B central→dest": r["costo_central_destinos"], "A": r["A"], "B": r["B"],
-                "objetivo": r["costo_total"],
-                "brecha": d.get("gap_efectivo"), "tiempo_s": d.get("tiempo_s"),
-            })
+                df = df_pareto.copy()
+                df["Ax"] = df["A"] / 1e6
+                df["By"] = df["B"] / 1e6
+                df["prio"] = df["lambda"].apply(_prioridad_texto)
+                estados = df["status"] if "status" in df.columns else pd.Series([""] * len(df))
+                estados = estados.map(lambda s: _ESTADO_TITULO.get(s, s))
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=df["Ax"], y=df["By"], mode="markers",
+                    marker=dict(size=12, color="#002855"),
+                    customdata=list(zip(df["central"], df["prio"], estados)),
+                    hovertemplate=("Central: %{customdata[0]}<br>"
+                                   "Recolección y traslado a la central: %{x:.2f} millones t·min<br>"
+                                   "Transporte a destinos: %{y:.2f} millones t·min<br>"
+                                   "Prioridad representada: %{customdata[1]}<br>"
+                                   "Estado: %{customdata[2]}<extra></extra>"),
+                    name="No dominadas encontradas"))
+                fig.update_layout(
+                    title="Alternativas de ubicación y transporte",
+                    xaxis_title="Recolección y traslado a la central (millones de t·min)",
+                    yaxis_title="Transporte desde la central a destinos (millones de t·min)",
+                    template="plotly_white", height=420)
+                st.plotly_chart(fig, use_container_width=True)
+                st.caption(
+                    "Cada punto es una **solución no dominada encontrada** (no necesariamente "
+                    "toda la frontera). Una alternativa puede reducir el transporte hasta la "
+                    "central y aumentar el transporte hacia los destinos. Los valores menores "
+                    "en ambos ejes son preferibles para el mismo volumen y alcance. Mover la "
+                    "prioridad del transporte puede cambiar la ubicación recomendada; la "
+                    "gráfica describe lo observado, no una regla fija. Tras eliminar puntos "
+                    "repetidos, una misma solución puede corresponder a varias prioridades; el "
+                    "tooltip muestra una representativa."
+                )
         else:
-            filas_comp.append({"modo": modo, "estado": r["status"], "central": "-",
-                               "A1 recolección": None, "A2 sat→central": None, "B central→dest": None,
-                               "A": None, "B": None, "objetivo": None, "brecha": None, "tiempo_s": None})
-    df_comp = pd.DataFrame(filas_comp)
-    st.dataframe(
-        df_comp.style.format({c: "{:,.0f}" for c in
-                              ["A1 recolección", "A2 sat→central", "B central→dest", "A", "B", "objetivo"]},
-                             na_rep="—"),
-        use_container_width=True,
-    )
-    resueltos_comp = [r for r in comp.values() if r["status"] in ("OPTIMAL", "FEASIBLE")]
-    if len(resueltos_comp) == 2:
-        oa, ob = resueltos_comp[0]["costo_total"], resueltos_comp[1]["costo_total"]
-        base_cmp = min(abs(oa), abs(ob)) or 1.0
-        st.caption("Diferencia de objetivo entre configuraciones: {:.2f}% "
-                   "(brecha efectiva de cada solución en la tabla).".format(100 * abs(oa - ob) / base_cmp))
+            st.caption("Pulsa **Explorar alternativas** para calcular las soluciones no "
+                       "dominadas variando la prioridad del transporte.")
 
-    # --- Pareto (bajo demanda, cacheado) ---
-    st.markdown("### Soluciones no dominadas encontradas (barrido de λ)")
-    st.markdown("Ejes **A** (recolección + satélite→central) y **B** (central→destinos), "
-                "coherentes con el objetivo; dominados y duplicados eliminados. No se "
-                "afirma que el barrido recupere toda la frontera.")
-    df_pareto = opt_pareto_cache(id_escenario, ano_sel, modo_sel, k_satelites,
-                                 int(tiempo_limite_s), float(gap_relativo), huella)
-    if df_pareto.empty:
-        st.info("No se obtuvieron soluciones para el barrido de λ.")
-    else:
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=df_pareto["A"], y=df_pareto["B"], mode="lines+markers+text",
-            text=df_pareto["lambda"].apply(lambda v: "λ={:.1f}".format(v)),
-            textposition="top center",
-            marker=dict(size=10, color=df_pareto["lambda"], colorscale="Viridis", showscale=True),
-            line=dict(color="gray", width=1), name="No dominadas"))
-        fig.update_layout(title="Soluciones no dominadas (A vs B)",
-                          xaxis_title="A: recolección + satélite→central (t·min)",
-                          yaxis_title="B: central→destinos (t·min)",
-                          template="plotly_white", height=400)
-        st.plotly_chart(fig, use_container_width=True)
-
-    # --- estabilidad (bajo demanda, cacheada, año seleccionado) ---
-    st.markdown("### Estabilidad por nivel de oferta (año {})".format(ano_sel))
-    st.markdown("Compara oferta baja/base/alta para el **año seleccionado**, con el mismo "
-                "consumo, mezcla, configuración, k y λ.")
-    df_estab, faltantes = opt_estabilidad_cache(ano_sel, consumo_sel, mezcla_sel, modo_sel,
-                                                k_satelites, lam, int(tiempo_limite_s),
-                                                float(gap_relativo), huella)
-    st.dataframe(
-        df_estab[["escenario", "oferta", "central", "status", "A", "B", "costo_total", "cobertura"]]
-        .style.format({"A": "{:,.0f}", "B": "{:,.0f}", "costo_total": "{:,.0f}",
-                       "cobertura": "{:.2f}%"}, na_rep="—"),
-        use_container_width=True,
-    )
-    sin_sol = df_estab[~df_estab["status"].isin(["OPTIMAL", "FEASIBLE"])]
-    if faltantes or not sin_sol.empty:
-        st.warning("Escenarios sin solución o no disponibles: {}".format(
-            ", ".join(sorted(set(sin_sol["escenario"]).union(f["escenario"] for f in faltantes)))))
-    resueltos = df_estab[df_estab["status"].isin(["OPTIMAL", "FEASIBLE"])]
-    if not resueltos.empty:
-        if resueltos["central"].nunique() == 1:
-            st.success("Ubicación **estable**: la misma central en todos los niveles de oferta resueltos.")
+    # --- Comparar libre vs por zonas ---
+    with st.expander("Comparar organización Libre y Por zonas", expanded=False):
+        if st.button("Comparar libre y por zonas", key="opt_comp_btn"):
+            st.session_state["opt_comp_on"] = True
+        if st.session_state.get("opt_comp_on"):
+            comp = opt_comparacion_cache(id_escenario, ano_sel, k_satelites, lam,
+                                         int(tiempo_limite_s), float(gap_relativo), huella)
+            filas = []
+            for modo, r in comp.items():
+                nombre_modo = "Libre" if modo == "libre" else "Por zonas"
+                if r["status"] in ("OPTIMAL", "FEASIBLE"):
+                    filas.append({
+                        "Organización": nombre_modo,
+                        "Estado": _ESTADO_TITULO.get(r["status"], r["status"]),
+                        "Central": "{} ({})".format(r["central_nombre"], r["central_zona"]),
+                        "Recolección y traslado a la central (t·min)": r["A"],
+                        "Transporte a destinos (t·min)": r["B"],
+                    })
+                else:
+                    filas.append({"Organización": nombre_modo,
+                                  "Estado": "sin solución", "Central": "—",
+                                  "Recolección y traslado a la central (t·min)": None,
+                                  "Transporte a destinos (t·min)": None})
+            st.dataframe(
+                pd.DataFrame(filas).style.format(
+                    {"Recolección y traslado a la central (t·min)": "{:,.0f}",
+                     "Transporte a destinos (t·min)": "{:,.0f}"}, na_rep="—"),
+                use_container_width=True, hide_index=True)
+            st.caption("Misma configuración de año, producción, consumo, distribución y "
+                       "prioridad. 'Libre' no exige un acopio por zona; 'Por zonas' sí.")
         else:
-            st.warning("Ubicación **variable**: la central cambia según el nivel de oferta.")
+            st.caption("Pulsa **Comparar libre y por zonas** para ver ambas organizaciones con "
+                       "la misma configuración.")
+
+    # --- Estabilidad por escenario de producción ---
+    with st.expander("Evaluar estabilidad entre escenarios de producción", expanded=False):
+        if st.button("Evaluar estabilidad", key="opt_estab_btn"):
+            st.session_state["opt_estab_on"] = True
+        if st.session_state.get("opt_estab_on"):
+            df_estab, faltantes = opt_estabilidad_cache(ano_sel, consumo_sel, mezcla_sel, modo_sel,
+                                                        k_satelites, lam, int(tiempo_limite_s),
+                                                        float(gap_relativo), huella)
+            vis = df_estab.rename(columns={
+                "escenario": "Escenario", "oferta": "Producción", "central": "Central",
+                "A": "Recolección y traslado a la central (t·min)",
+                "B": "Transporte a destinos (t·min)", "cobertura": "Cobertura de datos"})
+            vis["Estado"] = df_estab["status"].map(lambda s: _ESTADO_TITULO.get(s, s))
+            cols = ["Escenario", "Producción", "Central", "Estado",
+                    "Recolección y traslado a la central (t·min)",
+                    "Transporte a destinos (t·min)", "Cobertura de datos"]
+            st.dataframe(
+                vis[cols].style.format({
+                    "Recolección y traslado a la central (t·min)": "{:,.0f}",
+                    "Transporte a destinos (t·min)": "{:,.0f}",
+                    "Cobertura de datos": "{:.1f}%"}, na_rep="—"),
+                use_container_width=True, hide_index=True)
+            sin_sol = df_estab[~df_estab["status"].isin(["OPTIMAL", "FEASIBLE"])]
+            if faltantes or not sin_sol.empty:
+                st.warning("Escenarios sin solución o no disponibles: {}".format(
+                    ", ".join(sorted(set(sin_sol["escenario"]).union(f["escenario"] for f in faltantes)))))
+            resueltos = df_estab[df_estab["status"].isin(["OPTIMAL", "FEASIBLE"])]
+            if not resueltos.empty:
+                if resueltos["central"].nunique() == 1:
+                    st.success("La misma central aparece en todos los escenarios de producción "
+                               "resueltos: la ubicación es estable frente a ese cambio.")
+                else:
+                    st.info("La central cambia según el escenario de producción.")
+            st.caption("La frecuencia con que una sede aparece entre los escenarios evaluados "
+                       "**no** es una probabilidad de que sea la mejor; solo describe cuántos "
+                       "escenarios la eligieron.")
+        else:
+            st.caption("Pulsa **Evaluar estabilidad** para comparar la ubicación entre "
+                       "producción baja, base y alta.")
 
 
 # =============================================================================
