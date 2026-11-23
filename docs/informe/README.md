@@ -22,12 +22,17 @@ Los números de sección son los del informe final, que empieza en "1. Introducc
 | 6. Central en los 54 escenarios | 3.4.2 | `figura_6_centrales.py` | `data/results/opt/estabilidad_escenarios.csv`, `data/clean/destinos_coordenadas.csv` y geometrías de `data/results/arendonc2/` |
 | 7. Caso aplicado de Bugalagrande | 3.4.4 | `figura_7_caso_bugalagrande.py` | Panel de producción, `predicciones_comparacion.csv` y `oferta_escenarios.csv` |
 | 8. Arquitectura del pipeline | 4.1 | `figura_8_arquitectura.py` | Ninguno (esquema hecho con `docs/arquitectura/` y `docs/evaluacion/evidencia_despliegue.md`) |
-| 9. Vista de cobertura del tablero | 5.4 | Captura de pantalla | Pantalla 4. Tablero central |
-| 10. Vista de la hipótesis | 5.4 | Captura de pantalla | Pantalla 4. Tablero central |
+| 9. Vista de cobertura del tablero | 5.4 | Captura de pantalla | Pantalla 4. Cobertura y capacidad |
+| 10. Comparación territorial entre sedes | 5.4 | Captura de pantalla | Pantalla 4. Cobertura y capacidad |
+| 11. Arquitectura a escala | 6 | Diagrama hecho a mano | Ninguno (esquema) |
+| 12. Modelos a escala | 6 | Diagrama hecho a mano | Ninguno (esquema) |
+| 13. Tableros a escala | 6 | Diagrama hecho a mano | Ninguno (esquema) |
 
 En la Figura 2 cada punto equivale a 500 hectáreas y se ubica al azar dentro de su municipio. La semilla es fija, así que la figura sale igual en cada ejecución.
 
-Las Figuras 9 y 10 son capturas de la pantalla 4. Tablero central de la aplicación de Streamlit, con la ventana a 1440 píxeles de ancho y la sede en Bugalagrande, radio de 40 km, captación del 20 % y escenario base. En la Figura 10 está desplegado el bloque de la hipótesis. La pantalla genera el tablero desde `data/clean/produccion_valle_clean.csv` cada vez que se abre, con `src/dashboard/tablero_central.py`. Si cambia algo visible de esa vista, hay que volver a capturarlas con los mismos ajustes.
+Las Figuras 9 y 10 son capturas de la pantalla 4. Cobertura y capacidad de la aplicación de Streamlit, tomadas el 23 de noviembre de 2026. Los archivos son `figura_9_tablero_cobertura.png` y `figura_10_tablero_comparacion.png`. La vista de cobertura no cabe en una sola ventana, así que la Figura 9 une dos capturas. La Figura 10 muestra el bloque de comparación territorial. La pantalla genera el tablero desde `data/clean/produccion_valle_clean.csv` cada vez que se abre, con `src/dashboard/tablero_central.py`. Si cambia algo visible de esa vista, hay que volver a capturarlas.
+
+Las Figuras 11, 12 y 13 (`figura_11_arquitectura_escala.png`, `figura_12_modelos_escala.png` y `figura_13_tableros_escala.png`) son los diagramas de la sección 6. No salen de ningún script.
 
 La tipografía es Liberation Sans en Linux y Arial en macOS y Windows. Las dos tienen las mismas medidas, así que la composición no cambia entre equipos.
 

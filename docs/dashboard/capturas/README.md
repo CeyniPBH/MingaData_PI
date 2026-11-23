@@ -59,14 +59,9 @@ ranking incluye la sede seleccionada con su puesto real. Falta la **revisión vi
 La pantalla 4 pasó de una presentación guiada por preguntas e hipótesis a una herramienta de
 exploración (sin bloques "Pregunta 1/2", sin "Hipótesis", sin modos `f1/f2/f3`). Por eso:
 
-- **Figura 9** (`docs/informe/figuras/figura_9_tablero_cobertura.png`): captura de la
-  pantalla 4. **Desactualizada**; debe recapturarse.
-- **Figura 10** (`docs/informe/figuras/figura_10_tablero_hipotesis.png`): captura de la
-  pantalla 4 con la hipótesis desplegada. El bloque de hipótesis **ya no existe**; la figura
-  queda **desactualizada**. Debe recapturarse como vista de exploración, o bien el texto del
-  informe (sección 5.4 y la tabla de `docs/informe/README.md`) debe ajustarse para no
-  describir una "vista de la hipótesis" que ya no está en el tablero. Esa decisión de
-  informe queda fuera de este PR (no se tocó `src/informe/` ni `docs/informe/`).
+- **Figura 9** (`docs/informe/figuras/figura_9_tablero_cobertura.png`): recapturada el 23 de
+  noviembre de 2026 con la vista actual. Une dos capturas porque la vista no cabe en una ventana.
+- **Figura 10** (`docs/informe/figuras/figura_10_tablero_comparacion.png`): reemplaza a
+  `figura_10_tablero_hipotesis.png`. Muestra la comparación territorial, recapturada el mismo día.
 
-Configuración para ambas capturas, según `docs/informe/README.md`: ventana de 1440 px,
-Bugalagrande, 40 km, captación 20 %, escenario base. Conservar nombres y rutas.
+La sección 5.4 del informe y la tabla de `docs/informe/README.md` ya describen estas dos vistas.
