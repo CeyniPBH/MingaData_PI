@@ -42,7 +42,7 @@ def test_resumen_inicial_responde_sin_tocar_controles():
     assert len(at.exception) == 0
     # El título principal es fijo y orientado al propósito.
     assert at.title[0].value == TITULO_FIJO
-    # El hallazgo dinámico de la sede por defecto (mayor cobertura = Bugalagrande) es secundario.
+    # La sede por defecto no debe reemplazar el titulo principal.
     hallazgo = _hallazgo(at)
     assert "Bugalagrande" in hallazgo
     assert "52,1 %" in hallazgo

@@ -12,7 +12,7 @@ plt.rcParams.update({"font.size": 9, "axes.edgecolor": GRIS_CLARO,
                      "savefig.dpi": 300, "savefig.bbox": "tight", "savefig.pad_inches": 0.06})
 num = lambda x, d=0: f"{x:,.{d}f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-# ---------- Figura 3: participación en toneladas frente a participación en valor ----------
+# Figura 3: participacion en toneladas y valor.
 r = pd.read_csv(RAIZ / "data/results/ML_Ce/ranking_valor_vs_toneladas.csv")
 r = r[r.producto != "Caña de azúcar"].copy()
 r["pct_t"] = 100 * r.produccion_t_2019_2023 / r.produccion_t_2019_2023.sum()
@@ -65,9 +65,8 @@ guardar(fig, "figura_3_valor_vs_toneladas.png")
 print(top[["producto", "pct_t", "pct_v", "brecha"]].round(1).to_string(index=False))
 
 # ---------- Figura 4: índice de producción 2014 = 100, un panel por producto ----------
-# Pequeños múltiplos en lugar de una sola gráfica de líneas: con ocho series, seis quedaban amontonadas
-# entre 55 y 125. Cada panel resalta un producto y deja los otros siete en gris como referencia. El eje
-# es logarítmico para que duplicarse y caer a la mitad queden a la misma distancia de la línea de 100.
+# Usa paneles separados para evitar solapar las ocho series.
+# El eje logaritmico compara de forma simetrica subidas y caidas.
 from matplotlib.ticker import FixedLocator, NullLocator
 
 c = pd.read_csv(RAIZ / "data/clean/produccion_valle_clean.csv")
@@ -102,7 +101,7 @@ for ax, p in zip(axes.flat, orden):
     for lado in ["top", "right", "left", "bottom"]:
         ax.spines[lado].set_visible(False)
     ax.tick_params(length=0, labelsize=7.5)
-# El pico del aguacate en 2022 lleva su valor, porque la caída de 2023 es parte de la historia.
+# Incluye el valor del aguacate en el pico de 2022.
 ax0 = axes.flat[0]
 pico = idx.loc[orden[0]].idxmax()
 ax0.annotate(f"{num(idx.loc[orden[0], pico])} en {pico}", xy=(pico, idx.loc[orden[0], pico]),

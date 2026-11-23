@@ -51,7 +51,7 @@ ax.scatter(h1.index, h1["final"], s=28, color=GRIS, edgecolor="white", linewidth
 for a in h1.index:
     ax.plot([a, a], [h1.loc[a, "final"], real.loc[a]], color=GRIS_CLARO, lw=1, zorder=2)
 
-# Etiquetas directas: las del periodo 2024-2028 van a la derecha, en el orden en que aparecen las líneas.
+# Etiqueta los escenarios 2024-2028 a la derecha.
 ax.text(2014.1, real.loc[2014] + 25, "Real", color=AZUL, fontsize=8, fontweight="bold")
 ax.text(2018.75, h1.loc[2019, "final"] + 22, "Pronóstico a un año", color=TEXTO_2, fontsize=7.5, ha="center")
 ax.text(2028.25, fut.loc[2028, "oferta_base"] + 4, "Escenario base", color=AZUL, fontsize=7.5, va="center")

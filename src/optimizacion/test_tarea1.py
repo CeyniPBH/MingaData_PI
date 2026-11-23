@@ -27,9 +27,7 @@ def main():
     print("=" * 70)
     print()
 
-    # =========================================================================
     # 1. Verificar que existe docs/formulacion_optimizacion.md
-    # =========================================================================
     print("--- 1. Documento de formulación ---")
     path_md = ROOT / "docs" / "formulacion_optimizacion.md"
     check(path_md.exists(), f"docs/formulacion_optimizacion.md existe")
@@ -55,16 +53,12 @@ def main():
         check("escenarios.csv" in contenido or "oferta_escenarios" in contenido, "Lista columnas de escenarios/oferta")
         check("matriz_tiempos.csv" in contenido, "Lista columnas de matriz_tiempos.csv")
 
-    # =========================================================================
     # 2. Verificar que existe el script del modelo
-    # =========================================================================
     print("\n--- 2. Script del modelo OR-Tools ---")
     path_py = ROOT / "src" / "optimizacion" / "modelo_esqueleto.py"
     check(path_py.exists(), f"src/optimizacion/modelo_esqueleto.py existe")
 
-    # =========================================================================
     # 3. Ejecutar el modelo y verificar salida
-    # =========================================================================
     print("\n--- 3. Ejecución del modelo con datos ficticios ---")
 
     # Importar el módulo dinámicamente
@@ -121,16 +115,12 @@ def main():
     except Exception as e:
         check(False, f"Error al ejecutar el modelo: {e}")
 
-    # =========================================================================
     # 4. Verificar que OR-Tools use CBC
-    # =========================================================================
     print("\n--- 4. Solver OR-Tools ---")
     check("CBC" in path_py.read_text(encoding="utf-8"), "El script usa el solver CBC de OR-Tools")
     check("pywraplp" in path_py.read_text(encoding="utf-8"), "El script importa pywraplp de OR-Tools")
 
-    # =========================================================================
     # RESUMEN
-    # =========================================================================
     print("\n" + "=" * 70)
     print("RESUMEN DE VERIFICACIÓN")
     print("=" * 70)

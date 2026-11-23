@@ -1,52 +1,7 @@
-"""
-MODELO DE OPTIMIZACIÓN LOGÍSTICA CON DATOS REALES
-=================================================
+"""Ubica una central y sus satélites para minimizar el transporte en t·min.
 
-Ubica una central de acopio y sus acopios satélite minimizando el costo logístico
-(toneladas × minutos, t·min). Usa los entregables corregidos de arendonc2 a través
-del adaptador `preparar_para_solver(id_escenario, anio)`.
-
-FORMULACIÓN (lineal, resoluble por CBC)
-
-Conjuntos
-  M  municipios (candidatos a central y a satélite)
-  D  destinos (nacionales: Cali, Bogotá, Medellín; exportación: Buenaventura, aeropuerto)
-
-Parámetros
-  q_m          excedente CONOCIDO del municipio m (t). Pendientes excluidos por el adaptador.
-  Q = sum_m q_m   excedente total conocido del escenario (cota válida del flujo)
-  t[a,b]       tiempo de viaje a->b (min); validado, sin huecos
-  pct_nac, pct_exp   cuotas nacional/exportación (suman 1)
-  peso[d]      peso del destino d dentro de su grupo (los del grupo suman 1)
-
-Variables
-  x_c ∈ {0,1}         abrir central en c
-  y_s ∈ {0,1}         abrir satélite en s
-  z[m,s] ∈ {0,1}      municipio m asignado al satélite s
-  w[s,c] ∈ {0,1}      enlace satélite s -> central c
-  f[s,c] ≥ 0          toneladas transportadas de s a c (continua)
-
-Restricciones
-  R1  sum_c x_c = 1
-  R2  sum_s y_s = k
-  R3  sum_s z[m,s] = 1  ;  z[m,s] ≤ y_s
-  R4  sum_c w[s,c] = y_s ; w[s,c] ≤ x_c
-  R5  conservación de flujo por satélite:
-        sum_c f[s,c] = sum_m q_m · z[m,s]      (todo lo recibido sale hacia la central)
-  R6  vinculación del flujo:  f[s,c] ≤ Q · w[s,c]   (sólo fluye por enlaces abiertos)
-  (zonas)  si modo="zonas": z[m,s]=0 si m y s están en zonas distintas, y un satélite por zona
-
-Costos (t·min)
-  A1 = sum_{m,s} q_m · t[m,s] · z[m,s]          recolección municipio->satélite
-  A2 = sum_{s,c} f[s,c] · t[s,c]                 satélite->central (flujo explícito)
-  A  = A1 + A2
-  B  = Q · sum_d peso_grupo[d] · t[c*,d]         central->destinos (una central, todo el volumen Q)
-  Objetivo = λ·A + (1-λ)·B
-
-El tramo satélite->central es OBLIGATORIO (no hay opción para desactivarlo).
-No se igualan volúmenes a oferta[s]; el flujo f es una variable continua explícita.
-
-Uso: python src/optimizacion/modelo_real.py
+Usa excedentes validados, tiempos y escenarios preparados por el adaptador.
+Formulación: docs/formulacion_optimizacion.md.
 """
 
 import sys
@@ -68,11 +23,10 @@ DATA_RES = ROOT / "data" / "results" / "ML_Ce"
 DESTINOS_NACIONALES = ("DEST_CALI", "DEST_BOGOTA", "DEST_MEDELLIN")
 DESTINOS_EXPORTACION = ("DEST_BUENAVENTURA", "DEST_AEROPUERTO_PALMIRA")
 
-# Tolerancia numérica para deduplicar/dominancia en el barrido de lambda (t·min relativos).
+# Tolerancia relativa para filtrar soluciones dominadas.
 TOL_PARETO_REL = 1e-6
 
-# Tolerancia de integralidad por defecto: un valor de variable binaria debe estar a
-# <= TOL_INT de 0 o de 1. Si no, se considera fraccionario (no se redondea en silencio).
+# Rechaza asignaciones fraccionarias fuera de esta tolerancia.
 TOL_INT_DEFECTO = 1e-6
 
 
@@ -108,9 +62,7 @@ _ESTADOS = {
 }
 
 
-# =============================================================================
 # CARGA DE DATOS Y MATRIZ DE TIEMPOS (validación estricta, P6)
-# =============================================================================
 
 def cargar_datos_reales():
     """Carga municipios, destinos y matriz de tiempos desde archivos reales."""
@@ -185,9 +137,7 @@ def cargar_paquete_solver(id_escenario="2024_Obase_Cbase_M80_20", anio=2024):
     return preparar_para_solver(id_escenario, anio)
 
 
-# =============================================================================
 # PESOS DE DESTINOS (P1): reparto dentro de cada grupo, configurable y validado
-# =============================================================================
 
 def construir_pesos_destinos(destinos, pct_nac, pct_exp,
                              pesos_internos_nac=None, pesos_internos_exp=None):
@@ -244,9 +194,7 @@ def construir_pesos_destinos(destinos, pct_nac, pct_exp,
     return pesos
 
 
-# =============================================================================
 # MODELO OR-TOOLS (flujo explícito; tramo satélite->central obligatorio)
-# =============================================================================
 
 def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
                        modo="libre", pesos_internos_nac=None, pesos_internos_exp=None,
@@ -379,7 +327,7 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
     A = A1 + A2
 
     # B: central->destinos. Una sola central lleva TODO el volumen conocido Q.
-    #    costo_unitario[c] = sum_d peso_global[d] * t[c,d]; B = Q * sum_c x[c]*costo_unitario[c]
+    # Pondera el tiempo a cada destino por su cuota de volumen.
     costo_unit_dist = {c: sum(peso * tiempos[(c, d)] for d, peso in pesos_dest.items())
                        for c in C}
     B = solver.Sum([x[c] * costo_unit_dist[c] * Q for c in C])
@@ -427,10 +375,8 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
     diagnostico["gap_efectivo"] = gap_efectivo
     diagnostico["gap_efectivo_formula"] = "|obj - mejor_cota| / (|obj| + 1e-9)"
 
-    # ---------------------------------------------------------------------
     # VERIFICACIÓN DE INTEGRALIDAD Y ESTRUCTURA (antes de construir asignaciones)
     # No se redondea en silencio: si algo es fraccionario o incoherente, se lanza error.
-    # ---------------------------------------------------------------------
     def _es_binario(v):
         val = v.solution_value()
         return (abs(val) <= tol_int) or (abs(val - 1.0) <= tol_int)
@@ -565,9 +511,7 @@ def resolver_ubicacion(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
     }
 
 
-# =============================================================================
 # SOLUCIONES NO DOMINADAS (barrido de lambda sobre A y B) — P4
-# =============================================================================
 
 def filtrar_no_dominados(df, tol_rel=TOL_PARETO_REL):
     """
@@ -649,9 +593,7 @@ def calcular_frontera_pareto(paquete, municipios, destinos, tiempos,
     return df
 
 
-# =============================================================================
 # ESTABILIDAD (parametrizada: año, consumo, mezcla, modo, k, lambda) — P (fijos 2024)
-# =============================================================================
 
 def _id_escenario(anio, oferta, consumo, mezcla):
     return "{}_O{}_C{}_M{}".format(anio, oferta, consumo, mezcla)
@@ -702,9 +644,7 @@ def calcular_estabilidad(municipios, destinos, tiempos, anio,
     return df
 
 
-# =============================================================================
 # COMPARACIÓN LIBRE vs ZONAS (mismas entradas)
-# =============================================================================
 
 def comparar_configuraciones(paquete, municipios, destinos, tiempos, k=5, lam=0.5,
                              pesos_internos_nac=None, pesos_internos_exp=None,
@@ -723,9 +663,7 @@ def comparar_configuraciones(paquete, municipios, destinos, tiempos, k=5, lam=0.
     return out
 
 
-# =============================================================================
 # EJECUCIÓN PRINCIPAL
-# =============================================================================
 
 def main():
     print("=" * 70)

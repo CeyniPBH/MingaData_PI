@@ -30,18 +30,14 @@ def main():
     print("=" * 70)
     print()
 
-    # =========================================================================
     # 1. Verificar que existen los archivos del tablero
-    # =========================================================================
     print("--- 1. Archivos del tablero ---")
     path_app = ROOT / "src" / "dashboard" / "app.py"
     path_utils = ROOT / "src" / "dashboard" / "utils.py"
     check(path_app.exists(), "src/dashboard/app.py existe")
     check(path_utils.exists(), "src/dashboard/utils.py existe")
 
-    # =========================================================================
     # 2. Verificar requirements.txt tiene las dependencias
-    # =========================================================================
     print("\n--- 2. Dependencias en requirements.txt ---")
     path_req = ROOT / "requirements.txt"
     if path_req.exists():
@@ -53,9 +49,7 @@ def main():
     else:
         check(False, "requirements.txt no existe")
 
-    # =========================================================================
     # 3. Verificar que el módulo app se puede importar
-    # =========================================================================
     print("\n--- 3. Importacion del modulo app ---")
     try:
         spec = importlib.util.spec_from_file_location("app", path_app)
@@ -66,9 +60,7 @@ def main():
     except Exception as e:
         check(False, "Error al compilar app.py: {}".format(e))
 
-    # =========================================================================
     # 4. Verificar que utils se puede importar y cargar datos
-    # =========================================================================
     print("\n--- 4. Carga de datos ---")
     try:
         sys.path.insert(0, str(ROOT / "src" / "dashboard"))
@@ -109,9 +101,7 @@ def main():
     except Exception as e:
         check(False, "Error al cargar datos: {}".format(e))
 
-    # =========================================================================
     # 5. Verificar funciones de utilidad
-    # =========================================================================
     print("\n--- 5. Funciones de utilidad ---")
     try:
         productos = obtener_productos_disponibles(oferta)
@@ -130,9 +120,7 @@ def main():
     except Exception as e:
         check(False, "Error en funciones de utilidad: {}".format(e))
 
-    # =========================================================================
     # 6. Verificar funciones de mapa (folium)
-    # =========================================================================
     print("\n--- 6. Funciones de mapa (folium) ---")
     try:
         import folium
@@ -163,9 +151,7 @@ def main():
     except Exception as e:
         check(False, "Error en funciones de mapa: {}".format(e))
 
-    # =========================================================================
     # 7. Verificar plotly para graficos
-    # =========================================================================
     print("\n--- 7. Graficos con plotly ---")
     try:
         import plotly.graph_objects as go
@@ -177,9 +163,7 @@ def main():
     except Exception as e:
         check(False, "Error en plotly: {}".format(e))
 
-    # =========================================================================
     # 8. Verificar que las 3 pantallas estén definidas
-    # =========================================================================
     print("\n--- 8. Definicion de pantallas ---")
     app_code = path_app.read_text(encoding="utf-8")
     check("def pantalla_oferta()" in app_code, "Funcion pantalla_oferta() definida")
@@ -189,9 +173,7 @@ def main():
     check("Pantalla 2 - Zonas" in app_code, "Pantalla 2: Zonas de Acopio")
     check("Pantalla 3 - Ubicacion" in app_code, "Pantalla 3: Ubicacion de Central y Acopios Satelite")
 
-    # =========================================================================
     # RESUMEN
-    # =========================================================================
     print("\n" + "=" * 70)
     print("RESUMEN DE VERIFICACION")
     print("=" * 70)

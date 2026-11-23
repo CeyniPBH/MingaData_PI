@@ -1,23 +1,6 @@
-"""Orquestador raíz del pipeline MingaData.
+"""Orquesta validacion, pronostico, zonas, optimizacion, exportacion y pruebas.
 
-Ejecuta, en orden:
-  1. Validación de ingesta (00b).
-  2. Módulo de pronóstico ML_C (00-08).
-  3. Zonas, excedentes y escenarios (arendonc2), si hay insumos o se fuerza.
-  4. Diagnóstico del modelo (09) y métrica de negocio (10).
-  5. Tuning opcional (06b) con --con-tuning.
-  6. Optimización OR-Tools (Pareto, estabilidad, libre vs zonas).
-  7. Exportación a Parquet y catálogo.
-  8. Pruebas automatizadas con pytest.
-
-Uso:
-    python src/pipeline/run_all.py
-    python src/pipeline/run_all.py --rapido              # sin tuning ni optimización
-    python src/pipeline/run_all.py --skip pruebas ml
-    python src/pipeline/run_all.py --con-tuning --con-arendonc2
-    python src/pipeline/run_all.py --dry-run
-
-El log queda en data/logs/pipeline_YYYYMMDD_HHMMSS.log.
+Ejemplo: python src/pipeline/run_all.py --rapido
 """
 from __future__ import annotations
 

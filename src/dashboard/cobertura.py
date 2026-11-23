@@ -40,9 +40,7 @@ RADIO_TIERRA_KM = 6371.0
 ESCENARIO_BAJO, ESCENARIO_BASE, ESCENARIO_ALTO = 0, 1, 2
 
 
-# ---------------------------------------------------------------------------
 # Carga del payload del tablero (fuente única de hectáreas y producción)
-# ---------------------------------------------------------------------------
 def cargar_municipios_tablero(
     produccion: pd.DataFrame, ruta_html: Path | str = RUTA_HTML
 ) -> list[dict[str, Any]]:
@@ -67,9 +65,7 @@ def _haversine(a: dict[str, Any], b: dict[str, Any]) -> float:
     return 2 * RADIO_TIERRA_KM * math.asin(math.sqrt(h))
 
 
-# ---------------------------------------------------------------------------
 # Modelo de cobertura por sede
-# ---------------------------------------------------------------------------
 @dataclass
 class ModeloCobertura:
     """Cobertura de área y volumen captable de cada sede, con el método del tablero."""
@@ -176,9 +172,7 @@ class ModeloCobertura:
         return int(rk[rk["cod_dane"] == self.cod_dane(sede)]["puesto"].iloc[0])
 
 
-# ---------------------------------------------------------------------------
 # Composición productiva por sede (toneladas, no área)
-# ---------------------------------------------------------------------------
 def composicion_sede(
     produccion: pd.DataFrame, modelo: ModeloCobertura, sede: str,
     radio_km: float | None = None,
@@ -239,9 +233,7 @@ def agrupar_composicion(ton_por_cultivo: pd.Series, destacar: str = "Piña",
     return pd.Series(resultado)
 
 
-# ---------------------------------------------------------------------------
 # Escenarios históricos de volumen captable
-# ---------------------------------------------------------------------------
 def volumenes_escenarios(modelo: ModeloCobertura, sede: str,
                          radio_km: float | None = None) -> pd.DataFrame:
     """Volumen captable en los tres escenarios históricos de una sede.
@@ -264,9 +256,7 @@ def volumenes_escenarios(modelo: ModeloCobertura, sede: str,
     return pd.DataFrame(filas)
 
 
-# ---------------------------------------------------------------------------
 # Frecuencia de sedes en los escenarios de optimización (pantalla 3)
-# ---------------------------------------------------------------------------
 def frecuencia_centrales(estabilidad: pd.DataFrame) -> dict[str, Any]:
     """Frecuencia de cada central entre los escenarios de optimización evaluados.
 
@@ -290,9 +280,7 @@ def frecuencia_centrales(estabilidad: pd.DataFrame) -> dict[str, Any]:
     }
 
 
-# ---------------------------------------------------------------------------
 # Exposición logística sin caña (método de cifras_3_3_y_3_4.py, bloque 3.4.3)
-# ---------------------------------------------------------------------------
 def exposicion_sin_cana(raiz: Path | str = RAIZ) -> dict[str, Any]:
     """Reproduce el bloque "3.4.3 exposición" de src/informe/cifras_3_3_y_3_4.py.
 
@@ -351,9 +339,7 @@ def exposicion_sin_cana(raiz: Path | str = RAIZ) -> dict[str, Any]:
     }
 
 
-# ---------------------------------------------------------------------------
 # Título dinámico del encabezado del resumen
-# ---------------------------------------------------------------------------
 def titulo_resumen(modelo: ModeloCobertura, sede: str) -> str:
     """'[Sede] cubre [X] % del área y presenta [Y] t/año captables al 20 %'."""
     from utils import fmt_pct, fmt_toneladas  # import local para evitar ciclo

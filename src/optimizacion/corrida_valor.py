@@ -1,48 +1,7 @@
-"""
-CORRIDA PONDERADA POR VALOR (toneladas x precio SIPSA)
-======================================================
+"""Compara la ubicacion optimizada por toneladas con una ponderada por valor.
 
-Compara la ubicación óptima cuando el costo logístico se mide en toneladas x
-minutos (modelo actual) contra una ponderación por valor, usando los precios
-SIPSA de `data/results/ML_Ce/oferta_escenarios_valor.csv`.
-
-Idea:
-  - El modelo actual minimiza t·min: cada tonelada pesa igual.
-  - La variante por valor reemplaza el excedente q_m por
-        q_eq_m = Q * V_m / V_total
-    donde V_m = suma_producto(excedente_t * 1000 * precio_cop_kg).
-    Así, el modelo resuelve el MISMO problema de localización, pero cada
-    municipio pesa según el valor de su producción. El total de q_eq se
-    normaliza al total de toneladas para conservar la escala.
-  - La red resultante se evalúa en las dos métricas:
-        costo_toneladas = lambda*A + (1-lambda)*B          (t·min)
-        costo_valor     = lambda*A_val + (1-lambda)*B_val  (COP·min)
-    para responder si cambia la central y cuánto cuesta en toneladas.
-
-No modifica `modelo_real.py`: usa `dataclasses.replace` para cambiar sólo el
-excedente que ve el solver.
-
-Uso:
-    python src/optimizacion/corrida_valor.py
-    python src/optimizacion/corrida_valor.py --anios 2024
-    python src/optimizacion/corrida_valor.py --escenario 2024_Obase_Cbase_M50_50
-
-Salida por defecto: `data/results/opt/`
-    comparacion_toneladas_vs_valor.csv
-    comparacion_toneladas_vs_valor_resumen.csv
-    metadata_valor.json
-
-Notas metodológicas:
-  - Se usa `precio_cop_kg` (SIPSA), NO `valor_*_cop`, porque este último valora
-    la oferta total y aquí interesa el excedente que realmente se transporta.
-  - Los productos sin precio (Arazá, Chontaduro, Papachina, etc.) reciben el
-    precio de referencia ponderado del escenario. Su participación se reporta
-    en `cobertura_valor_pct`; en 2024/2028 es > 99 %.
-  - Cuando hay empates, el solver puede devolver satélites alternativos con el
-    mismo costo. La comparación relevante es la central y el costo, no el orden
-    ni la identidad exacta de los satélites.
-  - Cada solve tiene 120 s. Si queda FEASIBLE (sin certificado de optimalidad),
-    se reintenta con 600 s para no reportar un artefacto del límite de tiempo.
+La corrida conserva el modelo base y cambia solo los excedentes de entrada.
+Metodologia: docs/formulacion_optimizacion.md, seccion de sensibilidad por valor.
 """
 
 from __future__ import annotations
@@ -105,9 +64,7 @@ COLS_RESUMEN = [
 ]
 
 
-# =============================================================================
 # UTILIDADES
-# =============================================================================
 
 def _sha256(ruta: Path) -> str:
     h = hashlib.sha256()
@@ -152,9 +109,7 @@ def _cargar_excedentes() -> pd.DataFrame:
     return _leer_csv(EXCEDENTES, dtype={"cod_dane": str})
 
 
-# =============================================================================
 # PESOS POR VALOR
-# =============================================================================
 
 def construir_pesos_valor(paquete, precios: pd.DataFrame, excedentes: pd.DataFrame):
     """
@@ -225,9 +180,7 @@ def paquete_ponderado(paquete, pesos: dict):
     return replace(paquete, excedente_municipio=excedente)
 
 
-# =============================================================================
 # COSTOS DE UNA RED (toneladas y valor)
-# =============================================================================
 
 def costos_red(paquete, res, tiempos, pesos_dest, valor_municipio):
     """
@@ -300,9 +253,7 @@ def _resultado_toneladas_desde_csv(paquete, fila: pd.Series, tiempos):
     }
 
 
-# =============================================================================
 # GENERACIÓN
-# =============================================================================
 
 def _resolver_con_reintento(paquete, municipios, destinos, tiempos, *,
                             k: int, lam: float, tiempo_limite: int, gap: float,
@@ -511,9 +462,7 @@ def escribir_metadata(salida: Path, parametros: dict, df: pd.DataFrame) -> Path:
     return ruta
 
 
-# =============================================================================
 # CLI
-# =============================================================================
 
 def parsear_args(argv=None):
     ap = argparse.ArgumentParser(

@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 RAW, CLEAN = ROOT / "data/raw", ROOT / "data/clean"
 FACTOR_RUTA, VEL_KMH = 1.4, 45.0
 
-# Destinos fuera de DIVIPOLA o con punto específico (lat, lon). El aeropuerto se cargó a mano.
+# Coordenadas de destinos sin registro propio en DIVIPOLA.
 DESTINOS = {
     "DEST_BUENAVENTURA":  ("Puerto de Buenaventura", "76109", None),
     "DEST_AEROPUERTO_PALMIRA": ("Aeropuerto Alfonso Bonilla Aragón (Palmira)", None, (3.5432, -76.3816)),
@@ -57,7 +57,7 @@ def main():
     n_esp = 42 * 42 + 42 * len(DESTINOS)
     print(f"matriz: {len(m)} filas (esperadas {n_esp}) | huecos: {m.minutos.isna().sum()}")
 
-    # Producción promedio 2019-2023 por municipio y producto (toneladas; se pondera por valor cuando exista SIPSA)
+    # Promedio municipal 2019-2023, ponderado por valor SIPSA cuando existe.
     lp = pd.read_csv(CLEAN / "lista_productos.csv")
     w = prod[prod.anio.between(2019, 2023) & prod["producto"].isin(lp.loc[lp.estado != "excluido", "producto"])]
     pp = (w.groupby(["cod_dane", "municipio", "producto"])["produccion_t"].sum() / 5).rename("prod_prom_t_2019_2023").reset_index()

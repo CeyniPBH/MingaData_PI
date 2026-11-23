@@ -28,10 +28,8 @@ from ortools.linear_solver import pywraplp  # noqa: E402
 
 
 
-# ---------------------------------------------------------------------------
 # Caso pequeño controlado: fijamos ubicaciones y asignaciones para comprobar
 # el CÁLCULO de flujo y costo, sin depender de dónde decida ubicarse el solver.
-# ---------------------------------------------------------------------------
 
 def _solver_caso_fijo():
     """
@@ -101,9 +99,7 @@ def test_flujo_por_enlaces_cerrados_es_cero():
             assert var.solution_value() < 1e-6, f"flujo en enlace cerrado {s}->{c}"
 
 
-# ---------------------------------------------------------------------------
 # Modelo real con datos de Alejandro
-# ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
 def base():

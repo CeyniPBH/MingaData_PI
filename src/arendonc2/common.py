@@ -56,9 +56,7 @@ def clave_gadm(nombre_municipio: str) -> str:
     return _ALIAS_GADM.get(n, n)
 
 
-# --------------------------------------------------------------------------
 # Lectores de datos (cod_dane como texto para no perder ceros iniciales)
-# --------------------------------------------------------------------------
 
 def leer_municipios_coordenadas() -> pd.DataFrame:
     return pd.read_csv(DATA_CLEAN / "municipios_coordenadas.csv", dtype={"cod_dane": str})

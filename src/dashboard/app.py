@@ -1,17 +1,4 @@
-"""
-Tablero interactivo con mapas - MingaData_PI
-Autor: Samuel Gutierrez Jaramillo
-Fecha: 17-21 nov 2026
-
-Pantallas:
-1. Oferta: selector producto/municipio, serie historica y pronostico bajo/base/alto
-2. Zonas: mapa con municipios y oferta por producto/anio
-2b. Zonas de acopio: poligonos de zona, centros y volumenes por escenario
-3. Ubicacion: selector de escenario, mapa central+satelites, frontera de Pareto, tabla de estabilidad
-4. Cobertura y capacidad: tablero visual de cobertura de área y capacidad (mapa de puntos y respuestas)
-
-Ejecutar: streamlit run src/dashboard/app.py
-"""
+"""Tablero Streamlit de oferta, zonas, excedentes y ubicacion logistica."""
 
 import sys
 import os
@@ -36,10 +23,7 @@ import folium
 import streamlit.components.v1 as components
 from streamlit_folium import st_folium
 
-# --- Precedencia de configuración: variable de entorno > st.secrets > valor por defecto ---
-# utils.py y API_URL leen os.getenv. En Streamlit Cloud los valores vienen de st.secrets;
-# en local pueden venir de una variable de entorno. Una variable ya definida en el entorno
-# NO se sobrescribe con secrets, para que `export MINGA_API_URL=...` tenga efecto.
+# Respeta las variables de entorno y usa st.secrets solo para claves no definidas.
 try:
     for _key in [
         "MINGA_API_URL",
@@ -50,7 +34,6 @@ try:
         "AWS_SECRET_ACCESS_KEY",
         "MINGA_MODELO_S3_URL",
     ]:
-        # Solo tomar el secret si la variable de entorno no está ya definida.
         if not os.environ.get(_key) and _key in st.secrets:
             os.environ[_key] = str(st.secrets[_key])
 except Exception:
@@ -125,9 +108,7 @@ except Exception:
 API_URL_DEFAULT = "https://mingadata-api.onrender.com"
 API_URL = (os.getenv("MINGA_API_URL") or API_URL_DEFAULT).rstrip("/")
 
-# =============================================================================
 # CARGA DE DATOS
-# =============================================================================
 @st.cache_data
 def cargar_todos_los_datos():
     oferta = cargar_oferta_escenarios()
@@ -144,13 +125,11 @@ def cargar_todos_los_datos():
 oferta, oferta_dep, coherencia, municipios, destinos, matriz_tiempos, produccion, lista_productos = cargar_todos_los_datos()
 
 
-# =============================================================================
 # CACHÉ DE OPTIMIZACIÓN (pantalla 3)
 # Se cachean SÓLO resultados serializables (dicts/DataFrames), nunca objetos del
 # solver. Las claves incluyen escenario, año, modo, k, lambda, pesos de destinos,
 # parámetros del solver y una huella de los datos de entrada, para invalidar la
 # caché si cambian los datos o la configuración.
-# =============================================================================
 def _huella_datos():
     """Huella de los archivos de datos que alimentan la optimización (mtime+tamaño).
     Si cualquiera cambia, la clave de caché cambia y se recalcula."""
@@ -221,9 +200,7 @@ def opt_estabilidad_cache(anio, consumo, mezcla, modo, k, lam, tiempo_limite_s, 
     faltantes = df.attrs.get("faltantes", [])
     return df.reset_index(drop=True), faltantes
 
-# =============================================================================
 # MODELO DE COBERTURA (compartido por el resumen y su selector de sede)
-# =============================================================================
 @st.cache_data(show_spinner=False)
 def _modelo_cobertura():
     """Construye la lista de municipios del tablero una vez (reusa el payload del tablero)."""
@@ -317,12 +294,10 @@ def _tablero_controles_sidebar():
                        "para actualizar el tablero.")
 
 
-# =============================================================================
 # PANTALLA 3 - CONFIGURACIÓN (controles de negocio en la barra lateral)
-# =============================================================================
 # Parámetros técnicos del motor de optimización: NO se exponen en la interfaz. Se definen
 # aquí, en un único lugar, con los valores predeterminados vigentes. El mecanismo de
-# respaldo entre motores (SCIP/CBC) vive en src/optimizacion/modelo_real.py y no se altera.
+# La seleccion de SCIP/CBC se configura en modelo_real.py.
 OPT_TIEMPO_LIMITE_S = 120   # límite de tiempo por resolución (s)
 OPT_GAP_RELATIVO = 0.0      # brecha relativa objetivo (0 = exigir sin brecha)
 OPT_K_ZONAS = 5             # en modo "zonas": un acopio por cada una de las 5 zonas
@@ -346,7 +321,7 @@ _MEZCLA_ETIQUETAS = {
 def _ubicacion_controles_sidebar(anios):
     """Controles de negocio de la pantalla 3 en la barra lateral, con nombres claros.
     No expone parámetros técnicos del solver. Conserva opciones y valores iniciales."""
-    # Valores iniciales (idénticos a los anteriores): base/base/80_20/libre, k=5, prioridad 0,5.
+    # Valores iniciales de la pantalla.
     st.session_state.setdefault(U_K, 5)
     st.session_state.setdefault(U_PRIORIDAD, 0.5)
     st.sidebar.selectbox(
@@ -391,17 +366,13 @@ def _ubicacion_controles_sidebar(anios):
     st.sidebar.caption("Ajusta los controles y pulsa **Calcular ubicación** en la pantalla.")
 
 
-# =============================================================================
 # PANTALLA 1 - OFERTA: controles de negocio en la barra lateral
-# =============================================================================
 O_PRODUCTO = "oferta_producto"
 O_MUNICIPIO = "oferta_municipio"
 O_ESCENARIOS = "oferta_mostrar_escenarios"
 
 
-# =============================================================================
 # PANTALLA 2b - ZONAS DE ACOPIO: controles de negocio en la barra lateral
-# =============================================================================
 Z_ANIO = "zacopio_anio"
 Z_OFERTA = "zacopio_oferta"
 Z_CONSUMO = "zacopio_consumo"
@@ -487,9 +458,7 @@ def _oferta_controles_sidebar(oferta_df, municipios_df):
     return producto, cod_dane, bool(mostrar)
 
 
-# =============================================================================
 # SIDEBAR - NAVEGACION
-# =============================================================================
 st.sidebar.title("🌱 MingaData")
 st.sidebar.markdown("**Central de Acopio y Procesamiento**")
 st.sidebar.markdown("Valle del Cauca - Proyecto Integrador 1")
@@ -551,9 +520,7 @@ st.sidebar.info(f"""
 - Anos pronostico: {min(oferta['año'].unique()) if not oferta.empty else '-'} a {max(oferta['año'].unique()) if not oferta.empty else '-'}
 """)
 
-# =============================================================================
 # FUNCIONES AUXILIARES PARA MAPAS
-# =============================================================================
 def crear_mapa_base(centro=None, zoom=8):
     if centro is None:
         centro = [4.2, -76.2]
@@ -615,16 +582,12 @@ def agregar_destinos_al_mapa(m, destinos_df):
     return m
 
 
-# =============================================================================
 # PANTALLA 0: RESUMEN (landing)
-# =============================================================================
 def pantalla_resumen():
     _pantalla_resumen_impl()
 
 
-# =============================================================================
 # PANTALLA 0: RESUMEN EJECUTIVO (rediseño conforme al manual)
-# =============================================================================
 def _barras_figura(fig, alto=320):
     fig.update_layout(
         template="plotly_white", height=alto,
@@ -1136,9 +1099,7 @@ def _resumen_descarga(modelo, sede_cod, sur_cod, frec):
     )
 
 
-# =============================================================================
 # PANTALLA 1: OFERTA
-# =============================================================================
 def pantalla_oferta():
     st.title("Producción histórica y oferta estimada por municipio")
 
@@ -1294,9 +1255,7 @@ def pantalla_oferta():
         )
 
 
-# =============================================================================
 # PANTALLA 2: ZONAS
-# =============================================================================
 def pantalla_zonas():
     st.title("🗺️ Pantalla 2 - Oferta municipal pronosticada (mapa)")
     st.markdown("""
@@ -1348,9 +1307,7 @@ def pantalla_zonas():
     col3.metric("Municipios con Produccion", "{}".format(len(resumen)))
 
 
-# =============================================================================
 # PANTALLA 2b: ZONAS DE ACOPIO (vecindad, agrupamiento y volúmenes por escenario)
-# =============================================================================
 def _color_zona(zona, zonas_lista):
     paleta = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
               "#8c564b", "#e377c2", "#7f7f7f"]
@@ -1414,7 +1371,7 @@ def pantalla_zonas_acopio():
     k2.metric("Mercado nacional", fmt_toneladas(total_nac))
     k3.metric("Exportación", fmt_toneladas(total_exp))
 
-    # Cobertura: por zona si difiere; si es uniforme, una sola cifra. Nunca el mínimo como global.
+    # Resume la cobertura por zona sin usar el minimo como total.
     cob_por_zona = dict(zip(fila["zona"], fila["cobertura_oferta_pct"]))
     cob_vals = sorted(set(round(float(c), 2) for c in fila["cobertura_oferta_pct"]))
     if len(cob_vals) == 1:
@@ -1551,16 +1508,12 @@ def pantalla_zonas_acopio():
             "filtros de este tablero.")
 
 
-# =============================================================================
 # PANTALLA 3: UBICACION
-# =============================================================================
 def pantalla_ubicacion():
     _pantalla_ubicacion_impl()
 
 
-# =============================================================================
 # PANTALLA 3: UBICACIÓN — ayuda de presentación en lenguaje claro
-# =============================================================================
 _ESTADO_TITULO = {
     "OPTIMAL": "Solución óptima del modelo",
     "FEASIBLE": "Solución válida; podría existir una mejor",
@@ -1977,9 +1930,7 @@ def _ubicacion_alternativas(id_escenario, ano_sel, modo_sel, k_satelites, lam,
                        "producción baja, base y alta.")
 
 
-# =============================================================================
 # PANTALLA 4 - TABLERO CENTRAL DE ACOPIO (HTML)
-# =============================================================================
 def pantalla_tablero_central():
     """Tablero HTML de cobertura; los cinco parámetros vienen de la barra lateral (Streamlit)."""
     ruta_html = Path(__file__).resolve().parent / "assets" / "tablero_central_acopio_valle.html"
@@ -2023,9 +1974,7 @@ def pantalla_tablero_central():
     components.html(html, height=1320, scrolling=True)
 
 
-# =============================================================================
 # RUTEO DE PANTALLAS
-# =============================================================================
 if pantalla == "0. Resumen":
     pantalla_resumen()
 elif pantalla == "1. Oferta":
@@ -2039,9 +1988,7 @@ elif pantalla == "3. Ubicacion":
 elif pantalla == "4. Cobertura y capacidad":
     pantalla_tablero_central()
 
-# =============================================================================
 # PIE DE PAGINA
-# =============================================================================
 st.markdown("---")
 st.markdown("""
 **MingaData PI** - Central Inteligente de Acopio y Procesamiento de Productos Agricolas en el Valle del Cauca

@@ -44,7 +44,7 @@ class PaqueteSolver:
     escenario_consumo: str
     pct_nacional: float
     pct_exportacion: float
-    # oferta/excedente por municipio para el solver (equivale a o_{p,m} agregado por municipio)
+    # Oferta o excedente agregado por municipio.
     excedente_municipio: pd.DataFrame  # cod_dane, municipio, zona, excedente_t
     volumen_por_zona: pd.DataFrame     # zona, excedente_t, volumen_nacional, volumen_exportacion
     zonas: pd.DataFrame                # cod_dane, municipio, zona, es_centro_zona

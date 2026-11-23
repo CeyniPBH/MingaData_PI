@@ -1,36 +1,7 @@
-"""
-TAREA #2 — Zonas de acopio por vecindad Queen + Ward con restricción espacial.
+"""Agrupa municipios contiguos con Ward y vecindad Queen.
 
-Agrupa los 42 municipios del Valle del Cauca en zonas de acopio espacialmente
-conexas, donde cada zona tiene sentido como área de recolección de un acopio
-satélite.
-
-Método:
-  1. Carga polígonos municipales (GADM nivel 2, filtrado a Valle), los empareja
-     por nombre con los códigos DANE, y valida geometrías.
-  2. Construye la matriz de vecindad por contigüidad Queen (libpysal).
-  3. Diagnostica islas y componentes conexas; NO inventa aristas para arreglar
-     datos (los problemas se reportan).
-  4. Agrupa con Ward bajo restricción de conectividad (AgglomerativeClustering con
-     connectivity = grafo de vecindad). Alternativa justificada a SKATER.
-  5. Evalúa k = 3..8 y publica métricas comparativas.
-  6. Elige un centro de referencia por zona con tiempos ponderados por oferta.
-
-Entradas:
-  - data/raw/geo/gadm41_COL_2.json.zip  (polígonos; se descarga aparte)
-  - data/clean/municipios_coordenadas.csv
-  - data/results/ML_Ce/oferta_escenarios_valor.csv  (oferta valorizada)
-  - data/clean/matriz_tiempos.csv
-
-Salidas:
-  - data/results/zonas.csv                 (cod_dane, municipio, zona, es_centro_zona)
-  - data/results/arendonc2/zonas_geometrias.geojson
-  - data/results/arendonc2/vecindad_queen.csv    (lista de adyacencia)
-  - data/results/arendonc2/zonas_metricas_k.csv  (comparación de k)
-  - data/results/arendonc2/zonas_diagnostico.json
-
-Uso: python -m src.arendonc2.zonas_acopio
-     (o)  python src/arendonc2/zonas_acopio.py
+Genera zonas, centros de referencia y métricas de partición.
+Metodología: docs/arendonc2/zonas_metodologia.md.
 """
 
 from __future__ import annotations
@@ -52,9 +23,7 @@ else:
 GADM_ZIP = common.DATA_GEO / "gadm41_COL_2.json.zip"
 
 
-# --------------------------------------------------------------------------
 # 1. Carga y validación de geometrías
-# --------------------------------------------------------------------------
 
 def cargar_geometrias(cfg: dict):
     """Carga polígonos de Valle (GADM) emparejados con cod_dane. Devuelve GeoDataFrame."""
@@ -95,9 +64,7 @@ def validar_geometrias(geo, mun_esperados: int = 42) -> dict:
     return diag
 
 
-# --------------------------------------------------------------------------
 # 2. Vecindad Queen
-# --------------------------------------------------------------------------
 
 def construir_vecindad(geo):
     """Construye la matriz de contigüidad Queen. Devuelve (w, lista_adyacencia_df)."""
@@ -135,9 +102,7 @@ def diagnosticar_vecindad(w, geo) -> dict:
     }
 
 
-# --------------------------------------------------------------------------
 # 3. Variables de agrupamiento
-# --------------------------------------------------------------------------
 
 def construir_features(geo, cfg: dict) -> pd.DataFrame:
     """
@@ -202,9 +167,7 @@ def construir_features(geo, cfg: dict) -> pd.DataFrame:
     return feats
 
 
-# --------------------------------------------------------------------------
 # 4. Agrupamiento Ward con restricción de conectividad
-# --------------------------------------------------------------------------
 
 def _connectivity_matrix(w, n):
     """Matriz de adyacencia dispersa (scipy) a partir de los vecinos Queen."""
@@ -234,9 +197,7 @@ def agrupar(feats: pd.DataFrame, w, k: int):
     return etiquetas
 
 
-# --------------------------------------------------------------------------
 # 5. Métricas y selección de k
-# --------------------------------------------------------------------------
 
 def _tiempos_dict(matriz: pd.DataFrame) -> dict:
     return {(r.origen, r.destino): r.minutos for r in matriz.itertuples()}
@@ -341,9 +302,7 @@ def metricas_para_k(etiquetas, feats, w, geo, tiempos) -> dict:
     }
 
 
-# --------------------------------------------------------------------------
 # 6. Orquestación
-# --------------------------------------------------------------------------
 
 def ejecutar(cfg: dict | None = None, guardar: bool = True) -> dict:
     """Pipeline completo de la tarea #2. Devuelve dict con resultados principales."""

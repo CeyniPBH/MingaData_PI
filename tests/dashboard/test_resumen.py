@@ -32,9 +32,7 @@ def modelo():
     return cob.ModeloCobertura(muns)
 
 
-# --------------------------------------------------------------------------
 # Cobertura y ranking de Bugalagrande
-# --------------------------------------------------------------------------
 def test_total_area(modelo):
     # 71.426 ha en 42 municipios (matriz de trazabilidad)
     assert round(modelo.total_ha) == 71426
@@ -56,9 +54,7 @@ def test_ranking_siguientes(modelo):
     assert primeros["Zarzal"] == pytest.approx(0.514, abs=0.001)
 
 
-# --------------------------------------------------------------------------
 # Volumen base y escenarios
-# --------------------------------------------------------------------------
 def test_volumen_base_y_escenarios(modelo):
     ve = cob.volumenes_escenarios(modelo, "Bugalagrande")
     base = ve.loc[ve["escenario"].str.startswith("Base"), "volumen_t"].iloc[0]
@@ -77,9 +73,7 @@ def test_base_define_100pct(modelo):
     assert ve.loc[ve["escenario"].str.startswith("Base"), "pct_vs_base"].iloc[0] == 1.0
 
 
-# --------------------------------------------------------------------------
 # Razones frente al referente del sur (Vijes)
-# --------------------------------------------------------------------------
 def test_referente_sur_es_vijes(modelo):
     assert modelo.nombre(modelo.mejor_sede(("Sur",))) == "Vijes"
 
@@ -95,9 +89,7 @@ def test_razones_vs_vijes(modelo):
     assert round(modelo.volumen_captable("Vijes")) == 45802
 
 
-# --------------------------------------------------------------------------
 # Participación de piña EN TONELADAS y t/ha sin piña
-# --------------------------------------------------------------------------
 def test_pina_en_toneladas(modelo):
     comp_vijes = cob.composicion_sede(PROD, modelo, "Vijes")
     comp_buga = cob.composicion_sede(PROD, modelo, "Bugalagrande")
@@ -113,9 +105,7 @@ def test_t_por_ha_sin_pina(modelo):
     assert comp_buga["t_por_ha_sin_pina"] == pytest.approx(11.6, abs=0.2)
 
 
-# --------------------------------------------------------------------------
 # Denominador y frecuencias reales de escenarios de optimización
-# --------------------------------------------------------------------------
 @pytest.fixture(scope="module")
 def estabilidad():
     return pd.read_csv(RAIZ / "data/results/opt/estabilidad_escenarios.csv")
@@ -142,9 +132,7 @@ def test_sede_sin_selecciones(estabilidad):
     assert int(frec["frecuencias"].get("Vijes", 0)) == 0
 
 
-# --------------------------------------------------------------------------
 # Exposición y anualización (método del informe)
-# --------------------------------------------------------------------------
 def test_exposicion_sin_cana_equivalencia():
     e = cob.exposicion_sin_cana()
     assert e["sin_modelo_millones"] == pytest.approx(100.08, abs=0.1)
@@ -163,9 +151,7 @@ def test_anualizacion_no_coincide_con_acumulado():
     assert e["valoracion_acumulada_5anios_cop"] > 4 * e["valoracion_anual_cop"]
 
 
-# --------------------------------------------------------------------------
 # Casos de borde: fuera del top 10 y denominadores
-# --------------------------------------------------------------------------
 def test_sede_fuera_top10(modelo):
     rk = modelo.ranking_area()
     cali = rk[rk["sede"] == "Cali"].iloc[0]
@@ -185,9 +171,7 @@ def test_denominador_cero_no_rompe(modelo):
     assert "pct_pina_toneladas" in comp  # devuelve dict sin romper
 
 
-# --------------------------------------------------------------------------
 # Coherencia entre tarjetas, descarga y formatos
-# --------------------------------------------------------------------------
 def test_coherencia_titulo_y_tarjetas(modelo):
     titulo = cob.titulo_resumen(modelo, modelo.cod_dane("Bugalagrande"))
     assert "52,1 %" in titulo

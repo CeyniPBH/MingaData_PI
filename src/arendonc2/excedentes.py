@@ -1,39 +1,7 @@
-"""
-TAREA #3 — Excedentes bajo escenarios de oferta y consumo.
+"""Calcula excedentes municipales y zonales para escenarios de oferta y consumo.
 
-Estima cuánta producción de cada producto sobra frente al consumo local, tratando
-el consumo como un supuesto con escenarios (bajo/base/alto, factores 0.8/1.0/1.2).
-
-Fórmulas (por producto, municipio, año):
-  consumo_local_t   = kg_per_capita_anio * poblacion * factor_consumo / 1000
-  excedente_municipal_t = max(0, oferta_t - consumo_local_t)
-
-Genera las 9 combinaciones (3 oferta × 3 consumo) y agrega por zona DESPUÉS de
-recortar el excedente municipal a >= 0.
-
-Reglas clave:
-  - Consumo per cápita FAOSTAT: se usa el último año disponible (2023) para todos
-    los años proyectados (no hay serie futura); se documenta como supuesto.
-  - Categorías FAOSTAT amplias se reparten entre cultivos equivalentes por su
-    producción histórica regional 2019-2023; las cuotas suman 1 por categoría.
-  - Productos sin equivalencia (pendiente=true): consumo_local = 0 pero marcados
-    'consumo_pendiente' = 1 y 'motivo_pendiente'. NUNCA se asume consumo cero
-    para un producto con equivalencia desconocida sin marcarlo.
-  - Caña de azúcar excluida.
-  - Límites inferiores negativos del pronóstico se recortan a 0 y se registran
-    en auditoría; los archivos fuente quedan intactos.
-  - Sobreoferta: oferta > media_hist + 1 desv. estándar muestral (2019-2023).
-    Si falta historia suficiente, la alerta queda 'sin determinar'.
-
-Salidas:
-  - data/results/excedentes.csv
-  - data/results/arendonc2/excedentes_por_zona.csv
-  - data/results/arendonc2/excedentes_cobertura.csv
-  - data/results/arendonc2/excedentes_pendientes.csv
-  - data/results/arendonc2/faostat_mapeo_cuotas.csv
-  - data/results/arendonc2/excedentes_auditoria_recortes.csv
-
-Uso: python src/arendonc2/excedentes.py
+Los productos sin equivalencia de consumo quedan pendientes y no aportan volumen.
+Supuestos: docs/arendonc2/supuestos_excedentes.md.
 """
 
 from __future__ import annotations
@@ -54,9 +22,7 @@ else:
 MAPEO_YAML = common.ROOT / "config" / "arendonc2" / "mapeo_faostat.yaml"
 
 
-# --------------------------------------------------------------------------
 # Mapeo FAOSTAT y cuotas de reparto
-# --------------------------------------------------------------------------
 
 def cargar_mapeo() -> dict:
     with open(MAPEO_YAML, "r", encoding="utf-8") as fh:
@@ -174,9 +140,7 @@ def consumo_percapita_por_producto(cuotas: pd.DataFrame, consumo: pd.DataFrame,
     return pd.DataFrame(filas)
 
 
-# --------------------------------------------------------------------------
 # Oferta en formato largo con escenarios + auditoría de recortes negativos
-# --------------------------------------------------------------------------
 
 def oferta_larga_con_auditoria(cfg: dict):
     """
@@ -206,9 +170,7 @@ def oferta_larga_con_auditoria(cfg: dict):
     return largo, auditoria
 
 
-# --------------------------------------------------------------------------
 # Sobreoferta (alerta coyuntural)
-# --------------------------------------------------------------------------
 
 def calcular_umbral_sobreoferta(cfg: dict) -> pd.DataFrame:
     """
@@ -241,9 +203,7 @@ def calcular_umbral_sobreoferta(cfg: dict) -> pd.DataFrame:
     return pd.DataFrame(filas)
 
 
-# --------------------------------------------------------------------------
 # Pipeline principal
-# --------------------------------------------------------------------------
 
 def ejecutar(cfg: dict | None = None, guardar: bool = True) -> dict:
     if cfg is None:

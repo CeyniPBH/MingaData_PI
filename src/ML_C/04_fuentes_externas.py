@@ -7,7 +7,7 @@ from common import CFG, RAW, CLEAN, RES
 SIPSA = RAW / "SIPSA"
 MESES = {"ene": 1, "feb": 2, "mar": 3, "abr": 4, "may": 5, "jun": 6, "jul": 7, "ago": 8, "sep": 9, "sept": 9, "oct": 10, "nov": 11, "dic": 12}
 
-# Producto armonizado del Valle -> productos SIPSA equivalentes (regex sobre el nombre SIPSA; se excluyen importados).
+# Relaciona productos armonizados con nombres equivalentes de SIPSA.
 EQUIV_SIPSA = {
     "Plátano": r"^Plátano (?:hartón|dominico|comino)", "Cítricos": r"^(?:Limón|Mandarina|Naranja|Tangelo)",
     "Piña": r"^Piña", "Banano": r"^Banano (?:Urabá|criollo)", "Aguacate": r"^Aguacate", "Vid": r"^Uva (?:Isabela|red globe|roja|verde)",

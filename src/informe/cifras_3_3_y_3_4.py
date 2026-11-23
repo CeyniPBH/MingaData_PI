@@ -62,9 +62,8 @@ for h, gh in s.groupby("horizonte"):
           f" error del total departamental {por_anio.vs.abs().sum()/por_anio.vr.sum():.1%}")
 
 
-# ---------- 3.4.3: comparación con la situación sin modelo (exposición logística, sin caña) ----------
-# Mismo método de src/ML_C/10_metrica_negocio.py, pero sin la caña de azúcar, que no entra a la central:
-# toneladas mal estimadas × minutos al acopio más cercano de la red del escenario base, a 250 COP por t·min
+# 3.4.3: exposición logística sin caña de azúcar.
+# Aplica el método de 10_metrica_negocio.py a la red del escenario base.
 # (camión de 8 t a 120.000 COP por hora). Sin modelo = promedio de los últimos cinco años.
 comp = pd.read_csv(RES / "opt/comparacion_libre_vs_zonas.csv")
 fila = comp[comp.modo == "libre"].iloc[0]

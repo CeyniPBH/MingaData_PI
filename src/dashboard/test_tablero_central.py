@@ -229,7 +229,7 @@ def main():
           "pintar() no referencia elementos retirados (frase/q1/q2)")
     check('"q1"' not in texto and '"q2"' not in texto,
           "No quedan referencias DOM a q1/q2")
-    # Los controles se trasladaron a la barra lateral de Streamlit: no deben quedar en el HTML.
+    # Los controles deben permanecer fuera del HTML.
     for cid in ('id="c-sede"', 'id="c-radio"', 'id="c-capt"', 'id="c-cap"', 'id="c-esc"',
                 'id="sede"', 'id="radio"', 'id="capt"', 'id="cap"', 'id="ajustes"'):
         check(cid not in cuerpo, "No queda el control en el HTML: {}".format(cid))

@@ -227,9 +227,7 @@ def cargar_metrica_negocio():
     return _leer("metrica_negocio_resumen", DATA_RES)
 
 
-# ---------------------------------------------------------------------------
 # Formatos numéricos colombianos (coma decimal, punto de miles)
-# ---------------------------------------------------------------------------
 def _es_nulo(x):
     try:
         return x is None or (isinstance(x, float) and pd.isna(x))

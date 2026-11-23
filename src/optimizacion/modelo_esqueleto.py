@@ -14,9 +14,7 @@ import pandas as pd
 from ortools.linear_solver import pywraplp
 
 
-# =============================================================================
 # 1. DATOS FICTICIOS (15 municipios del Valle del Cauca)
-# =============================================================================
 
 MUNICIPIOS_FICTICIOS = [
     # cod_dane, municipio, lat, lon, oferta_total_ton
@@ -89,9 +87,7 @@ def generar_matriz_tiempos(municipios, destinos):
     return tiempos, todos_nodos
 
 
-# =============================================================================
 # 2. MODELO OR-TOOLS
-# =============================================================================
 
 def resolver_modelo(municipios, destinos, tiempos, k=K_SATELITES, lam=LAMBDA,
                     pct_nac=PCT_NACIONAL, pct_exp=PCT_EXPORTACION):
@@ -112,17 +108,13 @@ def resolver_modelo(municipios, destinos, tiempos, k=K_SATELITES, lam=LAMBDA,
     C = cod_mun  # candidatos a central (todos los municipios)
     S = cod_mun  # candidatos a satelite (todos los municipios)
 
-    # =========================================================================
     # VARIABLES
-    # =========================================================================
     x = {c: solver.BoolVar(f"x_{c}") for c in C}           # abrir central en c
     y = {s: solver.BoolVar(f"y_{s}") for s in S}           # abrir satelite en s
     z = {(m, s): solver.BoolVar(f"z_{m}_{s}") for m in cod_mun for s in S}  # m asignado a s
     w = {(s, c): solver.BoolVar(f"w_{s}_{c}") for s in S for c in C}         # s asignado a c
 
-    # =========================================================================
     # RESTRICCIONES
-    # =========================================================================
 
     # R1: Una sola central
     solver.Add(solver.Sum([x[c] for c in C]) == 1)
@@ -142,9 +134,7 @@ def resolver_modelo(municipios, destinos, tiempos, k=K_SATELITES, lam=LAMBDA,
         for c in C:
             solver.Add(w[(s, c)] <= x[c])
 
-    # =========================================================================
     # FUNCION OBJETIVO
-    # =========================================================================
 
     # Z1: Costo de recoleccion (municipio -> satelite)
     # oferta[m] * tiempo[m][s] * z[m,s]  (oferta es constante, z es binaria -> lineal)
@@ -175,9 +165,7 @@ def resolver_modelo(municipios, destinos, tiempos, k=K_SATELITES, lam=LAMBDA,
     # Objetivo combinado
     solver.Minimize(lam * costo_recoleccion + (1 - lam) * costo_distribucion)
 
-    # =========================================================================
     # RESOLVER
-    # =========================================================================
     status = solver.Solve()
 
     if status not in (pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE):
@@ -232,9 +220,7 @@ def resolver_modelo(municipios, destinos, tiempos, k=K_SATELITES, lam=LAMBDA,
     }
 
 
-# =============================================================================
 # 3. EJECUCION PRINCIPAL
-# =============================================================================
 
 def main():
     print("=" * 70)

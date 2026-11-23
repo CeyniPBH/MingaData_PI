@@ -1,12 +1,4 @@
-"""Carga y predicción del modelo para la API REST.
-
-El modelo se resuelve en este orden:
-  1. Variable de entorno MINGA_MODELO_S3_URL (ruta s3://bucket/version/modelo.joblib)
-  2. Archivo local en data/modelos/ (el más reciente)
-  3. Si no existe, devuelve error claro.
-
-Cumple SI7006-6: modelo persistido y consumible desde una API.
-"""
+"""Carga el modelo de prediccion desde S3 o la carpeta local de modelos."""
 
 from __future__ import annotations
 
@@ -23,7 +15,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 MODELOS_DIR = ROOT / "data" / "modelos"
 
-# Agregar src/ al path para poder importar ML_C.common (cargar_panel, cargar_oni, ANIO_FIN)
+# Agrega src/ para importar ML_C.common.
 sys.path.insert(0, str(ROOT / "src"))
 
 
@@ -37,9 +29,7 @@ class ModeloPredictor:
         self.error_carga = ""
         self._panel_cache = None  # (series, lp, oni) cargado bajo demanda
 
-    # ------------------------------------------------------------------
     # Carga del modelo y metadata
-    # ------------------------------------------------------------------
     def cargar(self) -> bool:
         """Intenta cargar el modelo. Devuelve True si tuvo éxito."""
         # 1. Desde S3 si se indica por variable de entorno
@@ -134,9 +124,7 @@ class ModeloPredictor:
 
         return {"fuente": "s3", "url": s3_url}
 
-    # ------------------------------------------------------------------
     # Features históricas reales (mismo cálculo que 06_lgbm.py)
-    # ------------------------------------------------------------------
     def _obtener_panel(self):
         """Carga (series, lp, oni) bajo demanda y los cachea."""
         if self._panel_cache is not None:
@@ -213,9 +201,7 @@ class ModeloPredictor:
 
         return X, T, last
 
-    # ------------------------------------------------------------------
     # Predicción
-    # ------------------------------------------------------------------
     def predecir(
         self,
         producto: str,

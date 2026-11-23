@@ -1,6 +1,6 @@
-"""Corre el módulo completo en orden. Uso: python src/ML_C/ejecutar_todo.py [--sin-modelos]
+"""Ejecuta en orden los pasos del módulo de pronóstico.
 
---sin-modelos corre solo datos (00-04) y el validador; útil si no se tiene lightgbm/statsmodels instalados.
+Usa --sin-modelos para omitir el entrenamiento.
 """
 import subprocess, sys
 from pathlib import Path

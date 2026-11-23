@@ -74,7 +74,7 @@ for (cod, grupo), ha in por_municipio.items():
 # ---------- Mapa ----------
 fig = plt.figure(figsize=(7.1, 4.3))
 mapa = fig.add_axes([0.0, 0.02, 0.52, 0.96])
-# Cada subregión se dibuja con borde grueso y luego se rellena: solo quedan visibles los límites entre subregiones.
+# Dibuja primero los bordes para conservar los límites entre subregiones.
 for k, s in enumerate(["Pacífico", "Sur", "Centro", "Norte"]):
     anillos_s = [a for cod, lista in municipios.items() if subregion.get(cod) == s for a in lista]
     mapa.add_collection(PolyCollection(anillos_s, facecolor="none", edgecolor="#8A919C", linewidth=2.0, zorder=2 * k + 1))

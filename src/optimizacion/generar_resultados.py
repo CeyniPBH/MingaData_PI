@@ -101,9 +101,7 @@ COLS_RESUMEN = [
 _SOLVER_VERSION = {"valor": None}
 
 
-# =============================================================================
 # UTILIDADES
-# =============================================================================
 
 def _sha256(ruta: Path) -> str:
     h = hashlib.sha256()
@@ -196,9 +194,7 @@ def _resumen_archivo(ruta: Path) -> dict:
     }
 
 
-# =============================================================================
 # 1. BARRIDO DE LAMBDA Y FRONTERA DE PARETO (ESCENARIO BASE)
-# =============================================================================
 
 def generar_pareto(paquete, municipios, destinos, tiempos, k, lambdas,
                    tiempo_limite_s, gap_relativo, salida: Path):
@@ -230,9 +226,7 @@ def generar_pareto(paquete, municipios, destinos, tiempos, k, lambdas,
     return barrido, frontera
 
 
-# =============================================================================
 # 2. ESTABILIDAD EN TODOS LOS ESCENARIOS DE escenarios.csv
-# =============================================================================
 
 def generar_estabilidad(municipios, destinos, tiempos, anios, k, lam,
                         tiempo_limite_s, gap_relativo, salida: Path):
@@ -296,9 +290,7 @@ def generar_estabilidad(municipios, destinos, tiempos, anios, k, lam,
     return df
 
 
-# =============================================================================
 # 3. COMPARACION LIBRE vs ZONAS
-# =============================================================================
 
 def generar_comparacion(paquete, municipios, destinos, tiempos, k, lam,
                         tiempo_limite_s, gap_relativo, salida: Path):
@@ -383,9 +375,7 @@ def generar_comparacion(paquete, municipios, destinos, tiempos, k, lam,
     return df, resumen
 
 
-# =============================================================================
 # METADATOS
-# =============================================================================
 
 def escribir_metadata(salida: Path, parametros: dict) -> Path:
     entradas = [
@@ -424,9 +414,7 @@ def escribir_metadata(salida: Path, parametros: dict) -> Path:
     return ruta
 
 
-# =============================================================================
 # CLI
-# =============================================================================
 
 def parsear_args(argv=None):
     ap = argparse.ArgumentParser(

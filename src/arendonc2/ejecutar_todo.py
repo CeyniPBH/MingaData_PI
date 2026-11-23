@@ -1,13 +1,4 @@
-"""
-Orquestador reproducible de los módulos de arendonc2.
-
-Ejecuta en orden:
-  0. Descarga geometrías GADM (si faltan).
-  1. Población municipal DANE (si falta).
-  2. Tarea #2 — zonas de acopio.
-  3. Tarea #3 — excedentes.
-  4. Tarea #4 — escenarios de optimización.
-  5. Demostración del adaptador para Samuel.
+"""Ejecuta la descarga de insumos y los módulos de zonas, excedentes y escenarios.
 
 Uso: python src/arendonc2/ejecutar_todo.py
 """

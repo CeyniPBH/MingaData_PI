@@ -68,9 +68,7 @@ def main():
     k = int(meta.get("parametros", {}).get("k", 5))
     lam = float(meta.get("parametros", {}).get("lambda", 0.5))
 
-    # ------------------------------------------------------------------
     # 1. Barrido y frontera de Pareto
-    # ------------------------------------------------------------------
     print("\n--- 1. Barrido de lambda y frontera de Pareto ---")
     barrido = _leer("barrido_lambda_base.csv", dtype={"central_cod": str,
                                                       "satelites_cods": str})
@@ -108,9 +106,7 @@ def main():
         check(frontera["A"].is_monotonic_increasing or frontera["B"].is_monotonic_increasing,
               "La frontera esta ordenada por al menos un eje de costo")
 
-    # ------------------------------------------------------------------
     # 2. Estabilidad
-    # ------------------------------------------------------------------
     print("\n--- 2. Estabilidad en escenarios.csv ---")
     estabilidad = _leer("estabilidad_escenarios.csv",
                         dtype={"central_cod": str, "satelites_cods": str})
@@ -163,9 +159,7 @@ def main():
         print("  Info: {} de {} escenarios cambian de central respecto al base de su anio.".format(
             len(cambios), len(estabilidad)))
 
-    # ------------------------------------------------------------------
     # 3. Comparacion libre vs zonas
-    # ------------------------------------------------------------------
     print("\n--- 3. Comparacion libre vs zonas ---")
     comparacion = _leer("comparacion_libre_vs_zonas.csv",
                         dtype={"central_cod": str, "satelites_cods": str})
@@ -211,9 +205,7 @@ def main():
             str(zonas["central_cod"]) == str(libre["central_cod"])),
             "El resumen reporta correctamente si la central cambia")
 
-    # ------------------------------------------------------------------
     # 4. Metadatos y huellas
-    # ------------------------------------------------------------------
     print("\n--- 4. Metadatos ---")
     if meta:
         salidas = meta.get("salidas", {})
