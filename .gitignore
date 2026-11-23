@@ -3,6 +3,10 @@
 venv/
 .env
 
+# --- Secretos de Streamlit (no subir al repo) ---
+.streamlit/secrets.toml
+**/.streamlit/secrets.toml
+
 # --- Python ---
 __pycache__/
 *.pyc

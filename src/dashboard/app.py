@@ -36,8 +36,10 @@ import folium
 import streamlit.components.v1 as components
 from streamlit_folium import st_folium
 
-# --- Leer secrets de Streamlit Cloud y establecer como variables de entorno ---
-# utils.py y API_URL leen os.getenv; en Streamlit Cloud los valores vienen de st.secrets
+# --- Precedencia de configuración: variable de entorno > st.secrets > valor por defecto ---
+# utils.py y API_URL leen os.getenv. En Streamlit Cloud los valores vienen de st.secrets;
+# en local pueden venir de una variable de entorno. Una variable ya definida en el entorno
+# NO se sobrescribe con secrets, para que `export MINGA_API_URL=...` tenga efecto.
 try:
     for _key in [
         "MINGA_API_URL",
@@ -48,13 +50,15 @@ try:
         "AWS_SECRET_ACCESS_KEY",
         "MINGA_MODELO_S3_URL",
     ]:
-        if _key in st.secrets:
+        # Solo tomar el secret si la variable de entorno no está ya definida.
+        if not os.environ.get(_key) and _key in st.secrets:
             os.environ[_key] = str(st.secrets[_key])
 except Exception:
     pass  # No estamos en Streamlit Cloud o no hay secrets configurados
 
 from utils import (
     cargar_oferta_escenarios,
+    cargar_oferta_detalle,
     cargar_oferta_departamento,
     cargar_coherencia,
     cargar_municipios_coordenadas,
@@ -73,6 +77,7 @@ from utils import (
     obtener_municipios_por_producto,
     obtener_serie_historica,
     obtener_pronostico_municipio,
+    obtener_modelo_serie,
 )
 
 from tablero_central import generar_html_tablero, construir_config
@@ -115,8 +120,10 @@ try:
 except Exception:
     _REQUESTS_DISPONIBLE = False
 
-# URL de la API (variable de entorno o localhost por defecto)
-API_URL = os.getenv("MINGA_API_URL", "http://localhost:8000").rstrip("/")
+# URL de la API. Por defecto apunta a la API desplegada (con modelo cargado); se puede
+# sobrescribir con la variable de entorno MINGA_API_URL (p. ej. para una API local).
+API_URL_DEFAULT = "https://mingadata-api.onrender.com"
+API_URL = (os.getenv("MINGA_API_URL") or API_URL_DEFAULT).rstrip("/")
 
 # =============================================================================
 # CARGA DE DATOS
@@ -385,6 +392,49 @@ def _ubicacion_controles_sidebar(anios):
 
 
 # =============================================================================
+# PANTALLA 1 - OFERTA: controles de negocio en la barra lateral
+# =============================================================================
+O_PRODUCTO = "oferta_producto"
+O_MUNICIPIO = "oferta_municipio"
+O_ESCENARIOS = "oferta_mostrar_escenarios"
+
+
+def _oferta_controles_sidebar(oferta_df, municipios_df):
+    """Producto, municipio y el interruptor de escenarios de la pantalla 1, en la barra
+    lateral. Devuelve (producto, cod_dane, mostrar_escenarios). Conserva la selección y
+    evita que quede información de una selección anterior cuando cambia el producto."""
+    if oferta_df.empty:
+        st.sidebar.info("No hay datos de oferta disponibles.")
+        return None, None, False
+
+    productos = obtener_productos_disponibles(oferta_df)
+    producto = st.sidebar.selectbox("Producto", productos, key=O_PRODUCTO)
+
+    # Municipios con datos para el producto elegido (cualquier año disponible).
+    sub = oferta_df[oferta_df["producto"] == producto]
+    cods = sorted(sub["cod_dane"].astype(str).unique())
+    nombres = municipios_df.set_index("cod_dane")["municipio"].to_dict() if not municipios_df.empty else {}
+    etiquetas = ["{} - {}".format(c, nombres.get(c, c)) for c in cods]
+    mapa = dict(zip(etiquetas, cods))
+
+    # Si el municipio guardado no pertenece al nuevo producto, se reinicia al primero
+    # (así no queda información de la selección anterior).
+    if etiquetas and st.session_state.get(O_MUNICIPIO) not in etiquetas:
+        st.session_state[O_MUNICIPIO] = etiquetas[0]
+    if not etiquetas:
+        st.sidebar.warning("No hay municipios con datos para {}.".format(producto))
+        return producto, None, False
+
+    etiqueta_sel = st.sidebar.selectbox("Municipio", etiquetas, key=O_MUNICIPIO)
+    cod_dane = mapa.get(etiqueta_sel)
+
+    mostrar = st.sidebar.toggle("Mostrar escenarios bajo y alto", key=O_ESCENARIOS, value=False) \
+        if hasattr(st.sidebar, "toggle") else \
+        st.sidebar.checkbox("Mostrar escenarios bajo y alto", key=O_ESCENARIOS, value=False)
+    return producto, cod_dane, bool(mostrar)
+
+
+# =============================================================================
 # SIDEBAR - NAVEGACION
 # =============================================================================
 st.sidebar.title("🌱 MingaData")
@@ -417,6 +467,12 @@ elif pantalla == "3. Ubicacion":
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Filtros de esta vista")
     _ubicacion_controles_sidebar(anos_disponibles)
+    ano_seleccionado = anos_disponibles[0]
+    escenario = "base"
+elif pantalla == "1. Oferta":
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Filtros de esta vista")
+    _OFERTA_SEL = _oferta_controles_sidebar(oferta, municipios)
     ano_seleccionado = anos_disponibles[0]
     escenario = "base"
 else:
@@ -882,45 +938,67 @@ def _resumen_detalle_pronostico():
 
 def _resumen_detalle_api(produccion, modelo):
     with st.expander("API y base de datos", expanded=False):
+        st.caption("API en uso: {}".format(API_URL))
+
+        # --- Estado de la API y del modelo (dos señales distintas) ---
+        api_conectada = False
+        modelo_cargado = False
+        health_err = None
         col_api, col_db = st.columns(2)
         with col_api:
             st.markdown("**API REST (predicciones)**")
-            if _REQUESTS_DISPONIBLE:
+            if not _REQUESTS_DISPONIBLE:
+                st.info("requests no instalado; se consultan solo los resultados locales.")
+            else:
                 try:
-                    r = requests.get(f"{API_URL}/health", timeout=10)
+                    r = requests.get(f"{API_URL}/health", timeout=15)
                     if r.status_code == 200:
                         datos = r.json()
-                        st.success("API en línea")
-                        st.caption("Modelo cargado: {}".format(datos.get("modelo_cargado", False)))
+                        api_conectada = True
+                        modelo_cargado = bool(datos.get("modelo_cargado", False))
+                        st.success("API conectada")
+                        if modelo_cargado:
+                            st.success("Modelo listo para predecir")
+                        else:
+                            st.warning("Modelo NO cargado en la API: la predicción no está disponible")
+                            if datos.get("error"):
+                                st.caption("Detalle de la API: {}".format(datos["error"]))
                     else:
+                        health_err = "HTTP {}".format(r.status_code)
                         st.warning("API respondió {}".format(r.status_code))
                 except Exception as ex:
+                    health_err = "{}: {}".format(type(ex).__name__, ex)
                     st.warning("API no alcanzable en {}".format(API_URL))
-                    st.caption("Los resultados locales siguen disponibles. Detalle: {}".format(type(ex).__name__))
-            else:
-                st.info("requests no instalado; se consultan solo los resultados locales.")
-            st.caption("El endpoint /predict devuelve una predicción **LightGBM**; no es el "
-                       "modelo final combinado (promedio ingenuo + LightGBM). Contrato de "
-                       "/predict sin cambios en este PR.")
+                    st.caption("Los resultados locales del tablero siguen disponibles. Detalle: {}".format(health_err))
+            st.caption("La predicción en vivo corresponde al componente **LightGBM** del "
+                       "modelo; no es el modelo final combinado (promedio del ingenuo y LightGBM).")
         with col_db:
-            st.markdown("**Base de datos (DuckDB)**")
-            if _REQUESTS_DISPONIBLE:
+            st.markdown("**Métricas (base de datos / respaldo)**")
+            if not _REQUESTS_DISPONIBLE:
+                st.info("requests no instalado; se consultan solo los resultados locales.")
+            else:
                 try:
                     r = requests.get(f"{API_URL}/metricas", timeout=20)
                     if r.status_code == 200:
                         datos = r.json()
-                        fuente = datos.get("fuente")
-                        st.success("Fuente de métricas: {}".format(fuente or "n.d."))
-                        st.caption("Métricas disponibles: {}".format(len(datos.get("metricas", []))))
+                        fuente = (datos.get("fuente") or "").lower()
+                        n_met = len(datos.get("metricas", []))
+                        if fuente == "duckdb":
+                            st.success("Métricas desde DuckDB (base de datos conectada)")
+                        elif fuente == "csv":
+                            st.info("Métricas desde CSV de respaldo (DuckDB no disponible)")
+                        else:
+                            st.warning("Métricas sin fuente identificable: {}".format(fuente or "n.d."))
+                        st.caption("Métricas disponibles: {}".format(n_met))
+                        if datos.get("aviso"):
+                            st.caption(datos["aviso"])
                     else:
-                        st.warning("API respondió {}".format(r.status_code))
+                        st.warning("API respondió {} al pedir /metricas".format(r.status_code))
                 except Exception as ex:
                     st.warning("No se pudo consultar /metricas.")
                     st.caption("El resumen sigue funcionando con los datos locales. Detalle: {}".format(type(ex).__name__))
-            else:
-                st.info("requests no instalado; se consultan solo los resultados locales.")
 
-        # Formulario de predicción existente (se conserva)
+        # --- Formulario de predicción (se conserva) ---
         st.markdown("**Probar predicción en vivo (LightGBM vía /predict)**")
         if not _REQUESTS_DISPONIBLE:
             st.info("requests no instalado; no se puede consultar la API.")
@@ -940,7 +1018,14 @@ def _resumen_detalle_api(produccion, modelo):
                 idx_m = next((i for i, cod in enumerate(codigos) if cod == "76113"), 0)
                 mun_sel = fc2.selectbox("Municipio", etiquetas, index=idx_m, key="api_municipio")
                 anio_sel = fc3.selectbox("Año", [2024, 2025, 2026, 2027, 2028], index=0, key="api_anio")
-                if st.button("Predecir oferta", key="api_predecir"):
+                # El botón se deshabilita si el modelo no está cargado en la API.
+                if not modelo_cargado:
+                    st.button("Predecir oferta", key="api_predecir", disabled=True)
+                    if api_conectada:
+                        st.caption("Predicción deshabilitada: la API está conectada pero el modelo no está cargado.")
+                    else:
+                        st.caption("Predicción deshabilitada: la API no está conectada (ver estado arriba).")
+                elif st.button("Predecir oferta", key="api_predecir"):
                     cod_sel = codigos[etiquetas.index(mun_sel)]
                     payload = {"producto": prod_sel, "cod_dane": cod_sel,
                                "horizonte": int(anio_sel) - 2023, "anio_objetivo": int(anio_sel)}
@@ -952,9 +1037,12 @@ def _resumen_detalle_api(produccion, modelo):
                             st.metric("Oferta estimada (LightGBM)", fmt_toneladas(d.get("prediccion_t", 0)))
                             st.caption("Modelo {} · fuente {}".format(d.get("modelo_version", "n.d."), d.get("fuente", "n.d.")))
                         else:
-                            st.error("API {}: {}".format(r.status_code, r.text[:200]))
+                            # Mostrar el error real de la API, no un éxito vacío.
+                            st.error("La predicción falló (HTTP {}).".format(r.status_code))
+                            st.caption("Respuesta de la API: {}".format(r.text[:300]))
                     except Exception as ex:
-                        st.warning("No se pudo consultar la API: {}".format(type(ex).__name__))
+                        st.error("No se pudo consultar /predict.")
+                        st.caption("Detalle: {}: {}".format(type(ex).__name__, ex))
 
 
 def _resumen_descarga(modelo, sede_cod, sur_cod, frec):
@@ -993,108 +1081,157 @@ def _resumen_descarga(modelo, sede_cod, sur_cod, frec):
 # PANTALLA 1: OFERTA
 # =============================================================================
 def pantalla_oferta():
-    st.title("📊 Pantalla 1 - Oferta por Producto y Municipio")
-    st.markdown("""
-    Consulta el pronóstico de oferta agrícola por producto y municipio, con intervalos
-    de confianza (bajo/base/alto) para el horizonte 2024-2028.
-    """)
+    st.title("Producción histórica y oferta estimada por municipio")
 
     if oferta.empty or municipios.empty:
         st.error("No se pudieron cargar los datos de oferta o municipios.")
         return
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        productos = obtener_productos_disponibles(oferta)
-        producto_sel = st.selectbox("Producto:", productos, index=0)
-
-    with col2:
-        mun_producto = obtener_municipios_por_producto(oferta, producto_sel, ano_seleccionado)
-        if not mun_producto.empty:
-            mun_opciones = sorted(mun_producto["cod_dane"].unique())
-            mun_nombres = municipios.set_index("cod_dane")["municipio"].to_dict()
-            mun_labels = ["{} - {}".format(c, mun_nombres.get(c, c)) for c in mun_opciones]
-            mun_sel_label = st.selectbox("Municipio:", mun_labels, index=0)
-            cod_dane_sel = mun_opciones[mun_labels.index(mun_sel_label)]
-        else:
-            st.warning("No hay datos de oferta para {} en el año {}".format(producto_sel, ano_seleccionado))
-            return
+    # Selección desde la barra lateral (producto, municipio, mostrar escenarios).
+    sel = globals().get("_OFERTA_SEL") or (None, None, False)
+    producto_sel, cod_dane_sel, mostrar_escenarios = sel
+    if not producto_sel or not cod_dane_sel:
+        st.info("Selecciona producto y municipio en la barra lateral.")
+        return
 
     serie_hist = obtener_serie_historica(produccion, producto_sel, cod_dane_sel)
     pronostico = obtener_pronostico_municipio(oferta, producto_sel, cod_dane_sel)
+    if pronostico.empty:
+        st.warning("No hay oferta estimada para {} en el municipio seleccionado.".format(producto_sel))
+        return
 
     mun_nombre = municipios.set_index("cod_dane")["municipio"].get(cod_dane_sel, cod_dane_sel)
 
-    st.markdown("### {} - {} ({})".format(producto_sel, mun_nombre, cod_dane_sel))
+    # Años reales disponibles (no fijados en el código).
+    anio_hist_max = int(serie_hist["anio"].max()) if not serie_hist.empty else None
+    anios_pron = sorted(int(a) for a in pronostico["año"].unique())
+    pron_min, pron_max = anios_pron[0], anios_pron[-1]
+    hist_desc = "hasta {}".format(anio_hist_max) if anio_hist_max else "registrada"
+
+    # Introducción breve, con años reales.
+    st.markdown(
+        "Compara la producción registrada {} con la oferta estimada para {}-{}.".format(
+            hist_desc, pron_min, pron_max))
+    st.caption(
+        "La línea base es la estimación principal. Los escenarios bajo y alto muestran un "
+        "rango construido con errores históricos; no representan un crecimiento asegurado ni "
+        "límites garantizados.")
+    st.markdown("**{} · {} ({})**".format(producto_sel, mun_nombre, cod_dane_sel))
+
+    GRIS = "#8A94A6"      # histórico (neutro)
+    ROJO = "#D62828"      # pronóstico base (acento del dashboard)
+    ROJO_SUAVE = "rgba(214,40,40,0.16)"  # banda de escenarios
 
     fig = go.Figure()
 
+    # --- Histórico (gris, línea sólida con marcadores) ---
     if not serie_hist.empty:
         fig.add_trace(go.Scatter(
-            x=serie_hist["anio"],
-            y=serie_hist["produccion_t"],
-            mode="lines+markers",
-            name="Historico (2000-2023)",
-            line=dict(color="#1f77b4", width=2),
-            marker=dict(size=6),
+            x=serie_hist["anio"], y=serie_hist["produccion_t"],
+            mode="lines+markers", name="Histórico",
+            line=dict(color=GRIS, width=2),
+            marker=dict(size=6, symbol="circle"),
+            hovertemplate="Año %{x}<br>Histórico: %{y:,.0f} t<extra></extra>",
         ))
 
-    if not pronostico.empty:
-        fig.add_trace(go.Scatter(
-            x=pronostico["año"],
-            y=pronostico["oferta_base"],
-            mode="lines+markers",
-            name="Pronostico base",
-            line=dict(color="#2ca02c", width=2, dash="dash"),
-            marker=dict(size=6, symbol="diamond"),
-        ))
+    # --- Banda de escenarios (solo si el usuario la activa) ---
+    if mostrar_escenarios:
         fig.add_trace(go.Scatter(
             x=pronostico["año"].tolist() + pronostico["año"].tolist()[::-1],
             y=pronostico["oferta_alto"].tolist() + pronostico["oferta_bajo"].tolist()[::-1],
-            fill="toself",
-            fillcolor="rgba(44, 160, 44, 0.2)",
-            line=dict(color="rgba(255,255,255,0)"),
-            showlegend=False,
-            name="Intervalo bajo-alto",
+            fill="toself", fillcolor=ROJO_SUAVE,
+            line=dict(color="rgba(0,0,0,0)"),
+            name="Escenarios bajo–alto", legendgroup="esc",
+            hoverinfo="skip", showlegend=True,
         ))
         fig.add_trace(go.Scatter(
-            x=pronostico["año"],
-            y=pronostico["oferta_alto"],
-            mode="lines",
-            line=dict(color="rgba(255,255,255,0)"),
-            showlegend=False,
+            x=pronostico["año"], y=pronostico["oferta_alto"],
+            mode="lines", line=dict(color=ROJO, width=1, dash="dot"),
+            name="Escenario alto", legendgroup="esc", showlegend=False,
+            hovertemplate="Año %{x}<br>Escenario alto: %{y:,.0f} t<extra></extra>",
         ))
         fig.add_trace(go.Scatter(
-            x=pronostico["año"],
-            y=pronostico["oferta_bajo"],
-            mode="lines",
-            line=dict(color="rgba(255,255,255,0)"),
-            showlegend=False,
+            x=pronostico["año"], y=pronostico["oferta_bajo"],
+            mode="lines", line=dict(color=ROJO, width=1, dash="dot"),
+            name="Escenario bajo", legendgroup="esc", showlegend=False,
+            hovertemplate="Año %{x}<br>Escenario bajo: %{y:,.0f} t<extra></extra>",
         ))
 
+    # --- Pronóstico base (rojo, línea discontinua con marcadores en diamante) ---
+    fig.add_trace(go.Scatter(
+        x=pronostico["año"], y=pronostico["oferta_base"],
+        mode="lines+markers", name="Pronóstico (base)",
+        line=dict(color=ROJO, width=2.5, dash="dash"),
+        marker=dict(size=7, symbol="diamond"),
+        hovertemplate="Año %{x}<br>Base: %{y:,.0f} t<extra></extra>",
+    ))
+
+    # --- Separación vertical entre último observado y primer pronóstico ---
+    if anio_hist_max is not None:
+        corte = anio_hist_max + 0.5
+        fig.add_vline(x=corte, line_width=1.2, line_dash="dot", line_color="#667085")
+        fig.add_annotation(x=anio_hist_max, y=1.0, yref="paper", yanchor="bottom",
+                           showarrow=False, text="Histórico", font=dict(size=12, color=GRIS))
+        fig.add_annotation(x=pron_min, y=1.0, yref="paper", yanchor="bottom",
+                           showarrow=False, text="Pronóstico", font=dict(size=12, color=ROJO))
+
+    # Eje Y desde cero; incluye todos los valores cuando la banda está activa.
+    y_top = float(pronostico["oferta_alto"].max()) if mostrar_escenarios else float(pronostico["oferta_base"].max())
+    if not serie_hist.empty:
+        y_top = max(y_top, float(serie_hist["produccion_t"].max()))
     fig.update_layout(
-        title="Produccion y Pronostico - {} en {}".format(producto_sel, mun_nombre),
-        xaxis_title="Anio",
-        yaxis_title="Toneladas",
+        template="plotly_white", height=480,
+        margin=dict(l=8, r=8, t=56, b=8),
         hovermode="x unified",
-        template="plotly_white",
-        height=500,
+        legend=dict(orientation="h", yanchor="bottom", y=1.06, x=0, xanchor="left"),
+        yaxis=dict(title="Toneladas", rangemode="tozero", range=[0, y_top * 1.08], separatethousands=True),
+        xaxis=dict(title="Año", dtick=1),
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    if not pronostico.empty:
-        st.markdown("### Tabla de Pronostico")
-        st.dataframe(
-            pronostico.style.format({"oferta_bajo": "{:,.0f}", "oferta_base": "{:,.0f}", "oferta_alto": "{:,.0f}"}),
-            use_container_width=True,
-        )
+    if not mostrar_escenarios:
+        st.info("Estás viendo la estimación base. Puedes activar los escenarios bajo y alto "
+                "en la barra lateral.")
 
-    if not serie_hist.empty:
-        st.markdown("### Serie Historica Reciente (ultimos 10 anos)")
-        st.dataframe(
-            serie_hist.tail(10).style.format({"produccion_t": "{:,.0f}"}),
-            use_container_width=True,
+    # --- Tabla compacta: siempre con los tres valores, aunque la banda esté oculta ---
+    st.markdown("#### Oferta estimada por año")
+    tabla = pronostico.rename(columns={
+        "año": "Año", "oferta_bajo": "Escenario bajo (t)",
+        "oferta_base": "Estimación base (t)", "oferta_alto": "Escenario alto (t)"}).copy()
+    tabla["Año"] = tabla["Año"].astype(int)
+    st.dataframe(
+        tabla.style.format({
+            "Escenario bajo (t)": lambda v: fmt_entero(v),
+            "Estimación base (t)": lambda v: fmt_entero(v),
+            "Escenario alto (t)": lambda v: fmt_entero(v),
+        }),
+        use_container_width=True, hide_index=True,
+    )
+    st.caption("Una estimación casi estable entre años también es un pronóstico válido: "
+               "significa que el método no anticipa un cambio claro para esa serie, no que "
+               "falte información.")
+
+    # --- Explicación verificada de cómo se calculó ---
+    modelo_serie = obtener_modelo_serie(cargar_oferta_detalle(), producto_sel, cod_dane_sel)
+    nombre_metodo = {
+        "ingenuo": "método ingenuo (repite el último valor observado)",
+        "promedio_ingenuo_lgbm": "promedio del método ingenuo y LightGBM (modelo final)",
+    }.get(modelo_serie, modelo_serie)
+    with st.expander("Cómo se calculó"):
+        st.markdown(
+            "- **Pronósticos precalculados.** Cambiar los filtros consulta resultados ya "
+            "generados por el pipeline; no ejecuta un nuevo entrenamiento.\n"
+            "- **Método de esta serie:** {}.\n"
+            "- **Cómo se construye la banda:** los escenarios bajo y alto se obtienen "
+            "aplicando a la estimación base los cuantiles de los errores históricos del "
+            "walk-forward (por producto y horizonte, o por departamento y horizonte cuando "
+            "faltan datos), en escala logarítmica, y se recortan para que siempre se cumpla "
+            "bajo ≤ base ≤ alto. En series pequeñas, esos errores relativos pueden abrir "
+            "mucho el escenario alto en los horizontes más lejanos.\n"
+            "- **Diferencia con la predicción en vivo del Resumen:** aquí se muestran "
+            "resultados precalculados; la predicción en vivo de la pantalla 0. Resumen "
+            "consulta el componente LightGBM del modelo a través de la API.".format(
+                nombre_metodo if nombre_metodo else "no disponible en los metadatos")
         )
 
 

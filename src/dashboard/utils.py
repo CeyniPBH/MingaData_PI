@@ -118,6 +118,17 @@ def cargar_oferta_escenarios():
 
 
 @st.cache_data
+def cargar_oferta_detalle():
+    """Carga oferta_escenarios_detalle: oferta + columna `modelo` y `horizonte` por serie.
+    Permite identificar qué método (ingenuo o promedio_ingenuo_lgbm) corresponde a cada serie
+    sin suponerlo. Devuelve DataFrame vacío si el archivo no existe."""
+    df = _leer("oferta_escenarios_detalle", DATA_RES, dtype={"cod_dane": str})
+    if not df.empty and "cod_dane" in df.columns:
+        df["cod_dane"] = df["cod_dane"].astype(str).str.zfill(5)
+    return df
+
+
+@st.cache_data
 def cargar_oferta_departamento():
     """Carga oferta_departamento: producto, año, oferta_bajo/base/alto (suma de municipios)."""
     return _leer("oferta_departamento", DATA_RES)
@@ -300,10 +311,26 @@ def obtener_serie_historica(df_produccion, producto, cod_dane):
 
 
 def obtener_pronostico_municipio(df_oferta, producto, cod_dane):
-    """Devuelve pronostico 2024-2028 para un producto-municipio."""
+    """Devuelve el pronostico por año para un producto-municipio (bajo/base/alto)."""
     if df_oferta.empty:
         return pd.DataFrame()
     sub = df_oferta[
         (df_oferta["producto"] == producto) & (df_oferta["cod_dane"] == cod_dane)
     ][["año", "oferta_bajo", "oferta_base", "oferta_alto"]].sort_values("año")
     return sub
+
+
+def obtener_modelo_serie(df_detalle, producto, cod_dane):
+    """Devuelve el nombre del método usado por una serie segun los metadatos (columna
+    `modelo` de oferta_escenarios_detalle). Devuelve None si no hay dato, sin inventarlo."""
+    if df_detalle is None or df_detalle.empty or "modelo" not in df_detalle.columns:
+        return None
+    sub = df_detalle[
+        (df_detalle["producto"] == producto) & (df_detalle["cod_dane"] == cod_dane)
+    ]
+    if sub.empty:
+        return None
+    modelos = sorted(m for m in sub["modelo"].dropna().unique())
+    if not modelos:
+        return None
+    return modelos[0] if len(modelos) == 1 else ", ".join(modelos)
