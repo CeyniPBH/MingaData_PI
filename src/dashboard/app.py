@@ -33,6 +33,7 @@ st.set_page_config(
 import pandas as pd
 import plotly.graph_objects as go
 import folium
+import streamlit.components.v1 as components
 from streamlit_folium import st_folium
 
 # --- Leer secrets de Streamlit Cloud y establecer como variables de entorno ---
@@ -1399,13 +1400,14 @@ def pantalla_tablero_central():
         return
 
     st.caption(
-        "Vista de cobertura: responde cuánta área y producción alcanza cada sede "
-        "con datos históricos (promedio 2021-2023). No reemplaza la pantalla 3, "
-        "que minimiza el costo logístico con el pronóstico seleccionado. "
-        "El indicador 'recuperable' es una referencia del análisis original y no "
-        "se recalcula desde el CSV."
+        "Herramienta de exploración de cobertura: muestra cuánta área y producción "
+        "alcanza cada sede con datos históricos (promedio 2021-2023). No reemplaza la "
+        "pantalla 3, que minimiza el costo logístico con el pronóstico seleccionado. "
+        "El indicador 'recuperable' es una referencia del análisis original y no se "
+        "recalcula desde el CSV."
     )
-    st.iframe(html, height=1150)
+    # components.html permite desplazamiento vertical interno; así el tablero no se recorta.
+    components.html(html, height=1400, scrolling=True)
 
 
 # =============================================================================

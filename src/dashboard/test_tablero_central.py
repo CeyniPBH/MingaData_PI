@@ -159,7 +159,7 @@ def main():
         "Las hectareas del HTML son mayores que cero",
     )
 
-    print("\n--- 4. Hipotesis del tablero ---")
+    print("\n--- 4. Comparacion territorial centro-norte vs sur (calculo) ---")
 
     def _hav(a, b):
         radio_tierra = 6371.0
@@ -203,9 +203,47 @@ def main():
     razon = _ton(mejor_cn) / _ton(mejor_sur)
     check(
         1.85 <= razon < 2.0,
-        "A 40 km, el centro-norte requiere {:.2f} veces la capacidad del sur: menos del doble, "
-        "asi que la parte de tamano de la hipotesis no se cumple".format(razon),
+        "A 40 km, el centro-norte cubre {:.2f} veces el volumen captable del sur "
+        "(comparacion descriptiva)".format(razon),
     )
+    razon_area = _area(mejor_cn) / _area(mejor_sur)
+    check(
+        2.9 <= razon_area <= 3.2,
+        "A 40 km, el centro-norte cubre {:.2f} veces el area del sur".format(razon_area),
+    )
+
+    print("\n--- 5. Exploracion: sin modo de presentacion, controles visibles ---")
+    texto = ruta_html.read_text(encoding="utf-8")
+    cuerpo = texto.split("const D =")[0]  # excluye el payload de datos
+    check("Cobertura y capacidad de una central de acopio" in cuerpo,
+          "El encabezado usa el titulo descriptivo nuevo")
+    check("enfocar(" not in texto and "classList.toggle(\"f1\"" not in texto,
+          "No queda la funcion enfocar() ni el modo de presentacion f1/f2/f3")
+    for muerto in ("app.f1", "app.f2", "app.f3", "solo-f1", "#pregunta-1", "#veredicto"):
+        check(muerto not in cuerpo, "No queda la regla/elemento de presentacion: {}".format(muerto))
+    for pid in ('id="pregunta-1"', 'id="pregunta-2"', 'id="veredicto"'):
+        check(pid not in cuerpo, "No queda el bloque de pregunta/veredicto: {}".format(pid))
+    check('id="frase"' not in cuerpo and '"frase"' not in texto,
+          "pintar() no referencia elementos retirados (frase/q1/q2)")
+    check('"q1"' not in texto and '"q2"' not in texto,
+          "No quedan referencias DOM a q1/q2")
+    # Radio y captacion visibles, fuera de 'Ajustes'
+    check('id="c-radio"' in cuerpo and 'id="c-capt"' in cuerpo,
+          "Radio y captacion son controles visibles")
+    check('id="ajustes"' not in cuerpo and ">Ajustes<" not in cuerpo,
+          "El desplegable 'Ajustes' fue retirado")
+    # Seccion de comparacion territorial independiente y siempre visible
+    check('id="comparacion"' in cuerpo and "Comparación territorial" in cuerpo,
+          "La comparacion territorial es una seccion independiente y titulada")
+    check("display:none" not in texto.split("#comparacion")[1][:40],
+          "La comparacion no esta oculta por CSS")
+    # Recuperable en detalle secundario con su aclaracion
+    check('id="recuperable"' in cuerpo and "no sincronizada con el CSV" in cuerpo,
+          "El recuperable queda en un detalle secundario con la aclaracion visible")
+    # Sin veredicto de hipotesis en el texto visible
+    for prohibido in ("Hipótesis", "veredicto", "alcanza el doble", "no alcanza el doble"):
+        check(prohibido not in cuerpo,
+              "No queda lenguaje de hipotesis/veredicto en el cuerpo: '{}'".format(prohibido))
 
     return resumen()
 

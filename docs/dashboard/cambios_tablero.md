@@ -92,6 +92,40 @@ de cálculo, pruebas, documentación y capturas. **No** se tocaron `data/`, `src
 - La composición productiva (P3) usa toneladas promedio 2021-2023 por producto; algunos
   productos menores quedan agrupados en "Otros frutales".
 
+## Rediseño de la pantalla 4 (tablero central → herramienta de exploración)
+
+Cambio posterior, limitado a `src/dashboard/assets/tablero_central_acopio_valle.html`, su
+integración en `app.py` y las pruebas. No cambian fórmulas, fuentes ni valores iniciales.
+
+- **Encabezado:** título "Cobertura y capacidad de una central de acopio de fruta y
+  plátano" y descripción de exploración. Se retiraron los bloques "Pregunta 1", "Pregunta 2"
+  e "Hipótesis" y su numeración.
+- **Se eliminó el modo de presentación:** la función `enfocar()`, las clases `f1/f2/f3` y los
+  listeners `toggle` de pregunta/veredicto que cambiaban `st.sede`/`st.cap` al abrir un
+  texto. Abrir o cerrar un desplegable ya no cambia parámetros, ni oculta o atenúa paneles.
+  No se usó `opacity:1!important`: se retiró la lógica de presentación y se adaptaron las
+  referencias del DOM (se eliminaron `#frase`, `#q1`, `#q2` y `pintar()` ya no las toca).
+- **Controles visibles** debajo del título: municipio sede, radio de cobertura, captación,
+  capacidad anual de referencia y escenario de oferta. Radio y captación salieron del
+  desplegable "Ajustes" (eliminado). Rangos y valores por defecto sin cambios. Cada control
+  modifica solo su parámetro; cambiar sede/escenario/radio/captación no ajusta la capacidad.
+- **Resultados siempre explorables:** mapa de cobertura, superficie y composición, municipios
+  cubiertos, volumen captable, utilización y ranking, con títulos descriptivos. El ranking
+  ya no depende de `solo-f1`; si la sede no está entre las primeras, se añade con su puesto
+  real sin duplicados. La capacidad se rotula como referencia, no dimensionamiento; la
+  utilización como estimación, no operación garantizada; bajo/alto como escenarios históricos
+  sintéticos.
+- **Comparación territorial** en sección independiente "Comparación territorial: centro-norte
+  y sur", siempre visible, descriptiva (sin hipótesis ni veredicto ni "alcanza el doble").
+  Aclara que compara las mejores sedes de cada región por área y que puede diferir de la sede
+  del usuario; usa **siempre el escenario base** (rotulado). Solo el radio la afecta. El
+  "recuperable" quedó en un `<details>` con su aclaración de referencia no sincronizada.
+- **Integración Streamlit:** la pantalla 4 pasa de `st.iframe(html, …)` (que en Streamlit
+  1.67 espera una URL, no HTML) a `st.components.v1.html(html, height=1400, scrolling=True)`,
+  que embebe el HTML y permite desplazamiento vertical sin recortes.
+- **Figuras del informe afectadas:** Figuras 9 y 10 (capturas de la pantalla 4) quedan
+  desactualizadas; ver `docs/dashboard/capturas/README.md`.
+
 ## Documentado por separado (no implementado en este PR)
 
 Estas mejoras se registran como pendientes y **no** se implementan aquí:
