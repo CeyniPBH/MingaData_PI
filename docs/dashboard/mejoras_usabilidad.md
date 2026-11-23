@@ -5,13 +5,13 @@ Este documento describe los cambios de usabilidad aplicados a `src/dashboard/app
 ## Cambio principal: pantalla "0. Resumen" como punto de entrada
 
 - Se añade `"0. Resumen"` como primera opción del `st.sidebar.radio`.
-- El índice por defecto cambia de `4` (Tablero central) a `0` (Resumen), de modo que el usuario aterriza primero en el resumen ejecutivo antes de entrar al detalle.
+- El índice por defecto cambia de `4` (Cobertura y capacidad) a `0` (Resumen), de modo que el usuario aterriza primero en el resumen ejecutivo antes de entrar al detalle.
 - El resumen muestra KPIs globales (productos, municipios, horizonte, años de historial, exposición con y sin modelo) y tarjetas de navegación con drill-down a cada pantalla.
 
 ## Navegación
 
 - Sidebar con título "🌱 MingaData", subtítulo "Central de Acopio y Procesamiento" y ubicación "Valle del Cauca - Proyecto Integrador 1".
-- Radio de selección con las seis opciones: `0. Resumen`, `1. Oferta`, `2. Zonas`, `2b. Zonas de acopio`, `3. Ubicacion`, `4. Tablero central`.
+- Radio de selección con las seis opciones: `0. Resumen`, `1. Oferta`, `2. Zonas`, `2b. Zonas de acopio`, `3. Ubicacion`, `4. Cobertura y capacidad`.
 - Los filtros globales (año de pronóstico, escenario de oferta) se muestran en pantallas 1, 2, 2b y 3; en la pantalla 4 se indica que usa vista histórica 2021-2023 y no los filtros de pronóstico.
 - Panel "Estado de los datos" con conteos de productos, municipios y años de pronóstico.
 
@@ -26,7 +26,7 @@ Cada pantalla tiene un `st.title` declarativo seguido de un `st.markdown` de sub
 | 2 | Pantalla 2 - Zonas de Acopio | Mapa de municipios coloreados por oferta base, por producto y año |
 | 2b | Pantalla 2b - Zonas de Acopio (vecindad + agrupamiento espacial) | Zonas espaciales conexas; centros de zona son referencias, no ubicación óptima |
 | 3 | Pantalla 3 - Ubicacion de Central y Acopios Satelite (logística) | Minimiza costo logístico (t·min) con OR-Tools, flujo satélite→central explícito |
-| 4 | Pantalla 4 - Tablero central de Acopio (HTML) | Cobertura histórica promedio 2021-2023 por sede |
+| 4 | Pantalla 4 - Cobertura y capacidad (HTML) | Cobertura histórica promedio 2021-2023 por sede |
 
 ## Unidades
 

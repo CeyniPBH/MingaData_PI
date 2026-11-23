@@ -54,7 +54,7 @@ Este documento recopila los mensajes, callouts, advertencias y estados que muest
 | "Capacidades: se usan 5 satélites" | Siempre | Informativo | Parámetro fijo |
 | "El límite de tiempo NO se reduce por defecto para aparentar velocidad" | Expander solver | Informativo | Honestidad sobre el solver |
 
-## Pantalla 4 — Tablero central
+## Pantalla 4 — Cobertura y capacidad
 
 | Mensaje | Condición | Severidad | Propósito |
 |---|---|---|---|

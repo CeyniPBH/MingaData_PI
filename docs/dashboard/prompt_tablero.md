@@ -14,8 +14,8 @@ Minga Data busca dónde ubicar una central de acopio y procesamiento de fruta y 
 
 El tablero tiene dos piezas:
 
-- El tablero de cobertura, `src/dashboard/assets/tablero_central_acopio_valle.html`. Lo llena `tablero_central.py` con los datos de `data/clean/produccion_valle_clean.csv` y se ve en la pantalla "4. Tablero central". Las Figuras 9 y 10 del informe son capturas de esa vista.
-- La aplicación de Streamlit, `src/dashboard/app.py`, publicada en https://mingadatapi-4puozskgkscj82yxoxmc3q.streamlit.app. Tiene seis pantallas: "0. Resumen", "1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion" y "4. Tablero central". El resumen consulta la API publicada en Render (https://mingadata-api.onrender.com).
+- El tablero de cobertura, `src/dashboard/assets/tablero_central_acopio_valle.html`. Lo llena `tablero_central.py` con los datos de `data/clean/produccion_valle_clean.csv` y se ve en la pantalla "4. Cobertura y capacidad". Las Figuras 9 y 10 del informe son capturas de esa vista.
+- La aplicación de Streamlit, `src/dashboard/app.py`, publicada en https://mingadatapi-4puozskgkscj82yxoxmc3q.streamlit.app. Tiene seis pantallas: "0. Resumen", "1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion" y "4. Cobertura y capacidad". El resumen consulta la API publicada en Render (https://mingadata-api.onrender.com).
 
 No cambies los nombres de las pantallas en la barra lateral: el informe se refiere a ellas por esos nombres.
 

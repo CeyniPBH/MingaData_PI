@@ -205,9 +205,73 @@ def cargar_resumen_opt():
 
 
 @st.cache_data
+def cargar_estabilidad_opt():
+    """Carga data/results/opt/estabilidad_escenarios.csv (54 escenarios de 2024 y 2028)."""
+    return _leer("estabilidad_escenarios", DATA_RES_ROOT / "opt")
+
+
+@st.cache_data
 def cargar_metrica_negocio():
     """Carga el resumen de impacto logistico (10_metrica_negocio.py), si existe."""
     return _leer("metrica_negocio_resumen", DATA_RES)
+
+
+# ---------------------------------------------------------------------------
+# Formatos numéricos colombianos (coma decimal, punto de miles)
+# ---------------------------------------------------------------------------
+def _es_nulo(x):
+    try:
+        return x is None or (isinstance(x, float) and pd.isna(x))
+    except Exception:
+        return False
+
+
+def fmt_pct(fraccion, decimales=1, nd="n.d."):
+    """0.521 -> '52,1 %'. Recibe una fracción (0-1), no un porcentaje."""
+    if _es_nulo(fraccion):
+        return nd
+    txt = f"{100 * fraccion:,.{decimales}f}"
+    return txt.replace(",", "\u00a0").replace(".", ",").replace("\u00a0", ".") + " %"
+
+
+def fmt_puntos(fraccion_pp, decimales=1, nd="n.d."):
+    """Diferencia en puntos porcentuales. Recibe una fracción; 0.045 -> '+4,5 pp'."""
+    if _es_nulo(fraccion_pp):
+        return nd
+    signo = "+" if fraccion_pp >= 0 else "−"
+    txt = f"{abs(100 * fraccion_pp):,.{decimales}f}".replace(",", "\u00a0").replace(".", ",").replace("\u00a0", ".")
+    return f"{signo}{txt} pp"
+
+
+def fmt_entero(x, nd="n.d."):
+    """86348 -> '86.348'."""
+    if _es_nulo(x):
+        return nd
+    return f"{x:,.0f}".replace(",", ".")
+
+
+def fmt_toneladas(x, nd="n.d."):
+    """86348 -> '86.348 t'."""
+    if _es_nulo(x):
+        return nd
+    return fmt_entero(x) + " t"
+
+
+def fmt_millones_cop(x_cop, decimales=0, nd="n.d."):
+    """Valor en COP -> 'N millones' con separador de miles colombiano.
+    1_520_000_000 -> '1.520 millones'."""
+    if _es_nulo(x_cop):
+        return nd
+    millones = x_cop / 1e6
+    txt = f"{millones:,.{decimales}f}".replace(",", "\u00a0").replace(".", ",").replace("\u00a0", ".")
+    return f"{txt} millones"
+
+
+def fmt_razon(x, decimales=1, nd="n.d."):
+    """3.05 -> '3,0' (razón con coma decimal). Para '3,0 veces' añadir el sufijo."""
+    if _es_nulo(x):
+        return nd
+    return f"{x:,.{decimales}f}".replace(",", "\u00a0").replace(".", ",").replace("\u00a0", ".")
 
 
 def obtener_productos_disponibles(df_oferta):

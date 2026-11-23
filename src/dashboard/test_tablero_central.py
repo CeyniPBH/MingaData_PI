@@ -17,7 +17,9 @@ sys.path.insert(0, str(ROOT / "src" / "dashboard"))
 
 from tablero_central import (  # noqa: E402
     CATEGORIAS,
+    PATRON_DATOS,
     calcular_series_municipios,
+    construir_config,
     generar_html_tablero,
 )
 
@@ -104,8 +106,8 @@ def main():
     check(len(datos["dots"]) == 701, "El mapa conserva los puntos de hectareas")
     check("NaN" not in html, "El HTML no contiene valores NaN")
     check(
-        "Vista de cobertura" in html,
-        "El pie del tablero explica el alcance de la vista",
+        "Supuestos y alcance" in html and "optimización de la pantalla 3" in html,
+        "El pie del tablero explica el alcance de la vista en 'Supuestos y alcance'",
     )
     ids_csv = set(series)
     ids_html = {m["id"] for m in datos["muns"]}
@@ -159,7 +161,7 @@ def main():
         "Las hectareas del HTML son mayores que cero",
     )
 
-    print("\n--- 4. Hipotesis del tablero ---")
+    print("\n--- 4. Comparacion territorial centro-norte vs sur (calculo) ---")
 
     def _hav(a, b):
         radio_tierra = 6371.0
@@ -203,9 +205,87 @@ def main():
     razon = _ton(mejor_cn) / _ton(mejor_sur)
     check(
         1.85 <= razon < 2.0,
-        "A 40 km, el centro-norte requiere {:.2f} veces la capacidad del sur: menos del doble, "
-        "asi que la parte de tamano de la hipotesis no se cumple".format(razon),
+        "A 40 km, el centro-norte cubre {:.2f} veces el volumen captable del sur "
+        "(comparacion descriptiva)".format(razon),
     )
+    razon_area = _area(mejor_cn) / _area(mejor_sur)
+    check(
+        2.9 <= razon_area <= 3.2,
+        "A 40 km, el centro-norte cubre {:.2f} veces el area del sur".format(razon_area),
+    )
+
+    print("\n--- 5. Exploracion: sin modo de presentacion, controles visibles ---")
+    texto = ruta_html.read_text(encoding="utf-8")
+    cuerpo = texto.split("const D =")[0]  # excluye el payload de datos
+    check("Cobertura y capacidad de una central de acopio" in cuerpo,
+          "El encabezado usa el titulo descriptivo nuevo")
+    check("enfocar(" not in texto and "classList.toggle(\"f1\"" not in texto,
+          "No queda la funcion enfocar() ni el modo de presentacion f1/f2/f3")
+    for muerto in ("app.f1", "app.f2", "app.f3", "solo-f1", "#pregunta-1", "#veredicto"):
+        check(muerto not in cuerpo, "No queda la regla/elemento de presentacion: {}".format(muerto))
+    for pid in ('id="pregunta-1"', 'id="pregunta-2"', 'id="veredicto"'):
+        check(pid not in cuerpo, "No queda el bloque de pregunta/veredicto: {}".format(pid))
+    check('id="frase"' not in cuerpo and '"frase"' not in texto,
+          "pintar() no referencia elementos retirados (frase/q1/q2)")
+    check('"q1"' not in texto and '"q2"' not in texto,
+          "No quedan referencias DOM a q1/q2")
+    # Los controles se trasladaron a la barra lateral de Streamlit: no deben quedar en el HTML.
+    for cid in ('id="c-sede"', 'id="c-radio"', 'id="c-capt"', 'id="c-cap"', 'id="c-esc"',
+                'id="sede"', 'id="radio"', 'id="capt"', 'id="cap"', 'id="ajustes"'):
+        check(cid not in cuerpo, "No queda el control en el HTML: {}".format(cid))
+    check('name="esc"' not in cuerpo, "No queda el radiogroup de escenario en el HTML")
+    # En su lugar, una línea compacta de contexto
+    check('id="contexto"' in cuerpo and 'id="ctxLinea"' in cuerpo,
+          "El HTML conserva una línea de contexto (sin controles)")
+    # Seccion de comparacion territorial independiente y siempre visible
+    check('id="comparacion"' in cuerpo and "Comparación territorial" in cuerpo,
+          "La comparacion territorial es una seccion independiente y titulada")
+    check("display:none" not in texto.split("#comparacion")[1][:40],
+          "La comparacion no esta oculta por CSS")
+    # Recuperable en detalle secundario con su aclaracion
+    check('id="recuperable"' in cuerpo and "no sincronizada con el CSV" in cuerpo,
+          "El recuperable queda en un detalle secundario con la aclaracion visible")
+    # Sin veredicto de hipotesis en el texto visible
+    for prohibido in ("Hipótesis", "veredicto", "alcanza el doble", "no alcanza el doble"):
+        check(prohibido not in cuerpo,
+              "No queda lenguaje de hipotesis/veredicto en el cuerpo: '{}'".format(prohibido))
+
+    print("\n--- 6. Configuracion desde Streamlit (window.__CFG__) ---")
+    datos_html = json.loads(PATRON_DATOS.search(
+        ruta_html.read_text(encoding="utf-8")).group(1))
+    # Sin config: compatibilidad con las llamadas antiguas (no inyecta __CFG__).
+    html_sin = generar_html_tablero(ruta_html, produccion)
+    check("window.__CFG__ = " not in html_sin,
+          "Sin config, generar_html_tablero() no inyecta la asignacion __CFG__ (compatibilidad)")
+    # Con config valida: resuelve el DANE y serializa un JSON seguro.
+    cfg = construir_config(datos_html, cod_dane="76113", radio_km=40,
+                           captacion_pct=20, capacidad_t=100000, escenario="base")
+    check(cfg["cod_dane"] == "76113", "construir_config resuelve el cod_dane contra el payload")
+    html_cfg = generar_html_tablero(ruta_html, produccion, config=cfg)
+    m_cfg = re.search(r"window\.__CFG__ = (\{.*?\});</script>", html_cfg)
+    check(m_cfg is not None, "El HTML con config inyecta window.__CFG__ antes del bloque de datos")
+    if m_cfg:
+        # Está escapado (<,>,& como \u00xx); al desescapar debe ser el JSON esperado.
+        crudo = m_cfg.group(1).replace("\\u003c", "<").replace("\\u003e", ">").replace("\\u0026", "&")
+        obj = json.loads(crudo)
+        check(obj == cfg, "window.__CFG__ coincide con la configuracion enviada")
+        check("</script" not in m_cfg.group(1), "El JSON inyectado no puede cerrar el <script>")
+    # Validaciones de rango/opciones.
+    for kwargs, motivo in [
+        (dict(cod_dane="00000"), "cod_dane inexistente"),
+        (dict(radio_km=10), "radio fuera de rango"),
+        (dict(captacion_pct=60), "captacion fuera de rango"),
+        (dict(capacidad_t=5000), "capacidad fuera de rango"),
+        (dict(escenario="medio"), "escenario invalido"),
+    ]:
+        try:
+            construir_config(datos_html, **kwargs)
+            check(False, "construir_config rechaza: {}".format(motivo))
+        except ValueError:
+            check(True, "construir_config rechaza: {}".format(motivo))
+    # El HTML ya no trae controles; el estado inicial lo fija __CFG__ y pintar().
+    check("window.__CFG__" in html_cfg and "const CFG = (window.__CFG__" in html_cfg,
+          "El JavaScript lee la configuracion recibida (window.__CFG__)")
 
     return resumen()
 
