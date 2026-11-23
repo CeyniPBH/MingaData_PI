@@ -10,9 +10,12 @@
 <style>
 /* Exploración: título y controles arriba, mapa de puntos a la izquierda, resultados a la derecha y comparación territorial abajo. */
 :root{
+  /* Interfaz alineada con el dashboard: neutros grises + acento rojo. El acento es solo
+     decorativo/funcional (selección, foco, cifras, sede en el mapa); NO codifica cultivos. */
   --bg:#F4F5F8; --surface:#FFFFFF; --ink:#18212D; --muted:#667085; --line:#E1E5EB;
-  --map:#DFE2E7; --map-cov:#C9D1DC; --map-edge:#FFFFFF; --dot-off:#98A1AE;
-  --accent:#002855; --on-accent:#FFFFFF; --track:#E4E7EC;
+  --map:#DFE2E7; --map-cov:#CDD3DB; --map-edge:#FFFFFF; --dot-off:#98A1AE;
+  --accent:#D62828; --on-accent:#FFFFFF; --track:#E4E7EC;
+  /* Colores de cultivo (categorías, con significado): no se modifican. */
   --c0:#E8A800; --c1:#1E8A6E; --c2:#E5601A; --c3:#8E6BBF; --c4:#8B3A0E;
   --t0:#201600; --t1:#FFFFFF; --t2:#220C00; --t3:#FFFFFF; --t4:#FFFFFF; --tg:#18212D;
   --display:"Archivo","Arial Narrow",Arial,sans-serif;
@@ -22,15 +25,15 @@
   :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg:#0F141B; --surface:#171E28; --ink:#E9EDF3; --muted:#9BA6B5; --line:#283241;
-    --map:#28313E; --map-cov:#3B4759; --map-edge:#171E28; --dot-off:#6F7A8A;
-    --accent:#9CC0F2; --on-accent:#0B1626; --track:#2A3443; --c4:#C97445; --t4:#220C00; --tg:#FFFFFF;
+    --map:#28313E; --map-cov:#3C434E; --map-edge:#171E28; --dot-off:#6F7A8A;
+    --accent:#FF6B6B; --on-accent:#0B1626; --track:#2A3443; --c4:#C97445; --t4:#220C00; --tg:#FFFFFF;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#0F141B; --surface:#171E28; --ink:#E9EDF3; --muted:#9BA6B5; --line:#283241;
-  --map:#28313E; --map-cov:#3B4759; --map-edge:#171E28; --dot-off:#6F7A8A;
-  --accent:#9CC0F2; --on-accent:#0B1626; --track:#2A3443; --c4:#C97445; --t4:#220C00; --tg:#FFFFFF;
+  --map:#28313E; --map-cov:#3C434E; --map-edge:#171E28; --dot-off:#6F7A8A;
+  --accent:#FF6B6B; --on-accent:#0B1626; --track:#2A3443; --c4:#C97445; --t4:#220C00; --tg:#FFFFFF;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}

@@ -276,6 +276,38 @@ nombra "Tablero central" deben citar el nuevo nombre "Cobertura y capacidad". No
 `src/informe/` ni `docs/informe/`; el ajuste del informe queda fuera de este PR y se registra
 aquí y en `docs/dashboard/capturas/README.md`.
 
+## Apariencia del tablero HTML de la pantalla 4 (grises y rojo)
+
+Cambio solo de apariencia en `src/dashboard/assets/tablero_central_acopio_valle.html`; no
+toca distribución, controles, cálculos, datos ni comportamiento.
+
+- **Paleta alineada con el dashboard:** el acento decorativo/funcional de la interfaz pasó de
+  azul a **rojo** (tema claro `--accent:#002855 → #D62828`; tema oscuro `#9CC0F2 → #FF6B6B`),
+  consistente con el rojo del dashboard. El acento se usa solo en elementos sin significado de
+  categoría: cifras grandes, insignia de puesto, marcador de la sede y anillo de cobertura en
+  el mapa, barra de utilización, barra de la sede en el ranking, foco accesible y la barra
+  "Centro-norte" de la comparación. Se usa con moderación y no como señal de error.
+- **De-azulado de un gris de cobertura:** `--map-cov` (sombra de los municipios cubiertos)
+  pasó de un gris azulado a uno neutro (claro `#C9D1DC → #CDD3DB`; oscuro `#3B4759 → #3C434E`).
+- **Colores de cultivo intactos:** las variables de categoría `--c0..--c4` (y sus colores de
+  texto `--t0..--t4`, `--tg`) **no se modificaron**. Los puntos del mapa, las barras de
+  composición, la leyenda y los tooltips conservan exactamente el mismo color por cultivo.
+  Antes de recolorear se verificó que `--accent` nunca codifica un cultivo (los cultivos usan
+  `--c*` vía `COL`), por lo que no hizo falta separar variables.
+- **Señales funcionales distinguibles sin depender del color:** la sede se marca con un anillo
+  de trazo grueso sobre el mapa; la cobertura, con su anillo; el puesto, con la insignia de
+  texto "N.º X de 42"; las advertencias, con el icono ⚠ y texto. El punto fuera de cobertura
+  sigue en gris (`--dot-off`), distinto del cultivo.
+- **Temas claro y oscuro:** se conservaron ambos; el acento rojo y los neutros mantienen
+  contraste de texto en los dos temas (texto blanco sobre el rojo claro, texto oscuro sobre el
+  rojo claro del tema oscuro).
+
+Validación: jsdom confirma que no hay errores de JavaScript, que el acento ya no es azul en
+ningún tema, que los cinco colores de cultivo siguen intactos y que los puntos cubiertos usan
+`var(--cN)` mientras los no cubiertos usan `var(--dot-off)`. `pytest -q tests/` (72) y
+`test_tablero_central.py` pasan. **Revisión visual en navegador: pendiente** (entorno
+headless); procedimiento en `capturas/README.md`.
+
 ## Documentado por separado (no implementado en este PR)
 
 Estas mejoras se registran como pendientes y **no** se implementan aquí:
