@@ -214,12 +214,45 @@ def opt_estabilidad_cache(anio, consumo, mezcla, modo, k, lam, tiempo_limite_s, 
     return df.reset_index(drop=True), faltantes
 
 # =============================================================================
+# MODELO DE COBERTURA (compartido por el resumen y su selector de sede)
+# =============================================================================
+@st.cache_data(show_spinner=False)
+def _modelo_cobertura():
+    """Construye la lista de municipios del tablero una vez (reusa el payload del tablero)."""
+    prod = cargar_produccion_limpia()
+    return cob.cargar_municipios_tablero(prod)
+
+
+def _resumen_opciones_sede():
+    """Devuelve (lista de nombres de sede ordenada por cobertura, sede por defecto)."""
+    muns = _modelo_cobertura()
+    modelo = cob.ModeloCobertura(muns)
+    rk = modelo.ranking_area()
+    return list(rk["sede"]), rk.iloc[0]["sede"]
+
+
+def _resumen_sede_sidebar():
+    """Selector de sede del resumen, en la barra lateral, con el mismo key y default.
+    Se renderiza inmediatamente debajo del selector de pantalla."""
+    try:
+        nombres, sede_default = _resumen_opciones_sede()
+    except Exception:
+        return
+    st.sidebar.selectbox(
+        "Sede del resumen (42 municipios):", nombres,
+        index=nombres.index(sede_default), key="resumen_sede",
+    )
+    st.sidebar.caption("Selecciona una sede para actualizar los indicadores y gráficos")
+
+
+# =============================================================================
 # SIDEBAR - NAVEGACION
 # =============================================================================
 st.sidebar.title("🌱 MingaData")
 st.sidebar.markdown("**Central de Acopio y Procesamiento**")
 st.sidebar.markdown("Valle del Cauca - Proyecto Integrador 1")
 
+# 1. Selector de pantalla (siempre primero)
 pantalla = st.sidebar.radio(
     "Seleccionar pantalla:",
     ["0. Resumen", "1. Oferta", "2. Zonas", "2b. Zonas de acopio", "3. Ubicacion", "4. Tablero central"],
@@ -228,18 +261,26 @@ pantalla = st.sidebar.radio(
 
 anos_disponibles = sorted(oferta["año"].unique()) if not oferta.empty else [2024]
 
-if pantalla not in ("0. Resumen", "4. Tablero central"):
+# 2. Segmentadores y controles de la pantalla activa (antes de los bloques informativos)
+if pantalla == "0. Resumen":
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### Filtros globales")
-    ano_seleccionado = st.sidebar.selectbox("Anio de pronostico:", anos_disponibles, index=0)
-    escenario = st.sidebar.selectbox("Escenario de oferta:", ["base", "bajo", "alto"], index=0)
-else:
-    st.sidebar.markdown("---")
-    st.sidebar.caption("Vista resumen o histórica 2021-2023. No usa los filtros de pronóstico.")
+    st.sidebar.markdown("### Filtros de esta vista")
+    _resumen_sede_sidebar()
     ano_seleccionado = anos_disponibles[0]
     escenario = "base"
+elif pantalla == "4. Tablero central":
+    ano_seleccionado = anos_disponibles[0]
+    escenario = "base"
+else:
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Filtros de esta vista")
+    ano_seleccionado = st.sidebar.selectbox("Anio de pronostico:", anos_disponibles, index=0)
+    escenario = st.sidebar.selectbox("Escenario de oferta:", ["base", "bajo", "alto"], index=0)
 
+# 3. Información complementaria (estado de los datos, notas de la vista)
 st.sidebar.markdown("---")
+if pantalla in ("0. Resumen", "4. Tablero central"):
+    st.sidebar.caption("Vista resumen o histórica 2021-2023. No usa los filtros de pronóstico.")
 st.sidebar.markdown("### Estado de los datos")
 st.sidebar.info(f"""
 - Productos: {oferta['producto'].nunique() if not oferta.empty else 0}
@@ -321,13 +362,6 @@ def pantalla_resumen():
 # =============================================================================
 # PANTALLA 0: RESUMEN EJECUTIVO (rediseño conforme al manual)
 # =============================================================================
-@st.cache_data(show_spinner=False)
-def _modelo_cobertura():
-    """Construye la lista de municipios del tablero una vez (reusa el payload del tablero)."""
-    prod = cargar_produccion_limpia()
-    return cob.cargar_municipios_tablero(prod)
-
-
 def _barras_figura(fig, alto=320):
     fig.update_layout(
         template="plotly_white", height=alto,
@@ -451,14 +485,15 @@ def _pantalla_resumen_impl():
     modelo = cob.ModeloCobertura(muns)
 
     # --- Filtro: sede entre los 42 municipios, por defecto la de mayor cobertura ---
+    # El selector vive en la barra lateral (justo debajo del selector de pantalla); aquí
+    # se lee su valor por su key, sin recrear el widget.
     rk = modelo.ranking_area()
     nombres = list(rk["sede"])
     cod_por_nombre = dict(zip(rk["sede"], rk["cod_dane"]))
     sede_default = rk.iloc[0]["sede"]  # mayor cobertura de área, calculada
-    sede_sel = st.sidebar.selectbox(
-        "Sede del resumen (42 municipios):", nombres,
-        index=nombres.index(sede_default), key="resumen_sede",
-    )
+    sede_sel = st.session_state.get("resumen_sede", sede_default)
+    if sede_sel not in cod_por_nombre:
+        sede_sel = sede_default
     sede_cod = cod_por_nombre[sede_sel]
     sur_cod = modelo.mejor_sede(("Sur",))
     sur_nombre = modelo.nombre(sur_cod)
