@@ -4,10 +4,10 @@ Proyecto para planear una central de acopio agrícola en el Valle del Cauca. El 
 
 ## Autores
 
-- **Carlos Guillermo Zúñiga Méndez** — Diagramas, informes y documentación
-- **Ceyni Paola Beltrán Hoyos** — Datos, baselines, modelo LightGBM y escenarios de oferta
-- **Samuel Gutiérrez Jaramillo** — Optimización (OR-Tools), tablero Streamlit y excedentes
-- **Alejandro Rendón Correa** — Zonas de acopio, escenarios de optimización y tablero
+- **Carlos Guillermo Zúñiga Méndez**: diagramas, informes y documentación
+- **Ceyni Paola Beltrán Hoyos**: datos, baselines, modelo LightGBM y escenarios de oferta
+- **Samuel Gutiérrez Jaramillo**: optimización (OR-Tools), tablero Streamlit y excedentes
+- **Alejandro Rendón Correa**: zonas de acopio, escenarios de optimización y tablero
 
 ## Ejecutar el proyecto
 
@@ -55,6 +55,9 @@ python -m pytest tests\ML_C -q
 - `docs/dashboard/`: matriz de trazabilidad de las preguntas de negocio (`matriz_trazabilidad.md`), narrativa visual, auditoría de mensajes y mejoras de usabilidad.
 - `docs/informe/`: figuras del informe final y guía para regenerarlas, junto con las cifras que no están en `data/results`, con `python src/informe/ejecutar_todo.py`.
 - `docs/evaluacion/matriz_rubrica_evidencias.md`: matriz de criterios de rúbrica y evidencias.
+- `docs/diagramas/`: los tres diagramas del proyecto (arquitectura y flujo de datos, frontera entre el pronóstico y la optimización, pantallas del tablero) en PNG y en `.drawio`, con sus leyendas en `leyendas.md`.
+- `docs/criterios_exito.md`, `docs/metodologia_efectividad.md`, `docs/calidad_y_limitaciones.md` y `docs/fuentes_y_licencias.md`: informes base del proyecto.
+- `docs/informe_final/`: informe final (`Informe_final_MingaData.docx`) y presentación de la sustentación (`Sustentacion_MingaData.pptx`).
 
 Al leer CSV, conserva `cod_dane` como texto para no perder ceros iniciales:
 
@@ -69,7 +72,7 @@ oferta = pd.read_csv(
 
 ## Estado y pendientes
 
-Los módulos de pronóstico, zonas de acopio, excedentes, escenarios, optimización, tablero, arquitectura, documentación y pruebas están implementados. Queda como pendiente el informe final (sustentación), que está fuera del alcance de este entregable por instrucción.
+Los módulos de pronóstico, zonas de acopio, excedentes, escenarios, optimización, tablero, arquitectura, documentación y pruebas están implementados. El informe final y la presentación de la sustentación (24 de noviembre de 2026) están en `docs/informe_final/`.
 
 - La matriz de tiempos actual es aproximada (línea recta × 1,4 / 45 km/h); OSM/OSRM no está incorporado.
 - La población municipal DANE está procesada en `data/clean/poblacion_municipal.csv`.
@@ -96,7 +99,7 @@ python src\ML_C\ejecutar_todo.py
 
 ## Ejecutar el tablero interactivo (Streamlit)
 
-El tablero tiene seis opciones: `0. Resumen` (pantalla de aterrizaje, por defecto), `1. Oferta`, `2. Zonas`, `2b. Zonas de acopio`, `3. Ubicación` y `4. Tablero central`.
+El tablero tiene seis opciones: `0. Resumen` (pantalla de aterrizaje, por defecto), `1. Oferta`, `2. Zonas`, `2b. Zonas de acopio`, `3. Ubicacion` y `4. Cobertura y capacidad`.
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
@@ -105,7 +108,7 @@ streamlit run src/dashboard/app.py
 
 Luego abre http://localhost:8501 en tu navegador.
 
-## Despliegue en la nube (opcional — Opción B)
+## Despliegue en la nube (opcional, opción B)
 
 Se puede alcanzar el nivel "Excelente" de SI7006-6 desplegando la API y el tablero en la nube. Esto es opcional; todo funciona igualmente en local.
 
@@ -155,8 +158,8 @@ La app está publicada en modo **público** y verificada el 2026-11-21: abre sin
 1. **Oferta**: selecciona producto y municipio para ver la serie histórica (2000-2023) y el pronóstico con intervalo bajo/base/alto (2024-2028). Drill-down producto → municipios.
 2. **Zonas**: mapa con los 42 municipios coloreados por oferta pronosticada, por producto y año.
 2b. **Zonas de acopio**: polígonos de zona, centros de referencia, volúmenes nacional/exportación y advertencia de cobertura parcial. Drill-down zona → municipios y descargas filtradas.
-3. **Ubicación**: mapa con la central y acopios satélite, frontera de Pareto (costo de recolección vs distribución) y tabla de estabilidad por escenario. Optimización bajo demanda al pulsar "Calcular optimización".
-4. **Tablero central**: vista de cobertura con datos históricos (promedio 2021-2023). Responde cuánta área y producción alcanza cada sede; no reemplaza la pantalla 3, que minimiza el costo logístico (t·min) con el pronóstico 2024-2028. El indicador "recuperable" es una referencia del análisis original y no se recalcula desde el CSV.
+3. **Ubicación**: mapa con la central y acopios satélite, frontera de Pareto (costo de recolección vs distribución) y tabla de estabilidad por escenario. Optimización bajo demanda al pulsar "Calcular ubicación".
+4. **Cobertura y capacidad**: vista de cobertura con datos históricos (promedio 2021-2023). Los controles (sede, radio, captación y escenario) están en la barra lateral. Muestra cuánta área y producción alcanza cada sede y trae la comparación territorial entre sedes. La pantalla 3 es otra cosa: minimiza el costo logístico (t·min) con el pronóstico 2024-2028. El indicador "recuperable" es una referencia del análisis original y no se recalcula desde el CSV.
 
 Cada pantalla tiene título declarativo, subtítulo, unidades explícitas (t, t·min, COP, %) y callouts informativos. Las cadenas requeridas por `test_tarea3.py` (`Pantalla 1 - Oferta`, `Pantalla 2 - Zonas`, `Pantalla 3 - Ubicacion`) se conservan intactas.
 
